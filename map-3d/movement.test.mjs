@@ -18,6 +18,17 @@ test("tile indices are sequential and every edge including corners is connected"
   }
 });
 
+test("tile meshes do not overlap at any of the four corners", () => {
+  const tileWidth = 1.82;
+  for (let first = 0; first < TILE_POSITIONS.length; first += 1) {
+    for (let second = first + 1; second < TILE_POSITIONS.length; second += 1) {
+      const deltaX = Math.abs(TILE_POSITIONS[first][0] - TILE_POSITIONS[second][0]);
+      const deltaZ = Math.abs(TILE_POSITIONS[first][2] - TILE_POSITIONS[second][2]);
+      assert.ok(deltaX >= tileWidth || deltaZ >= tileWidth, `tiles ${first} and ${second} overlap`);
+    }
+  }
+});
+
 test("multi-step movement visits every intermediate tile", () => {
   assert.deepEqual(buildTilePath(5, 4), [6, 7, 8, 9]);
 });

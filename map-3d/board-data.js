@@ -8,18 +8,18 @@ export const DISTRICTS = [
   { id: "green", name: "Green AI", position: [5.2, 1.05, 4.2], color: "#59d184", rotation: 0.18 },
 ];
 
-function perimeterPoint(index, count = 32) {
-  const side = count / 4;
-  const step = index % side;
-  const t = (step + .5) / side;
-  const edge = Math.floor(index / side);
+function perimeterPoint(index) {
   const span = 17.4;
   const min = -span / 2;
   const max = span / 2;
-  if (edge === 0) return [min + span * t, .82, min];
-  if (edge === 1) return [max, .82, min + span * t];
-  if (edge === 2) return [max - span * t, .82, max];
-  return [min, .82, max - span * t];
+  const step = span / 8;
+
+  // Four corners are shared by adjoining edges instead of being duplicated.
+  // 9 top + 7 right + 9 bottom + 7 left = 32 non-overlapping tiles.
+  if (index <= 8) return [min + step * index, .82, min];
+  if (index <= 15) return [max, .82, min + step * (index - 8)];
+  if (index <= 24) return [max - step * (index - 16), .82, max];
+  return [min, .82, max - step * (index - 24)];
 }
 
 export const BOARD_TILES = Array.from({ length: 32 }, (_, index) => ({
