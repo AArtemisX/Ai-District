@@ -45,6 +45,17 @@ Dependencies ถูกล็อกเวอร์ชันผ่าน Import Ma
 
 รันชุดทดสอบทั้งหมดด้วย `node --test map-3d/movement.test.mjs map-3d/turn-manager.test.mjs`
 
+## AI Scenario System
+
+- `scenario-data.js` — สถานการณ์ใช้งาน AI จริง 8 เรื่อง ครอบคลุม AI Literacy และ AI Ethics
+- `scenario-engine.js` — เลือกสถานการณ์ ประเมินผล TIMEOUT คำนวณ DP และ Logic บอท โดยไม่ผูกกับ UI
+- `ScenarioModal.js` — หน้าตัดสินใจและผลตอบกลับที่แสดงด้านข้างกระดาน
+- แต่ละสถานการณ์มี 3 แนวทาง ให้ 3/1/0 DP ตามคุณภาพการตัดสินใจ และใช้เวลา 30–60 วินาที
+- ผลลัพธ์เตรียมฟิลด์ `resources` และ `buildRights` ไว้สำหรับเชื่อม District Development ใน Phase 4
+- คะแนนผู้เล่นและบอทแยกกัน บอทระดับ Standard มีโอกาสเลือก BEST/GOOD/POOR 55%/30%/15%
+
+รันชุดทดสอบ Phase 3 ด้วย `node --test map-3d/scenario-engine.test.mjs`
+
 ## เปลี่ยนอาคารเป็น GLB ภายหลัง
 
 `District` เรียกอาคารผ่าน `BuildingModelSlot` แทนการเรียก primitive โดยตรง เมื่อต้องใช้ GLB ให้เปลี่ยน implementation ใน `BuildingModelSlot` เป็น `useGLTF(modelUrl)` แล้วส่ง `modelUrl` ผ่าน state ของ District ได้ โดยไม่ต้องแก้ตำแหน่งฐานหรือระบบเจ้าของพื้นที่

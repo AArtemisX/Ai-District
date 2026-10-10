@@ -1,10 +1,12 @@
-import React, { Suspense, useEffect, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Canvas } from "@react-three/fiber";
 import { html } from "./map-3d/runtime.js";
 import { BOARD_TILES, DISTRICTS, buildTilePath } from "./map-3d/board-data.js";
 import { MapScene } from "./map-3d/MapScene.js";
 import { GAME_PHASES, PHASE_LABELS, getTileEvent, nextTurn, rollDie, transitionPhase } from "./map-3d/turn-manager.js";
+import { ScenarioModal } from "./map-3d/ScenarioModal.js";
+import { addDecisionPoints, chooseBotChoice, createTimeoutResult, resolveScenarioChoice, selectScenario } from "./map-3d/scenario-engine.js";
 
 const initialDistricts = Object.fromEntries(DISTRICTS.map((district) => [district.id, {
   status: "empty",
@@ -29,13 +31,17 @@ function App() {
   const [actionSeconds, setActionSeconds] = useState(0);
   const [lastActionResult, setLastActionResult] = useState(null);
   const [round, setRound] = useState(1);
+  const [decisionPoints, setDecisionPoints] = useState({ player: 0, bot: 0 });
+  const [scenarioSession, setScenarioSession] = useState(null);
+  const [scenarioFeedback, setScenarioFeedback] = useState(null);
+  const [scenarioHistory, setScenarioHistory] = useState([]);
 
   const selectedTileData = BOARD_TILES[selectedTile];
   const selectedDistrictData = DISTRICTS.find((district) => district.id === selectedDistrict);
-  const builtCount = useMemo(() => Object.values(districtStates).filter((district) => district.status === "built").length, [districtStates]);
   const activePosition = currentTurn === "player" ? playerPosition : botPosition;
   const currentTile = landedTile || getTileEvent(activePosition);
-  const eventPanelOpen = [GAME_PHASES.TILE_EVENT, GAME_PHASES.ACTION_PHASE, GAME_PHASES.TURN_END].includes(gamePhase);
+  const isScenarioTile = currentTile.type === "AI_SCENARIO";
+  const eventPanelOpen = !isScenarioTile && [GAME_PHASES.TILE_EVENT, GAME_PHASES.ACTION_PHASE, GAME_PHASES.TURN_END].includes(gamePhase);
   const canPlayerRoll = currentTurn === "player" && gamePhase === GAME_PHASES.WAITING && !isMoving;
 
   function advancePhase(nextPhase) {
@@ -48,6 +54,8 @@ function App() {
     setDiceResult(null);
     setLandedTile(null);
     setLastActionResult(null);
+    setScenarioSession(null);
+    setScenarioFeedback(null);
     setRollRequest({ id: `${actor}-${performance.now()}`, actor, value });
     advancePhase(GAME_PHASES.ROLLING);
   }
@@ -66,7 +74,17 @@ function App() {
     if (actor === "player") setPlayerPosition(finalIndex);
     else setBotPosition(finalIndex);
     setSelectedTile(finalIndex);
-    setLandedTile(getTileEvent(finalIndex));
+    const tileEvent = getTileEvent(finalIndex);
+    setLandedTile(tileEvent);
+    if (tileEvent.type === "AI_SCENARIO") {
+      const scenario = selectScenario(finalIndex, scenarioHistory.map((result) => result.scenarioId));
+      setScenarioSession({ id: `${actor}-${scenario.scenarioId}-${performance.now()}`, actor, scenario, status: "PENDING" });
+      setScenarioFeedback(null);
+      setActionSeconds(scenario.timeLimit);
+    } else {
+      setScenarioSession(null);
+      setScenarioFeedback(null);
+    }
     setMovement(null);
     setIsMoving(false);
     advancePhase(GAME_PHASES.TILE_EVENT);
@@ -74,7 +92,26 @@ function App() {
 
   function finishAction(reason = "continue") {
     if (gamePhase !== GAME_PHASES.ACTION_PHASE || !landedTile) return;
+    if (landedTile.type === "AI_SCENARIO") return;
     setLastActionResult(reason === "timeout" ? landedTile.safeResult : "ดำเนินการเรียบร้อย");
+    advancePhase(GAME_PHASES.TURN_END);
+  }
+
+  function recordScenarioResult(result) {
+    setScenarioFeedback(result);
+    setScenarioSession((current) => current ? { ...current, status: "RESULT" } : current);
+    setDecisionPoints((scores) => addDecisionPoints(scores, result));
+    setScenarioHistory((history) => [...history, result]);
+  }
+
+  function chooseScenario(choiceId) {
+    if (gamePhase !== GAME_PHASES.ACTION_PHASE || currentTurn !== "player" || !scenarioSession || scenarioFeedback) return;
+    recordScenarioResult(resolveScenarioChoice(scenarioSession.scenario, choiceId, "player"));
+  }
+
+  function finishScenarioAction() {
+    if (gamePhase !== GAME_PHASES.ACTION_PHASE || !scenarioFeedback) return;
+    setLastActionResult(`${scenarioFeedback.status} · +${scenarioFeedback.decisionPoints} DP`);
     advancePhase(GAME_PHASES.TURN_END);
   }
 
@@ -86,6 +123,22 @@ function App() {
 
   useEffect(() => {
     if (gamePhase !== GAME_PHASES.ACTION_PHASE || !landedTile) return undefined;
+    if (landedTile.type === "AI_SCENARIO") {
+      if (!scenarioSession || scenarioFeedback) return undefined;
+      const duration = Math.max(30, scenarioSession.scenario.timeLimit);
+      setActionSeconds(duration);
+      const ticker = window.setInterval(() => setActionSeconds((seconds) => Math.max(0, seconds - 1)), 1000);
+      const timeout = window.setTimeout(() => recordScenarioResult(createTimeoutResult(scenarioSession.scenario, currentTurn)), duration * 1000);
+      const botAction = currentTurn === "bot" ? window.setTimeout(() => {
+        const botChoice = chooseBotChoice(scenarioSession.scenario, "standard");
+        recordScenarioResult(resolveScenarioChoice(scenarioSession.scenario, botChoice.id, "bot"));
+      }, 1100) : null;
+      return () => {
+        window.clearInterval(ticker);
+        window.clearTimeout(timeout);
+        if (botAction) window.clearTimeout(botAction);
+      };
+    }
     const duration = Math.max(30, landedTile.duration);
     setActionSeconds(duration);
     const ticker = window.setInterval(() => setActionSeconds((seconds) => Math.max(0, seconds - 1)), 1000);
@@ -96,7 +149,14 @@ function App() {
       window.clearTimeout(timeout);
       if (botAction) window.clearTimeout(botAction);
     };
-  }, [gamePhase, landedTile, currentTurn]);
+  }, [gamePhase, landedTile, currentTurn, scenarioSession, scenarioFeedback]);
+
+  useEffect(() => {
+    if (gamePhase !== GAME_PHASES.ACTION_PHASE || !scenarioFeedback) return undefined;
+    if (scenarioFeedback.actor === "player" && scenarioFeedback.status !== "TIMEOUT") return undefined;
+    const timer = window.setTimeout(finishScenarioAction, 1200);
+    return () => window.clearTimeout(timer);
+  }, [gamePhase, scenarioFeedback]);
 
   useEffect(() => {
     if (gamePhase !== GAME_PHASES.TURN_END) return undefined;
@@ -105,6 +165,8 @@ function App() {
       if (currentTurn === "bot" && next === "player") setRound((value) => value + 1);
       setCurrentTurn(next);
       setActionSeconds(0);
+      setScenarioSession(null);
+      setScenarioFeedback(null);
       advancePhase(GAME_PHASES.WAITING);
     }, 520);
     return () => window.clearTimeout(timer);
@@ -164,7 +226,7 @@ function App() {
           <div className="map-stat"><span>ตำแหน่งผู้เล่น / บอท</span><strong>${playerPosition + 1} / ${botPosition + 1}</strong></div>
           <div className="map-stat"><span>ช่องปัจจุบัน</span><strong>${currentTile.tileIndex + 1} · ${currentTile.type}</strong></div>
           <div className="map-stat"><span>ผลลูกเต๋า</span><strong>${gamePhase === GAME_PHASES.ROLLING ? "กำลังหมุน…" : diceResult ?? "—"}</strong></div>
-          <div className="map-stat"><span>District</span><strong>${builtCount} / ${DISTRICTS.length} สร้างแล้ว</strong></div>
+          <div className="map-stat"><span>Decision Points</span><strong>${decisionPoints.player} / ${decisionPoints.bot} DP</strong></div>
         </div>
         <div className="map-actions">
           <button type="button" className="primary roll-button" disabled=${!canPlayerRoll} onClick=${() => startRoll("player")}>${currentTurn === "bot" ? "บอทกำลังเล่น…" : gamePhase === GAME_PHASES.WAITING ? "ทอยลูกเต๋า" : PHASE_LABELS[gamePhase]}</button>
@@ -192,6 +254,15 @@ function App() {
         ` : null}
         ${gamePhase === GAME_PHASES.TURN_END ? html`<div className="event-result">${lastActionResult || currentTile.safeResult}</div>` : null}
       </section>
+
+      <${ScenarioModal}
+        session=${scenarioSession}
+        feedback=${scenarioFeedback}
+        seconds=${actionSeconds}
+        gamePhase=${gamePhase}
+        onChoose=${chooseScenario}
+        onContinue=${finishScenarioAction}
+      />
 
       <div className="selection-chip">${selectedTileData.index + 1} · ${selectedTileData.type}</div>
       <div className="map-help">ลากเพื่อหมุน · เลื่อนล้อเพื่อซูม · ลูกเต๋าและการเดินทำงานตาม State Machine</div>
