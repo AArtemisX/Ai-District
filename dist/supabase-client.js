@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.117.3";
 
 const SUPABASE_URL = "https://urkimjcqsfidxwnnrclc.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_McCdc2NqCwM512yEUMXIjg_ISHyhzKs";
+const PRODUCTION_ORIGIN = "https://neon-nexus-login-lobby.teanamaster.chatgpt.site";
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
@@ -14,6 +15,14 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     detectSessionInUrl: true,
   },
 });
+
+export function authRedirectUrl(path) {
+  const localHostnames = new Set(["localhost", "127.0.0.1"]);
+  const origin = localHostnames.has(window.location.hostname)
+    ? PRODUCTION_ORIGIN
+    : window.location.origin;
+  return new URL(path, `${origin}/`).toString();
+}
 
 export async function clearAuthSession() {
   try {

@@ -1,4 +1,4 @@
-import { supabase } from "./supabase-client.js";
+import { authRedirectUrl, supabase } from "./supabase-client.js";
 
 const loginForm = document.querySelector("#login-form");
 const emailInput = document.querySelector("#email");
@@ -10,16 +10,23 @@ const registerButton = document.querySelector("#register-button");
 const registerFields = document.querySelector("#register-fields");
 const registerPrompt = document.querySelector("#register-prompt");
 const submitLabel = loginForm.querySelector("button[type='submit'] span");
+const submitButton = loginForm.querySelector("button[type='submit']");
+const forgotButton = document.querySelector("#forgot-button");
+const resendButton = document.querySelector("#resend-confirmation");
 
 let authMode = "login";
 
 function setMessage(message, type = "error") {
   errorMessage.textContent = message;
   errorMessage.classList.toggle("success", type === "success");
+  if (!message) resendButton.hidden = true;
 }
 
 function setLoading(isLoading) {
-  loginForm.querySelector("button[type='submit']").disabled = isLoading;
+  submitButton.disabled = isLoading;
+  registerButton.disabled = isLoading;
+  forgotButton.disabled = isLoading;
+  resendButton.disabled = isLoading;
   submitLabel.textContent = isLoading
     ? "กำลังเชื่อมต่อ..."
     : authMode === "login" ? "เข้าสู่เกม" : "สร้างบัญชี";
@@ -28,13 +35,22 @@ function setLoading(isLoading) {
 function setAuthMode(mode) {
   authMode = mode;
   const isRegistering = mode === "register";
-  const isRecovering = mode === "recovery";
   registerFields.hidden = !isRegistering;
   usernameInput.required = isRegistering;
-  registerPrompt.textContent = isRegistering || isRecovering ? "มีบัญชีอยู่แล้ว?" : "ยังไม่มีบัญชี?";
-  registerButton.textContent = isRegistering || isRecovering ? "กลับไปเข้าสู่ระบบ" : "สร้างบัญชีใหม่";
-  submitLabel.textContent = isRegistering ? "สร้างบัญชี" : isRecovering ? "ตั้งรหัสผ่านใหม่" : "เข้าสู่เกม";
+  registerPrompt.textContent = isRegistering ? "มีบัญชีอยู่แล้ว?" : "ยังไม่มีบัญชี?";
+  registerButton.textContent = isRegistering ? "กลับไปเข้าสู่ระบบ" : "สร้างบัญชีใหม่";
+  submitLabel.textContent = isRegistering ? "สร้างบัญชี" : "เข้าสู่เกม";
   setMessage("");
+}
+
+function authErrorMessage(error) {
+  const code = error?.code || "";
+  if (code === "email_not_confirmed") return "อีเมลนี้ยังไม่ได้ยืนยัน กรุณาเปิดอีเมลยืนยันหรือกดส่งใหม่ด้านล่าง";
+  if (code === "invalid_credentials") return "อีเมลหรือรหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง";
+  if (code === "over_email_send_rate_limit") return "ส่งอีเมลบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่";
+  if (code === "user_already_exists") return "อีเมลนี้มีบัญชีอยู่แล้ว กรุณาเข้าสู่ระบบ";
+  if (code === "signup_disabled") return "ระบบสมัครสมาชิกถูกปิดชั่วคราว";
+  return error?.message || "เชื่อมต่อระบบไม่ได้ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่";
 }
 
 async function ensureProfile(user, requestedUsername) {
@@ -92,7 +108,7 @@ loginForm.addEventListener("submit", async (event) => {
   const password = passwordInput.value;
   const username = usernameInput.value.trim();
 
-  if (authMode !== "recovery" && !emailInput.validity.valid) {
+  if (!emailInput.validity.valid) {
     setMessage("กรุณากรอกอีเมลให้ถูกต้อง");
     emailInput.focus();
     return;
@@ -111,21 +127,12 @@ loginForm.addEventListener("submit", async (event) => {
   setLoading(true);
 
   try {
-    if (authMode === "recovery") {
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
-      await supabase.auth.signOut();
-      setAuthMode("login");
-      setMessage("เปลี่ยนรหัสผ่านแล้ว กรุณาเข้าสู่ระบบอีกครั้ง", "success");
-      return;
-    }
-
     if (authMode === "register") {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/login.html`,
+          emailRedirectTo: authRedirectUrl("confirm-email.html"),
           data: { username },
         },
       });
@@ -140,12 +147,14 @@ loginForm.addEventListener("submit", async (event) => {
       return;
     }
 
+    setMessage("กำลังตรวจสอบบัญชี กรุณารอสักครู่…", "success");
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
     await continueToGame(data.user);
   } catch (error) {
     const duplicateUsername = error?.code === "23505";
-    setMessage(duplicateUsername ? "ชื่อผู้เล่นนี้ถูกใช้แล้ว กรุณาเลือกชื่ออื่น" : (error?.message || "ไม่สามารถเชื่อมต่อ Supabase ได้"));
+    resendButton.hidden = error?.code !== "email_not_confirmed";
+    setMessage(duplicateUsername ? "ชื่อผู้เล่นนี้ถูกใช้แล้ว กรุณาเลือกชื่ออื่น" : authErrorMessage(error));
   } finally {
     setLoading(false);
   }
@@ -161,7 +170,7 @@ revealButton.addEventListener("click", () => {
   revealButton.textContent = isHidden ? "HIDE" : "SHOW";
 });
 
-document.querySelector("#forgot-button").addEventListener("click", async () => {
+forgotButton.addEventListener("click", async () => {
   const email = emailInput.value.trim();
   if (!emailInput.validity.valid) {
     setMessage("กรอกอีเมลก่อนขอรีเซ็ตรหัสผ่าน");
@@ -169,18 +178,34 @@ document.querySelector("#forgot-button").addEventListener("click", async () => {
     return;
   }
 
+  setLoading(true);
+  setMessage("กำลังส่งอีเมลตั้งรหัสผ่านใหม่…", "success");
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/login.html`,
+    redirectTo: authRedirectUrl("reset-password.html"),
   });
-  setMessage(error ? error.message : "ส่งอีเมลรีเซ็ตรหัสผ่านแล้ว", error ? "error" : "success");
+  setMessage(error ? authErrorMessage(error) : "ส่งอีเมลแล้ว กรุณาเปิดลิงก์ในอีเมลเพื่อตั้งรหัสผ่านใหม่", error ? "error" : "success");
+  setLoading(false);
+});
+
+resendButton.addEventListener("click", async () => {
+  const email = emailInput.value.trim();
+  if (!emailInput.validity.valid) {
+    setMessage("กรอกอีเมลให้ถูกต้องก่อนส่งอีเมลยืนยันอีกครั้ง");
+    return;
+  }
+  setLoading(true);
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: { emailRedirectTo: authRedirectUrl("confirm-email.html") },
+  });
+  setMessage(error ? authErrorMessage(error) : "ส่งอีเมลยืนยันใหม่แล้ว กรุณาตรวจกล่องจดหมายและ Spam", error ? "error" : "success");
+  resendButton.hidden = !error;
+  setLoading(false);
 });
 
 const { data: { session } } = await supabase.auth.getSession();
-const isRecoveryLink = window.location.hash.includes("type=recovery") || window.location.search.includes("type=recovery");
-if (isRecoveryLink) {
-  setAuthMode("recovery");
-  setMessage("กรอกรหัสผ่านใหม่อย่างน้อย 6 ตัวอักษร", "success");
-} else if (session?.user) {
+if (session?.user) {
   try {
     await continueToGame(session.user);
   } catch (error) {
