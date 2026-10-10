@@ -1,4 +1,4 @@
-import { supabase } from "./supabase-client.js";
+import { clearAuthSession, supabase } from "./supabase-client.js";
 
 export { supabase };
 
@@ -44,7 +44,7 @@ export function setupLogout() {
   document.querySelector("#logout-button")?.addEventListener("click", async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) await supabase.from("profiles").update({ status: "offline", last_seen_at: new Date().toISOString() }).eq("id", user.id);
-    await supabase.auth.signOut();
+    await clearAuthSession();
     window.location.replace("login.html");
   });
 }

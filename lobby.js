@@ -1,4 +1,4 @@
-import { supabase } from "./supabase-client.js";
+import { clearAuthSession, supabase } from "./supabase-client.js";
 
 const toast = document.querySelector("#toast");
 
@@ -79,7 +79,7 @@ document.querySelector("#logout-button").addEventListener("click", async () => {
       .update({ status: "offline", last_seen_at: new Date().toISOString() })
       .eq("id", user.id);
   }
-  await supabase.auth.signOut();
+  await clearAuthSession();
   window.location.replace("login.html");
 });
 
