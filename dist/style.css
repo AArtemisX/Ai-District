@@ -246,3 +246,86 @@ button { cursor: pointer; }
 .owned-facilities { margin-top:18px; }.facility-results { display:grid;grid-template-columns:repeat(2,1fr);gap:10px; }.facility-results > div { display:grid;grid-template-columns:auto 1fr auto;gap:5px 12px;align-items:center;padding:16px;border:1px solid var(--line); }.facility-results > div > span { grid-row:1/3;color:var(--violet);font-size:25px; }.facility-results small { color:var(--muted); }.facility-results strong { grid-column:3;grid-row:1/3;color:var(--violet);font-family:var(--display); }.result-actions { display:grid;grid-template-columns:auto minmax(250px,400px);justify-content:end;gap:12px;margin-top:22px; }.result-actions a { display:flex;align-items:center;justify-content:center;text-decoration:none; }
 @media(max-width:800px){.results-grid,.learning-summary{grid-template-columns:1fr}.facility-results{grid-template-columns:1fr}}
 @media(max-width:560px){.results-wrap{width:calc(100% - 28px)}.result-actions{grid-template-columns:1fr}.facility-status{display:grid}.ranking-card,.summary-card,.learning-summary,.owned-facilities{padding:19px}.turn-detail{margin-top:16px}}
+
+/* ========================================================================== */
+/* Bright learning-game theme inspired by a friendly tablet classroom UI      */
+/* ========================================================================== */
+:root {
+  --bg:#eaf8ff;
+  --surface:rgba(255,255,255,.96);
+  --surface-strong:#ffffff;
+  --line:#d7e8ef;
+  --text:#24435a;
+  --muted:#7591a3;
+  --cyan:#35bfe1;
+  --violet:#a875dd;
+  --lime:#77d66b;
+  --danger:#ef6f8e;
+  --yellow:#ffc93d;
+  --orange:#ff9b45;
+  --display:"Kanit",sans-serif;
+  --body:"Kanit",sans-serif;
+}
+html { background:#dff5ff; }
+body { color:var(--text); background:linear-gradient(180deg,#bdefff 0,#eaf9ff 46%,#f8fdff 100%); }
+body::before,body::after { content:"";position:fixed;z-index:0;border-radius:50%;background:rgba(255,255,255,.62);filter:blur(2px);pointer-events:none; }
+body::before { width:340px;height:110px;left:-80px;top:22%;box-shadow:210px -30px 0 30px rgba(255,255,255,.38),80vw 44vh 0 10px rgba(255,255,255,.36); }
+body::after { width:240px;height:82px;right:-45px;top:12%;box-shadow:-55vw 62vh 0 20px rgba(255,255,255,.32); }
+.noise { display:none; }.orb { filter:blur(70px);opacity:.14; }.orb-one { background:#47c7ec; }.orb-two { background:#ffd050; }
+.flow-screen,.lobby-screen { background:linear-gradient(180deg,rgba(209,246,255,.84),rgba(246,253,255,.94)); }
+.step,.eyebrow,.scenario-tag { color:#1aa9cd;letter-spacing:.1em; }.chapter { color:#7997aa; }
+
+/* Universal playful controls */
+button,a,.input-wrap,.lesson-card,.portal-card,.mode-card,.character-card,.item-card,.ranking-row { border-radius:18px; }
+.primary-button { min-height:56px;border-radius:18px;color:#644a00;background:linear-gradient(180deg,#ffd85c,#ffc536);box-shadow:0 7px 0 #e7a918,0 12px 24px rgba(244,171,29,.22);font-family:var(--body);font-weight:700; }
+.primary-button:hover { transform:translateY(-2px);box-shadow:0 9px 0 #e7a918,0 16px 30px rgba(244,171,29,.26); }
+.primary-button b { border-color:rgba(100,74,0,.18);border-radius:11px; }
+.secondary-button { border-radius:17px;border:2px solid #c8e4ee;color:#4b7188;background:#fff;box-shadow:0 4px 0 #d7eaf0; }
+.secondary-button:hover { color:#159fc5;border-color:#55c8e6; }
+input,.input-wrap { border-radius:16px!important; }
+.toast { color:#315368;background:#fff;border:2px solid #86d5e7;border-radius:16px;box-shadow:0 14px 34px rgba(45,117,143,.18); }
+.toast[data-type="error"] { color:#9f3652;border-color:#f09ab0; }
+
+/* Login: airy account screen with a friendly mascot */
+.login-screen { background:linear-gradient(155deg,#a6eaff 0,#e8faff 62%,#fff 100%); }
+.brand-panel { border:0;background:transparent;color:var(--text); }
+.brand-panel::after { opacity:.32;background-image:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px); }
+.brand-panel::before { content:"🤖";width:300px;height:300px;left:auto;right:6%;top:auto;bottom:8%;display:grid;place-items:center;border:0;background:#ffd54f;border-radius:48% 52% 45% 55%;box-shadow:inset 0 -18px 0 rgba(236,165,29,.2),0 20px 40px rgba(32,129,157,.18);font-size:150px;transform:rotate(-5deg); }
+.brand { color:#28536a; }.brand-mark { color:#7d5a00;background:linear-gradient(180deg,#ffe475,#ffc93d);clip-path:none;border-radius:15px;box-shadow:0 5px 0 #e4aa1d; }
+.hero-copy h1 { color:#25556e;font-family:var(--body);letter-spacing:-.035em;text-transform:none; }.hero-copy h1 em { color:#1eb3d4;-webkit-text-stroke:0;text-shadow:none; }.hero-copy>p:last-child { color:#64879a; }.chapter { font-family:var(--body); }.server-pill { border:2px solid rgba(255,255,255,.9);border-radius:18px;background:rgba(255,255,255,.72);box-shadow:0 10px 28px rgba(35,127,154,.12); }.server-pill b { border-color:#d5e8ef; }
+.login-panel { background:rgba(255,255,255,.42);backdrop-filter:blur(16px); }.login-card { padding:34px;border:2px solid rgba(255,255,255,.9);border-radius:30px;background:rgba(255,255,255,.86);box-shadow:0 22px 54px rgba(50,129,154,.16); }.login-card h2 { color:#274d63; }.muted,.register { color:#7c99aa; }.login-card label { color:#567488; }.input-wrap { border:2px solid #d9ebf1;background:#fff;box-shadow:inset 0 2px 4px rgba(69,128,149,.05); }.input-wrap:focus-within { border-color:#40bfdf;box-shadow:0 0 0 4px rgba(64,191,223,.14); }.input-wrap input { color:#315368; }.error.success { color:#4fae48; }.copyright { color:#91a9b6; }
+
+/* Tablet-style side navigation */
+.lobby-header { z-index:10;background:rgba(255,255,255,.94);border:0;border-right:1px solid #d7e9ef;box-shadow:8px 0 24px rgba(71,133,153,.08);backdrop-filter:blur(16px); }
+.lobby-header nav a,.lobby-header nav button { color:#9cb0bc;border:0;border-radius:15px;font-weight:600; }.lobby-header nav a.nav-active,.lobby-header nav button.nav-active { color:#956900;border:0;background:#fff3bd;box-shadow:inset 0 0 0 2px #ffda58; }
+.profile-mini .avatar,.avatar { color:#218dad;border:2px solid #a8deeb;border-radius:50%;background:#dff7fc; }.profile-mini strong { color:#436578; }.profile-mini small { color:#7f9aa9; }.logout-button { border:2px solid #e2edf1;border-radius:12px;color:#9aafba;background:#fff; }
+@media(min-width:901px){
+  .flow-screen>.lobby-header,.lobby-screen>.lobby-header { position:fixed;left:0;top:0;width:116px;height:100vh;flex-direction:column;gap:22px;padding:22px 12px; }
+  .lobby-header .brand { margin-bottom:8px; }.lobby-header .brand span:last-child { display:none; }.lobby-header .brand-mark { width:48px;height:48px; }
+  .lobby-header nav { width:100%;height:auto;align-self:auto;display:grid;gap:10px; }.lobby-header nav a,.lobby-header nav button { min-height:68px;display:grid;place-items:center;padding:8px 4px;text-align:center;font-size:11px; }
+  .lobby-header nav a::before,.lobby-header nav button::before { display:block;font-size:23px;line-height:1; }.lobby-header nav :nth-child(1)::before { content:"🏠"; }.lobby-header nav :nth-child(2)::before { content:"📚"; }.lobby-header nav :nth-child(3)::before { content:"🎮"; }
+  .profile-mini { width:100%;margin:auto 0 0;flex-direction:column; }.profile-mini>div:nth-child(2) { display:none; }.logout-button { margin:0; }
+  .lobby-screen .lobby-content,.flow-screen .flow-content { width:min(1180px,calc(100% - 180px));margin-left:calc(116px + ((100% - 116px) - min(1180px,calc(100% - 180px)))/2); }
+}
+
+/* Lobby subject selection */
+.lobby-heading h1,.page-heading h1 { color:#2b566d;font-family:var(--body); }.lobby-heading h1 span { color:#1eb0d1; }.players-online { border:2px solid #d8edf3;border-radius:18px;background:#fff;box-shadow:0 7px 18px rgba(52,128,151,.09); }.players-online strong { color:#3c6579; }.portal-grid { gap:24px; }.portal-card { min-height:300px;border:3px solid #fff;border-radius:28px;box-shadow:0 10px 0 #d6ebf1,0 18px 34px rgba(47,124,150,.11);transition:.2s; }.portal-card::after { opacity:.22;background-image:radial-gradient(circle,rgba(255,255,255,.9) 2px,transparent 3px);background-size:28px 28px; }.learning-portal { background:linear-gradient(145deg,#79dcf2,#c4f4ff); }.world-portal { background:linear-gradient(145deg,#b99aeb,#e7dcff); }.portal-card::before { position:absolute;z-index:1;right:35px;top:64px;font-size:88px;filter:drop-shadow(0 8px 0 rgba(255,255,255,.45)); }.learning-portal::before { content:"🎓"; }.world-portal::before { content:"🤖"; }.portal-card h2 { color:#29536a;font-size:32px; }.portal-card p:not(.step) { max-width:58%;color:#52798d; }.portal-card>b { width:max-content;padding:10px 16px;border-radius:14px;color:#725300;background:#ffdc5a;box-shadow:0 4px 0 #eab421; }.portal-number { color:rgba(255,255,255,.45); }.portal-card:hover { border-color:#fff;transform:translateY(-5px);box-shadow:0 14px 0 #d6ebf1,0 22px 38px rgba(47,124,150,.14); }
+.flow-card,.squad-card,.daily-card { border:2px solid #dbeaf0;border-radius:24px;background:#fff;box-shadow:0 8px 22px rgba(61,127,147,.08); }.card-title h2,.section-title h2 { color:#345d72; }.card-title>span { color:#6f8b9c;border:0;border-radius:12px;background:#edf7fa; }.member { border:2px solid #b9e6ef;border-radius:17px;background:#effbfe; }.invite { border:2px dashed #d4e7ed;border-radius:14px;color:#809baa;background:#f9fdfe; }.daily-card .card-title b { color:#d69b00;padding:7px 10px;border-radius:10px;background:#fff3bd; }.progress { border-radius:99px;background:#e3eef1;overflow:hidden; }.progress span { border-radius:99px;background:linear-gradient(90deg,#69d768,#a8e872); }
+
+/* Tutorial and learning */
+.flow-header { border:0;background:rgba(255,255,255,.72);box-shadow:0 6px 20px rgba(51,122,146,.07); }.tutorial-progress span { height:8px;border-radius:99px;background:#dcecf1; }.tutorial-progress span.active { background:linear-gradient(90deg,#67d46a,#b4eb78);box-shadow:none; }.tutorial-card { border:3px solid #fff;border-radius:32px;background:rgba(255,255,255,.94);box-shadow:0 12px 0 #d7ebf1,0 24px 50px rgba(48,124,149,.12); }.tutorial-symbol { border:0;border-radius:50%;color:#6f5400;background:linear-gradient(180deg,#ffe674,#ffc83b);box-shadow:0 7px 0 #e4aa22;font-family:var(--body); }.tutorial-card h1 { color:#315b70; }.tutorial-card>p:not(.step) { color:#6f8998; }.tutorial-points div { border:2px solid #dbeaf0;border-radius:18px;background:#f8fdff; }.tutorial-points i { color:#5cc357; }
+.ring-progress { border-color:#dcebf0;border-top-color:#65d267;background:#fff;box-shadow:0 6px 18px rgba(55,128,149,.09); }.ring-progress strong { color:#4eb74a; }.filter-row button { border:2px solid #dbeaf0;color:#718e9f;background:#fff;box-shadow:0 4px 0 #deebef; }.filter-row button.active { color:#765500;border-color:#ffcf42;background:#ffe476;box-shadow:0 4px 0 #e8b52d; }.lesson-card { min-height:285px;border:3px solid #fff;background:#fff;box-shadow:0 8px 0 #dcebf0,0 14px 28px rgba(54,125,148,.09); }.lesson-card:nth-child(3n+1){background:linear-gradient(180deg,#fff,#eefbff)}.lesson-card:nth-child(3n+2){background:linear-gradient(180deg,#fff,#fff9e8)}.lesson-card:nth-child(3n){background:linear-gradient(180deg,#fff,#f6f0ff)}.lesson-card:hover { border-color:#fff;box-shadow:0 11px 0 #cee8ef,0 18px 32px rgba(54,125,148,.13); }.lesson-card.done { border-color:#8ee087; }.lesson-index { color:#c4dce5; }.lesson-status { color:#55b950; }.lesson-card small,.lesson-card>b { color:#19a6ca; }.lesson-card h2 { color:#345d72; }.lesson-card p { color:#7891a0; }.lesson-dialog { border:3px solid #fff;border-radius:28px;color:#315368;background:#fff;box-shadow:0 20px 70px rgba(46,112,134,.25); }.lesson-dialog::backdrop { background:rgba(79,139,158,.3);backdrop-filter:blur(6px); }.scenario-box { border:0;border-radius:18px;background:#f1eaff; }.answer-list button,.choice-grid button { border:2px solid #dbeaf0;border-radius:15px;color:#56778a;background:#f9fdff; }.answer-list button.selected,.choice-grid button.active { color:#398e35;border-color:#72d66d;background:#effced; }
+
+/* AI World setup and board */
+.setup-section,.room-panel { border:3px solid #fff;border-radius:26px;background:#fff;box-shadow:0 9px 0 #dbeaf0,0 16px 30px rgba(49,119,143,.09); }.character-card { border:3px solid #e3eff3;background:linear-gradient(180deg,#fff,#f4fbfd);box-shadow:0 5px 0 #dcebf0; }.character-card.selected { border-color:var(--accent);box-shadow:0 6px 0 color-mix(in srgb,var(--accent) 55%,#cadfe7); }.character-orb { background:#fff; }.character-card h3 { color:#355d72; }.character-card p { color:#7892a1; }.item-card { border:2px solid #dcebf0;background:#f8fdff;box-shadow:0 4px 0 #deebef; }.item-card.selected { border-color:#70d66a;background:#f0fbed;box-shadow:0 4px 0 #8ecf8a; }.item-card h3 { color:#385f74; }.room-panel input { border:2px solid #dbeaf0;color:#365b70;background:#f9fdff; }
+.game-topbar { border:0;background:rgba(255,255,255,.9);box-shadow:0 7px 20px rgba(49,116,138,.08); }.game-topbar>div strong { color:#e1a000; }.game-layout { background:linear-gradient(180deg,#d8f6ff,#f8fdff); }.agent-panel { border-right:2px solid #dcebf0;background:rgba(255,255,255,.82); }.agent-avatar { color:#8b6200;border:0;background:#ffdc59;box-shadow:0 8px 0 #e5ae26; }.agent-panel h2 { color:#365d71; }.resource { border-color:#dcebf0;color:#7792a1; }.turn-board { color:#345c70; }.phase-track span { color:#9cb1bc; }.phase-track i { border:2px solid #d4e6ec;background:#fff; }.phase-track span.active { color:#35a44f; }.phase-track span.active i { color:#fff;border-color:#62cb6d;background:#6ed877; }.turn-card { border:3px solid #fff;border-radius:28px;background:#fff;box-shadow:0 10px 0 #d8eaf0,0 18px 36px rgba(49,120,143,.1); }.phase-icon { color:#e1a000; }.turn-card h1 { color:#31596d; }.block-option { border:2px solid #dcebf0;border-radius:18px;background:#f9fdff; }.block-option.active { border-color:#ffcf45;background:#fff9df;box-shadow:0 5px 0 #e8b62a; }.scenario-stage { border:2px solid #dcebf0;border-radius:20px;background:#f9fdff; }.evidence-panel { border:0;border-radius:16px;background:#f2edff; }.impact-result { border:2px solid #7bd774;border-radius:20px;background:#f1fcef; }.impact-result.warning { border-color:#f29bb1;background:#fff0f4; }
+
+/* Results */
+.result-hero h1 { color:#315b70; }.trophy { border:0;border-radius:50%;background:#ffdd5c;box-shadow:0 7px 0 #e5ad24; }.ranking-card,.summary-card,.learning-summary,.owned-facilities { border:3px solid #fff;border-radius:25px;background:#fff;box-shadow:0 8px 0 #dcebf0,0 15px 28px rgba(48,118,141,.09); }.ranking-row { border:2px solid #dcebf0;background:#f9fdff; }.ranking-row.self { border-color:#ffcf42;background:#fff8d9; }.ranking-row .place { color:#dfa000; }.ranking-row>strong { color:#28aeca; }.score-total { border:0;border-radius:20px;background:#e9f9ff; }.score-total strong { color:#e1a000; }.score-breakdown div { border-color:#dcebf0; }.learning-topics a { border:2px solid #dcebf0;border-radius:16px;background:#f9fdff; }.learning-good { border:2px solid #82d97b;border-radius:18px;background:#f0fced; }.facility-results>div { border:2px solid #dcebf0;border-radius:18px;background:#f9fdff; }
+
+@media(max-width:900px){
+  .lobby-header { border-right:0;border-bottom:1px solid #d7e9ef; }.lobby-header nav a,.lobby-header nav button { min-height:44px;justify-content:center; }.portal-card p:not(.step){max-width:75%}
+}
+@media(max-width:560px){
+  .login-card { padding:25px 20px;border-radius:24px; }.portal-card { min-height:280px;padding:24px; }.portal-card::before { right:18px;top:28px;font-size:58px; }.portal-card p:not(.step){max-width:100%;padding-top:48px}.portal-card h2{font-size:27px}.lesson-card{min-height:250px}.tutorial-card{border-radius:25px}.setup-section,.room-panel{padding:20px}.turn-card{border-radius:23px}
+}
