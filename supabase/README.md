@@ -1,6 +1,6 @@
 # Supabase database for NEON NEXUS
 
-ไฟล์ `game_schema.sql` เป็น schema เริ่มต้น และ `game_flow_extension.sql` เพิ่ม Intro Tutorial, Learning และ AI World
+ไฟล์ `game_schema.sql` เป็น schema เริ่มต้น, `game_flow_extension.sql` เพิ่ม Intro Tutorial/Learning/AI World และ `gameplay_rules_extension.sql` เพิ่มสถานการณ์ สิ่งก่อสร้าง กติกา 8 รอบ และผลการแข่งขัน
 
 ## ข้อมูลที่เก็บ
 
@@ -23,6 +23,9 @@
 | `player_learning_progress` | บทที่ผ่าน คะแนน และเวลาที่เรียนจบ | เจ้าของบัญชี |
 | `ai_world_sessions` | ห้องเกม เฟสปัจจุบัน ตัวละคร และสถานะกระดาน | สมาชิกห้อง |
 | `ai_world_turns` | บล็อก การตัดสินใจ และผลลัพธ์แต่ละเทิร์น | สมาชิกห้อง |
+| `ai_scenarios` | สถานการณ์ AI หลักฐาน ตัวเลือก คะแนน และผลกระทบ | ผู้เล่นอ่านได้ |
+| `ai_facilities` | ประเภทสิ่งก่อสร้างและคะแนนพื้นฐาน | ผู้เล่นอ่านได้ |
+| `ai_world_facility_states` | เจ้าของ ระดับ และคะแนนควบคุมในแต่ละแมตช์ | สมาชิกห้อง |
 
 ## วิธีสร้างฐานข้อมูล
 
@@ -31,8 +34,9 @@
 3. คัดลอกโค้ดทั้งหมดจาก `game_schema.sql`
 4. กด **Run** แล้วสร้าง New query อีกครั้ง
 5. คัดลอก `game_flow_extension.sql` และกด **Run**
-6. เปิด **Database > Tables** เพื่อตรวจว่าตารางถูกสร้างครบ
-7. เปิด **Authentication > Providers > Email** และตั้งค่าการยืนยันอีเมลตามต้องการ
+6. รัน `gameplay_rules_extension.sql` เป็นไฟล์สุดท้าย
+7. เปิด **Database > Tables** เพื่อตรวจว่าตารางถูกสร้างครบ
+8. เปิด **Authentication > Providers > Email** และตั้งค่าการยืนยันอีเมลตามต้องการ
 
 ## หมายเหตุด้านความปลอดภัย
 
