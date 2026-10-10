@@ -33,6 +33,18 @@ Dependencies ถูกล็อกเวอร์ชันผ่าน Import Ma
 
 รันชุดทดสอบเส้นทางด้วย `node --test map-3d/movement.test.mjs`
 
+## Dice & Turn Management
+
+- `Dice3D.js` — ลูกเต๋า Mesh 3D ครบ 6 หน้า กำหนดผลครั้งเดียวและหมุนก่อนหยุด
+- `turn-manager.js` — State Machine: WAITING → ROLLING → MOVING → TILE_EVENT → ACTION_PHASE → TURN_END
+- ผู้เล่นกดทอยเอง ส่วนบอททอย เดิน และเลือก Action ทดสอบอัตโนมัติ
+- `TILE_EVENTS` รองรับ NORMAL, AI_SCENARIO, BATTLE, ITEM, DISTRICT และ SPECIAL
+- Action Timer เริ่มหลัง Movement จบเท่านั้น กำหนดเวลาแต่ละ Event ได้และไม่น้อยกว่า 30 วินาที
+- เมื่อหมดเวลา ระบบเลือกผลลัพธ์ปลอดภัยและดำเนินเทิร์นต่อโดยอัตโนมัติ
+- `TURN_ORDER` เป็น Array จึงขยายจากผู้เล่น/บอทเป็นผู้เล่น 4 คนได้ภายหลัง
+
+รันชุดทดสอบทั้งหมดด้วย `node --test map-3d/movement.test.mjs map-3d/turn-manager.test.mjs`
+
 ## เปลี่ยนอาคารเป็น GLB ภายหลัง
 
 `District` เรียกอาคารผ่าน `BuildingModelSlot` แทนการเรียก primitive โดยตรง เมื่อต้องใช้ GLB ให้เปลี่ยน implementation ใน `BuildingModelSlot` เป็น `useGLTF(modelUrl)` แล้วส่ง `modelUrl` ผ่าน state ของ District ได้ โดยไม่ต้องแก้ตำแหน่งฐานหรือระบบเจ้าของพื้นที่

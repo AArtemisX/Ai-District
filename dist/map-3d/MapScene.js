@@ -7,8 +7,9 @@ import { PlayerToken } from "./PlayerToken.js";
 import { BotToken } from "./BotToken.js";
 import { AICore } from "./AICore.js";
 import { SkyDecor } from "./SkyDecor.js";
+import { Dice3D } from "./Dice3D.js";
 
-export function MapScene({ selectedTile, onSelectTile, districtStates, selectedDistrict, onSelectDistrict, playerPosition, botPosition, movement, onMoveComplete }) {
+export function MapScene({ selectedTile, onSelectTile, districtStates, selectedDistrict, onSelectDistrict, playerPosition, botPosition, movement, onMoveComplete, rollRequest, onRollComplete }) {
   return html`
     <${React.Fragment}>
       <color attach="background" args=${["#c7efff"]} />
@@ -34,6 +35,7 @@ export function MapScene({ selectedTile, onSelectTile, districtStates, selectedD
         ${BOARD_TILES.map((tile)=>html`<${BoardTile} key=${tile.id} tile=${tile} selected=${selectedTile===tile.index} onSelect=${onSelectTile} />`)}
         ${DISTRICTS.map((district)=>html`<${District} key=${district.id} district=${district} state=${districtStates[district.id]} selected=${selectedDistrict===district.id} onSelect=${onSelectDistrict} />`)}
         <${AICore} />
+        <${Dice3D} rollRequest=${rollRequest} onRollComplete=${onRollComplete} />
         <${PlayerToken}
           tilePositions=${TILE_POSITIONS}
           tileIndex=${playerPosition}
