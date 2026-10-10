@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#070b18" />
+  <title>Lobby — NEON NEXUS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="lobby.js" defer></script>
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="orb orb-one" aria-hidden="true"></div>
+  <div class="orb orb-two" aria-hidden="true"></div>
+  <main>
+    <section class="screen lobby-screen" aria-labelledby="lobby-title">
+      <header class="lobby-header">
+        <a class="brand compact" href="lobby.html"><span class="brand-mark">N</span><span>NEON NEXUS</span></a>
+        <nav aria-label="เมนูหลัก"><button class="nav-active">ล็อบบี้</button><button>คลังอาวุธ</button><button>ภารกิจ</button></nav>
+        <div class="profile-mini">
+          <div class="avatar" id="avatar-letter">P</div>
+          <div><strong id="nav-player-name">PLAYER</strong><small><i></i> ออนไลน์</small></div>
+          <button id="logout-button" class="logout-button" title="ออกจากระบบ" aria-label="ออกจากระบบ">↪</button>
+        </div>
+      </header>
+      <div class="lobby-content">
+        <div class="lobby-heading">
+          <div><p class="step">COMMAND CENTER / LOBBY</p><h1 id="lobby-title">พร้อมลุยไหม, <span id="welcome-name">PLAYER</span>?</h1></div>
+          <div class="players-online"><span class="status-dot"></span><strong>1,284</strong><small>ผู้เล่นออนไลน์</small></div>
+        </div>
+        <div class="lobby-grid">
+          <article class="mission-card featured">
+            <div class="mission-top"><span>FEATURED MODE</span><b>4 PLAYERS</b></div>
+            <div class="mission-art" aria-hidden="true"><div class="planet"></div><div class="ship">▲</div></div>
+            <div class="mission-copy">
+              <p>SECTOR 07 · NIGHTFALL</p><h2>ปฏิบัติการ<br />ดาวมืด</h2>
+              <p>รวมทีม 4 คน ฝ่ากองทัพจักรกล และยึดแกนพลังงานกลับคืนมา</p>
+              <button id="play-button" class="primary-button"><span>ค้นหาทีม</span><b>→</b></button>
+            </div>
+          </article>
+          <aside class="side-column">
+            <section class="squad-card">
+              <div class="card-title"><div><p class="step">YOUR SQUAD</p><h2>ทีมของคุณ</h2></div><span>1 / 4</span></div>
+              <div class="member self"><div class="avatar" id="squad-avatar">P</div><div><strong id="squad-player-name">PLAYER</strong><small>หัวหน้าทีม · LV. 12</small></div><span>READY</span></div>
+              <button class="invite">＋ เชิญเพื่อนเข้าทีม</button><button class="invite">＋ เปิดสล็อตสาธารณะ</button>
+            </section>
+            <section class="daily-card">
+              <div class="card-title"><div><p class="step">DAILY MISSION</p><h2>ภารกิจวันนี้</h2></div><b>+500 XP</b></div>
+              <p>เล่นโหมดใดก็ได้ให้ครบ 3 รอบ</p><div class="progress-row"><div class="progress"><span></span></div><strong>1 / 3</strong></div>
+            </section>
+          </aside>
+        </div>
+        <section class="quick-modes" aria-labelledby="quick-title">
+          <div class="section-title"><div><p class="step">QUICK PLAY</p><h2 id="quick-title">เลือกโหมดด่วน</h2></div><button>ดูทั้งหมด →</button></div>
+          <div class="mode-list">
+            <button class="mode-card"><span class="mode-icon">◈</span><span><b>DUEL ARENA</b><small>1 VS 1 · RANKED</small></span><i>→</i></button>
+            <button class="mode-card"><span class="mode-icon">⬡</span><span><b>CORE RUSH</b><small>3 VS 3 · CASUAL</small></span><i>→</i></button>
+            <button class="mode-card"><span class="mode-icon">△</span><span><b>VOID RAID</b><small>CO-OP · HARD</small></span><i>→</i></button>
+          </div>
+        </section>
+      </div>
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    </section>
+  </main>
+</body>
+</html>
