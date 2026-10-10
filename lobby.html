@@ -19,7 +19,7 @@
     <section class="screen lobby-screen" aria-labelledby="lobby-title">
       <header class="lobby-header">
         <a class="brand compact" href="lobby.html"><span class="brand-mark">N</span><span>NEON NEXUS</span></a>
-        <nav aria-label="เมนูหลัก"><button class="nav-active">ล็อบบี้</button><button>คลังอาวุธ</button><button>ภารกิจ</button></nav>
+        <nav aria-label="เมนูหลัก"><a class="nav-active" href="lobby.html">ล็อบบี้</a><a href="learning.html">บทเรียน</a><a href="ai-world.html">AI World</a></nav>
         <div class="profile-mini">
           <div class="avatar" id="avatar-letter">P</div>
           <div><strong id="nav-player-name">PLAYER</strong><small><i></i> ออนไลน์</small></div>
@@ -31,15 +31,15 @@
           <div><p class="step">COMMAND CENTER / LOBBY</p><h1 id="lobby-title">พร้อมลุยไหม, <span id="welcome-name">PLAYER</span>?</h1></div>
           <div class="players-online"><span class="status-dot"></span><strong>1,284</strong><small>ผู้เล่นออนไลน์</small></div>
         </div>
-        <div class="lobby-grid">
-          <article class="mission-card featured">
-            <div class="mission-top"><span>FEATURED MODE</span><b>4 PLAYERS</b></div>
-            <div class="mission-art" aria-hidden="true"><div class="planet"></div><div class="ship">▲</div></div>
-            <div class="mission-copy">
-              <p>SECTOR 07 · NIGHTFALL</p><h2>ปฏิบัติการ<br />ดาวมืด</h2>
-              <p>รวมทีม 4 คน ฝ่ากองทัพจักรกล และยึดแกนพลังงานกลับคืนมา</p>
-              <button id="play-button" class="primary-button"><span>ค้นหาทีม</span><b>→</b></button>
-            </div>
+        <div class="portal-grid">
+          <a class="portal-card learning-portal" href="learning.html"><span class="portal-number">01</span><div><p class="step">LEARNING PATH</p><h2>เรียนรู้โลกของ AI</h2><p>เรียนบทเรียนจริยธรรมและผลกระทบ ทำกิจกรรม แล้วปลดล็อกของรางวัล</p></div><b>เริ่มเรียน →</b></a>
+          <a class="portal-card world-portal" href="ai-world.html"><span class="portal-number">02</span><div><p class="step">MULTIPLAYER BOARD</p><h2>เข้าสู่ AI World</h2><p>เลือกตัวละครและไอเทม สร้างห้อง แล้วออกสำรวจโลก AI แบบผลัดกันเล่น</p></div><b>เตรียมทีม →</b></a>
+        </div>
+        <div class="lobby-grid status-grid">
+          <article class="flow-card">
+            <div class="card-title"><div><p class="step">LEARNING PROGRESS</p><h2>ความก้าวหน้าของคุณ</h2></div><b id="lesson-count">0 / 11</b></div>
+            <div class="progress large"><span id="learning-progress-bar"></span></div>
+            <div class="flow-stats"><span><strong id="character-count">1</strong> ตัวละคร</span><span><strong id="item-count">0</strong> ไอเทม</span><span><strong id="player-xp">0</strong> XP</span></div>
           </article>
           <aside class="side-column">
             <section class="squad-card">
@@ -53,7 +53,7 @@
             </section>
           </aside>
         </div>
-        <section class="quick-modes" aria-labelledby="quick-title">
+        <section class="quick-modes" aria-labelledby="quick-title" hidden>
           <div class="section-title"><div><p class="step">QUICK PLAY</p><h2 id="quick-title">เลือกโหมดด่วน</h2></div><button>ดูทั้งหมด →</button></div>
           <div class="mode-list">
             <button class="mode-card"><span class="mode-icon">◈</span><span><b>DUEL ARENA</b><small>1 VS 1 · RANKED</small></span><i>→</i></button>

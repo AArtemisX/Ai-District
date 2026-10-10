@@ -1,6 +1,6 @@
 # Supabase database for NEON NEXUS
 
-ไฟล์ `game_schema.sql` เป็น schema เริ่มต้นสำหรับเกม Login + Lobby นี้
+ไฟล์ `game_schema.sql` เป็น schema เริ่มต้น และ `game_flow_extension.sql` เพิ่ม Intro Tutorial, Learning และ AI World
 
 ## ข้อมูลที่เก็บ
 
@@ -17,15 +17,22 @@
 | `player_inventory` | ไอเทมและจำนวนที่ผู้เล่นเป็นเจ้าของ | เซิร์ฟเวอร์ |
 | `match_history` | โหมด เวลา และสถานะของแต่ละแมตช์ | เซิร์ฟเวอร์ |
 | `match_players` | คะแนน ผลแพ้ชนะ kills/deaths และรางวัลต่อผู้เล่น | เซิร์ฟเวอร์ |
+| `characters` | ตัวละคร Rank S/S+ และความสามารถ | ผู้เล่นอ่านได้ |
+| `learning_lessons` | บทเรียนจริยธรรม 6 บทและผลกระทบ 5 บท | ผู้เล่นอ่านได้ |
+| `player_tutorial_progress` | ขั้น Intro และเวลาที่เรียนจบ | เจ้าของบัญชี |
+| `player_learning_progress` | บทที่ผ่าน คะแนน และเวลาที่เรียนจบ | เจ้าของบัญชี |
+| `ai_world_sessions` | ห้องเกม เฟสปัจจุบัน ตัวละคร และสถานะกระดาน | สมาชิกห้อง |
+| `ai_world_turns` | บล็อก การตัดสินใจ และผลลัพธ์แต่ละเทิร์น | สมาชิกห้อง |
 
 ## วิธีสร้างฐานข้อมูล
 
 1. เปิดโปรเจกต์ใหม่ใน Supabase Dashboard
 2. ไปที่ **SQL Editor** แล้วเลือก **New query**
 3. คัดลอกโค้ดทั้งหมดจาก `game_schema.sql`
-4. กด **Run**
-5. เปิด **Database > Tables** เพื่อตรวจว่าตารางถูกสร้างครบ
-6. เปิด **Authentication > Providers > Email** และตั้งค่าการยืนยันอีเมลตามต้องการ
+4. กด **Run** แล้วสร้าง New query อีกครั้ง
+5. คัดลอก `game_flow_extension.sql` และกด **Run**
+6. เปิด **Database > Tables** เพื่อตรวจว่าตารางถูกสร้างครบ
+7. เปิด **Authentication > Providers > Email** และตั้งค่าการยืนยันอีเมลตามต้องการ
 
 ## หมายเหตุด้านความปลอดภัย
 

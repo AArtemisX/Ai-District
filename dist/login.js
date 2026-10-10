@@ -69,13 +69,19 @@ async function ensureProfile(user, requestedUsername) {
   if (insertError) throw insertError;
 }
 
-async function continueToLobby(user, requestedUsername) {
+async function continueToGame(user, requestedUsername) {
   await ensureProfile(user, requestedUsername);
   await supabase
     .from("profiles")
     .update({ status: "online", last_seen_at: new Date().toISOString() })
     .eq("id", user.id);
-  window.location.assign("lobby.html");
+  const { data: tutorial, error } = await supabase
+    .from("player_tutorial_progress")
+    .select("completed_at")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (error) throw error;
+  window.location.assign(tutorial?.completed_at ? "lobby.html" : "tutorial.html");
 }
 
 loginForm.addEventListener("submit", async (event) => {
@@ -130,13 +136,13 @@ loginForm.addEventListener("submit", async (event) => {
         setMessage("สร้างบัญชีแล้ว กรุณาเปิดอีเมลเพื่อยืนยันก่อนเข้าสู่เกม", "success");
         return;
       }
-      await continueToLobby(data.user, username);
+      await continueToGame(data.user, username);
       return;
     }
 
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
-    await continueToLobby(data.user);
+    await continueToGame(data.user);
   } catch (error) {
     const duplicateUsername = error?.code === "23505";
     setMessage(duplicateUsername ? "ชื่อผู้เล่นนี้ถูกใช้แล้ว กรุณาเลือกชื่ออื่น" : (error?.message || "ไม่สามารถเชื่อมต่อ Supabase ได้"));
@@ -176,7 +182,7 @@ if (isRecoveryLink) {
   setMessage("กรอกรหัสผ่านใหม่อย่างน้อย 6 ตัวอักษร", "success");
 } else if (session?.user) {
   try {
-    await continueToLobby(session.user);
+    await continueToGame(session.user);
   } catch (error) {
     setMessage(error?.message || "โหลดข้อมูลผู้เล่นไม่สำเร็จ");
   }

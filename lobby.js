@@ -26,10 +26,13 @@ async function loadLobby() {
     return;
   }
 
-  const [profileResult, onlineResult, missionResult] = await Promise.all([
-    supabase.from("profiles").select("username, display_name, level, xp, credits").eq("id", user.id).single(),
+  const [profileResult, onlineResult, missionResult, learningResult, inventoryResult, characterResult] = await Promise.all([
+    supabase.from("profiles").select("username, display_name, level, xp, credits, selected_character_code").eq("id", user.id).single(),
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("status", "online"),
     supabase.from("missions").select("id, title, description, target_count, reward_xp").eq("is_active", true).eq("mission_type", "daily").limit(1).maybeSingle(),
+    supabase.from("player_learning_progress").select("lesson_id", { count: "exact" }).eq("user_id", user.id).eq("status", "completed"),
+    supabase.from("player_inventory").select("item_code", { count: "exact" }).eq("user_id", user.id),
+    supabase.from("characters").select("code", { count: "exact" }),
   ]);
 
   if (profileResult.error) {
@@ -38,6 +41,11 @@ async function loadLobby() {
   }
 
   showPlayer(profileResult.data);
+  document.querySelector("#player-xp").textContent = profileResult.data.xp;
+  document.querySelector("#lesson-count").textContent = `${learningResult.count || 0} / 11`;
+  document.querySelector("#learning-progress-bar").style.width = `${Math.round(((learningResult.count || 0) / 11) * 100)}%`;
+  document.querySelector("#item-count").textContent = inventoryResult.count || 0;
+  document.querySelector("#character-count").textContent = profileResult.data.selected_character_code ? (characterResult.count || 1) : 1;
   if (onlineResult.count !== null) document.querySelector(".players-online strong").textContent = onlineResult.count.toLocaleString("th-TH");
 
   const mission = missionResult.data;
@@ -75,10 +83,6 @@ document.querySelector("#logout-button").addEventListener("click", async () => {
   window.location.replace("login.html");
 });
 
-document.querySelector("#play-button").addEventListener("click", () => showToast("กำลังค้นหาผู้เล่นที่เหมาะสม..."));
-document.querySelectorAll(".mode-card").forEach((button) => {
-  button.addEventListener("click", () => showToast(`เลือกโหมด ${button.querySelector("b").textContent} แล้ว`));
-});
 document.querySelectorAll(".invite").forEach((button) => {
   button.addEventListener("click", () => showToast("สร้างลิงก์เชิญทีมแล้ว"));
 });
