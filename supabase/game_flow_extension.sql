@@ -1,4 +1,4 @@
--- NEON NEXUS flow extension: Intro Tutorial, Learning, and AI World
+-- Ai District flow extension: Intro Tutorial, Learning, and AI World
 -- Additive and safe to run after game_schema.sql.
 
 begin;

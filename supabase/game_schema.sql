@@ -1,4 +1,4 @@
--- NEON NEXUS: initial game database schema for Supabase/Postgres
+-- Ai District: initial game database schema for Supabase/Postgres
 -- Run this file in Supabase Dashboard > SQL Editor.
 -- Authentication accounts remain managed by Supabase Auth (auth.users).
 

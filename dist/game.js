@@ -9,7 +9,7 @@ const revealButton = document.querySelector("#reveal-password");
 const logoutButton = document.querySelector("#logout-button");
 const toast = document.querySelector("#toast");
 
-const savedPlayer = localStorage.getItem("neonNexusPlayer");
+const savedPlayer = localStorage.getItem("aiDistrictPlayer");
 if (savedPlayer) {
   usernameInput.value = savedPlayer;
   rememberInput.checked = true;
@@ -53,8 +53,8 @@ loginForm.addEventListener("submit", (event) => {
     return;
   }
 
-  if (rememberInput.checked) localStorage.setItem("neonNexusPlayer", name);
-  else localStorage.removeItem("neonNexusPlayer");
+  if (rememberInput.checked) localStorage.setItem("aiDistrictPlayer", name);
+  else localStorage.removeItem("aiDistrictPlayer");
 
   const submitButton = loginForm.querySelector("button[type='submit'] span");
   submitButton.textContent = "กำลังเชื่อมต่อ...";

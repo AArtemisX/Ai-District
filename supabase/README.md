@@ -1,4 +1,4 @@
-# Supabase database for NEON NEXUS
+# Supabase database for Ai District
 
 ไฟล์ `game_schema.sql` เป็น schema เริ่มต้น, `game_flow_extension.sql` เพิ่ม Intro Tutorial/Learning/AI World และ `gameplay_rules_extension.sql` เพิ่มสถานการณ์ สิ่งก่อสร้าง กติกา 8 รอบ และผลการแข่งขัน
 

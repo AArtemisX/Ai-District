@@ -1,4 +1,4 @@
--- NEON NEXUS gameplay rules: scenarios, facilities, 8-round results.
+-- Ai District gameplay rules: scenarios, facilities, 8-round results.
 begin;
 
 create table if not exists public.ai_scenarios (
