@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
-  <script src="login.js" defer></script>
+  <script type="module" src="login.js"></script>
 </head>
 <body>
   <div class="noise" aria-hidden="true"></div>
@@ -33,14 +33,17 @@
           <p class="step">PLAYER ACCESS / 01</p>
           <h2 id="login-title">ยินดีต้อนรับกลับ</h2>
           <p class="muted">เข้าสู่ระบบเพื่อดำเนินการผจญภัยต่อ</p>
-          <label for="username">ชื่อผู้เล่น</label>
-          <div class="input-wrap"><span aria-hidden="true">◎</span><input id="username" name="username" type="text" placeholder="กรอกชื่อผู้เล่น" autocomplete="username" minlength="3" required /></div>
+          <label for="email">อีเมล</label>
+          <div class="input-wrap"><span aria-hidden="true">◎</span><input id="email" name="email" type="email" placeholder="player@example.com" autocomplete="email" required /></div>
+          <div id="register-fields" hidden>
+            <label for="username">ชื่อผู้เล่น</label>
+            <div class="input-wrap"><span aria-hidden="true">◈</span><input id="username" name="username" type="text" placeholder="ตั้งชื่อผู้เล่น 3–24 ตัวอักษร" autocomplete="username" minlength="3" maxlength="24" /></div>
+          </div>
           <div class="label-row"><label for="password">รหัสผ่าน</label><button type="button" class="text-button" id="forgot-button">ลืมรหัสผ่าน?</button></div>
           <div class="input-wrap"><span aria-hidden="true">◇</span><input id="password" name="password" type="password" placeholder="กรอกรหัสผ่าน" autocomplete="current-password" minlength="4" required /><button class="reveal" id="reveal-password" type="button" aria-label="แสดงรหัสผ่าน">SHOW</button></div>
           <p id="login-error" class="error" role="alert" aria-live="polite"></p>
-          <label class="remember"><input id="remember" type="checkbox" /><span>จดจำชื่อผู้เล่นของฉัน</span></label>
           <button class="primary-button" type="submit"><span>เข้าสู่เกม</span><b>→</b></button>
-          <p class="register">ยังไม่มีบัญชี? <button type="button" id="register-button">สร้างบัญชีใหม่</button></p>
+          <p class="register"><span id="register-prompt">ยังไม่มีบัญชี?</span> <button type="button" id="register-button">สร้างบัญชีใหม่</button></p>
         </form>
         <p class="copyright">© 2026 NEON NEXUS · ALL SYSTEMS OPERATIONAL</p>
       </div>
