@@ -329,3 +329,52 @@ input,.input-wrap { border-radius:16px!important; }
 @media(max-width:560px){
   .login-card { padding:25px 20px;border-radius:24px; }.portal-card { min-height:280px;padding:24px; }.portal-card::before { right:18px;top:28px;font-size:58px; }.portal-card p:not(.step){max-width:100%;padding-top:48px}.portal-card h2{font-size:27px}.lesson-card{min-height:250px}.tutorial-card{border-radius:25px}.setup-section,.room-panel{padding:20px}.turn-card{border-radius:23px}
 }
+
+/* Profile-only header: remove the left navigation rail completely */
+.flow-screen>.lobby-header,.lobby-screen>.lobby-header {
+  position:absolute;
+  inset:14px 20px auto auto;
+  width:auto;
+  height:auto;
+  min-height:0;
+  padding:0;
+  border:0;
+  background:transparent;
+  box-shadow:none;
+  backdrop-filter:none;
+  z-index:15;
+  pointer-events:none;
+}
+.lobby-header>.brand,.lobby-header>nav { display:none!important; }
+.lobby-header .profile-mini {
+  width:auto!important;
+  margin:0!important;
+  padding:9px 11px;
+  display:flex!important;
+  flex-direction:row!important;
+  gap:10px;
+  border:2px solid #d8eaf0;
+  border-radius:20px;
+  background:rgba(255,255,255,.94);
+  box-shadow:0 7px 20px rgba(49,116,138,.1);
+  pointer-events:auto;
+}
+.lobby-header .profile-mini>div:nth-child(2) { display:grid!important; }
+.lobby-header .logout-button { margin-left:4px; }
+@media(min-width:901px){
+  .lobby-screen .lobby-content,.flow-screen .flow-content {
+    width:min(1180px,calc(100% - 40px));
+    margin-left:auto;
+    margin-right:auto;
+    padding-top:98px;
+  }
+}
+@media(max-width:900px){
+  .flow-screen>.lobby-header,.lobby-screen>.lobby-header { inset:10px 12px auto auto; }
+  .lobby-screen .lobby-content,.flow-screen .flow-content { padding-top:92px; }
+}
+@media(max-width:560px){
+  .lobby-header .profile-mini>div:nth-child(2) { display:none!important; }
+  .lobby-header .profile-mini { padding:7px; }
+  .lobby-header .logout-button { margin-left:0; }
+}
