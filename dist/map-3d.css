@@ -23,6 +23,7 @@ button, a { font:inherit; }
 .map-actions button.primary { grid-column:1/-1;color:#725300;background:linear-gradient(#ffe680,#ffcd43);box-shadow:0 5px 0 #e8ad22; }
 .map-actions button:disabled { opacity:.46;cursor:not-allowed;filter:grayscale(.2); }
 .map-actions button:not(:disabled):active { transform:translateY(3px);box-shadow:0 2px 0 #c8dfe7; }
+.map-movement-status { margin:10px 0 0!important;text-align:center;color:#4d8298!important;font-size:11px!important;line-height:1.2!important; }
 .district-list { display:grid;gap:7px;margin-top:14px; }
 .district-row { display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border:1px solid #dfeef2;border-radius:12px;background:rgba(250,254,255,.92);font-size:12px; }
 .district-row i { width:10px;height:10px;border-radius:50%;background:var(--district-color);box-shadow:0 0 0 3px color-mix(in srgb,var(--district-color) 20%,transparent); }

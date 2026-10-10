@@ -1,13 +1,14 @@
 import { OrbitControls, ContactShadows } from "@react-three/drei";
 import { html, React } from "./runtime.js";
-import { BOARD_TILES, DISTRICTS } from "./board-data.js";
+import { BOARD_TILES, DISTRICTS, TILE_POSITIONS } from "./board-data.js";
 import { BoardTile } from "./BoardTile.js";
 import { District } from "./District.js";
-import { CharacterToken } from "./CharacterToken.js";
+import { PlayerToken } from "./PlayerToken.js";
+import { BotToken } from "./BotToken.js";
 import { AICore } from "./AICore.js";
 import { SkyDecor } from "./SkyDecor.js";
 
-export function MapScene({ selectedTile, onSelectTile, districtStates, selectedDistrict, onSelectDistrict, playerPosition, botPosition }) {
+export function MapScene({ selectedTile, onSelectTile, districtStates, selectedDistrict, onSelectDistrict, playerPosition, botPosition, movement, onMoveComplete }) {
   return html`
     <${React.Fragment}>
       <color attach="background" args=${["#c7efff"]} />
@@ -33,8 +34,18 @@ export function MapScene({ selectedTile, onSelectTile, districtStates, selectedD
         ${BOARD_TILES.map((tile)=>html`<${BoardTile} key=${tile.id} tile=${tile} selected=${selectedTile===tile.index} onSelect=${onSelectTile} />`)}
         ${DISTRICTS.map((district)=>html`<${District} key=${district.id} district=${district} state=${districtStates[district.id]} selected=${selectedDistrict===district.id} onSelect=${onSelectDistrict} />`)}
         <${AICore} />
-        <${CharacterToken} position=${BOARD_TILES[playerPosition].position} color="#3ebcff" offset=${[-.3,0,-.25]} />
-        <${CharacterToken} position=${BOARD_TILES[botPosition].position} color="#ff6fa5" label="B" offset=${[.3,0,.25]} />
+        <${PlayerToken}
+          tilePositions=${TILE_POSITIONS}
+          tileIndex=${playerPosition}
+          moveRequest=${movement?.actor === "player" ? movement : null}
+          onMoveComplete=${(finalIndex) => onMoveComplete("player", finalIndex)}
+        />
+        <${BotToken}
+          tilePositions=${TILE_POSITIONS}
+          tileIndex=${botPosition}
+          moveRequest=${movement?.actor === "bot" ? movement : null}
+          onMoveComplete=${(finalIndex) => onMoveComplete("bot", finalIndex)}
+        />
         <${SkyDecor} />
       </group>
 

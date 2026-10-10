@@ -2,7 +2,7 @@ import React, { Suspense, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Canvas } from "@react-three/fiber";
 import { html } from "./map-3d/runtime.js";
-import { BOARD_TILES, DISTRICTS } from "./map-3d/board-data.js";
+import { BOARD_TILES, DISTRICTS, buildTilePath } from "./map-3d/board-data.js";
 import { MapScene } from "./map-3d/MapScene.js";
 
 const initialDistricts = Object.fromEntries(DISTRICTS.map((district) => [district.id, {
@@ -17,18 +17,31 @@ function App() {
   const [selectedDistrict, setSelectedDistrict] = useState("academy");
   const [districtStates, setDistrictStates] = useState(initialDistricts);
   const [playerPosition, setPlayerPosition] = useState(0);
-  const [botPosition, setBotPosition] = useState(11);
+  const [botPosition, setBotPosition] = useState(0);
+  const [isMoving, setIsMoving] = useState(false);
+  const [currentTurn, setCurrentTurn] = useState("player");
+  const [movement, setMovement] = useState(null);
 
   const selectedTileData = BOARD_TILES[selectedTile];
   const selectedDistrictData = DISTRICTS.find((district) => district.id === selectedDistrict);
   const builtCount = useMemo(() => Object.values(districtStates).filter((district) => district.status === "built").length, [districtStates]);
 
-  function movePlayer() {
-    setPlayerPosition((position) => (position + 1) % BOARD_TILES.length);
+  function startMove(actor, steps) {
+    if (isMoving) return;
+    const from = actor === "player" ? playerPosition : botPosition;
+    const path = buildTilePath(from, steps);
+    setCurrentTurn(actor);
+    setIsMoving(true);
+    setMovement({ id: `${actor}-${performance.now()}`, actor, from, path });
   }
 
-  function moveBot() {
-    setBotPosition((position) => (position + 1 + Math.floor(Math.random() * 3)) % BOARD_TILES.length);
+  function finishMove(actor, finalIndex) {
+    if (actor === "player") setPlayerPosition(finalIndex);
+    else setBotPosition(finalIndex);
+    setSelectedTile(finalIndex);
+    setMovement(null);
+    setIsMoving(false);
+    setCurrentTurn(actor === "player" ? "bot" : "player");
   }
 
   function toggleDistrict() {
@@ -61,6 +74,8 @@ function App() {
               onSelectDistrict=${setSelectedDistrict}
               playerPosition=${playerPosition}
               botPosition=${botPosition}
+              movement=${movement}
+              onMoveComplete=${finishMove}
             />
           </${Suspense}>
         </${Canvas}>
@@ -77,15 +92,19 @@ function App() {
         <p>กระดาน 3D จริง ทุกช่องและอาคารเป็น Mesh แยกอิสระ พร้อมต่อยอดระบบ Turn-based</p>
         <div className="map-stats">
           <div className="map-stat"><span>ช่องที่เลือก</span><strong>${selectedTileData.index + 1} · ${selectedTileData.type}</strong></div>
+          <div className="map-stat"><span>ตำแหน่งผู้เล่น / บอท</span><strong>${playerPosition + 1} / ${botPosition + 1}</strong></div>
+          <div className="map-stat"><span>เทิร์นถัดไป</span><strong>${currentTurn === "player" ? "ผู้เล่น" : "บอท"}</strong></div>
           <div className="map-stat"><span>District</span><strong>${builtCount} / ${DISTRICTS.length} สร้างแล้ว</strong></div>
         </div>
         <div className="map-actions">
-          <button type="button" onClick=${movePlayer}>ผู้เล่นเดิน +1</button>
-          <button type="button" onClick=${moveBot}>บอทเดิน</button>
-          <button type="button" className="primary" onClick=${toggleDistrict}>
+          <button type="button" disabled=${isMoving} onClick=${() => startMove("player", 1)}>ผู้เล่นเดิน +1</button>
+          <button type="button" disabled=${isMoving} onClick=${() => startMove("bot", 1)}>บอทเดิน +1</button>
+          <button type="button" disabled=${isMoving} onClick=${() => startMove("player", 3)}>ผู้เล่นเดิน +3</button>
+          <button type="button" className="primary" disabled=${isMoving} onClick=${toggleDistrict}>
             ${districtStates[selectedDistrict].status === "empty" ? `สร้าง ${selectedDistrictData.name}` : `รื้อ ${selectedDistrictData.name}`}
           </button>
         </div>
+        <p className="map-movement-status" aria-live="polite">${isMoving ? `${movement.actor === "player" ? "ผู้เล่น" : "บอท"} กำลังเดินทีละช่อง…` : "พร้อมเดิน"}</p>
         <div className="district-list">
           ${DISTRICTS.map((district)=>html`
             <button key=${district.id} type="button" className="district-row" onClick=${()=>setSelectedDistrict(district.id)} style=${{"--district-color":district.color}}>

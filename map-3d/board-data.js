@@ -29,3 +29,16 @@ export const BOARD_TILES = Array.from({ length: 32 }, (_, index) => ({
   color: TILE_COLORS[index % TILE_COLORS.length],
   type: ["DATA", "LEARN", "ETHICS", "ENERGY", "AI"][index % 5],
 }));
+
+// The movement path is derived from the actual mesh coordinates above.
+// Keep this as the single source of truth when the board layout changes.
+export const TILE_POSITIONS = BOARD_TILES.map((tile) => [...tile.position]);
+
+export function normalizeTileIndex(index, tileCount = TILE_POSITIONS.length) {
+  return ((index % tileCount) + tileCount) % tileCount;
+}
+
+export function buildTilePath(startIndex, steps, tileCount = TILE_POSITIONS.length) {
+  const safeSteps = Math.max(0, Math.floor(steps));
+  return Array.from({ length: safeSteps }, (_, step) => normalizeTileIndex(startIndex + step + 1, tileCount));
+}
