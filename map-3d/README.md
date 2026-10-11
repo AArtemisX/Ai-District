@@ -56,6 +56,18 @@ Dependencies ถูกล็อกเวอร์ชันผ่าน Import Ma
 
 รันชุดทดสอบ Phase 3 ด้วย `node --test map-3d/scenario-engine.test.mjs`
 
+## District Development & Influence
+
+- `district-engine.js` — กติกากลางสำหรับ EN, IP, การสร้างเขต การเพิ่ม Influence และการเปลี่ยนเจ้าของ
+- `DistrictPanel.js` — UI สำหรับ Build / Increase Influence / Skip พร้อม Action Timer 30 วินาที
+- ผู้เล่นและบอทเริ่ม 5 EN สูงสุด 10 EN; Build ใช้ 3 EN และ Influence ใช้ 2 EN
+- การสร้างให้ 3 IP ส่วนการเพิ่ม Influence ให้ 2 IP โดยจำกัด 12 IP ต่อฝ่ายต่อเขต
+- สถานะเขตคำนวณเป็น NEUTRAL, OWNED หรือ CONTESTED และอาคารเปลี่ยนสีทันทีเมื่อเจ้าของเปลี่ยน
+- Scenario แต่ละเรื่องเชื่อม District ชัดเจน และรางวัล BEST/GOOD/POOR ให้ EN 2/1/0 โดยไม่ใช้ DP เป็นค่าใช้จ่าย
+- จำกัด District Action หนึ่งครั้งต่อเทิร์น และบอทใช้กติกาเดียวกับผู้เล่น
+
+รันชุดทดสอบ Phase 4 ด้วย `node --test map-3d/district-engine.test.mjs`
+
 ## เปลี่ยนอาคารเป็น GLB ภายหลัง
 
 `District` เรียกอาคารผ่าน `BuildingModelSlot` แทนการเรียก primitive โดยตรง เมื่อต้องใช้ GLB ให้เปลี่ยน implementation ใน `BuildingModelSlot` เป็น `useGLTF(modelUrl)` แล้วส่ง `modelUrl` ผ่าน state ของ District ได้ โดยไม่ต้องแก้ตำแหน่งฐานหรือระบบเจ้าของพื้นที่

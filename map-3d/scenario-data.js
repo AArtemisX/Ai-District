@@ -25,6 +25,7 @@ function choice(id, label, quality, decisionPoints, impact, explanation, futureE
 export const AI_SCENARIOS = Object.freeze([
   {
     scenarioId: "verify-ai-homework",
+    districtId: "academy",
     title: "คำตอบการบ้านที่ดูน่าเชื่อถือ",
     topic: "AI Literacy",
     difficulty: "เริ่มต้น",
@@ -39,6 +40,7 @@ export const AI_SCENARIOS = Object.freeze([
   },
   {
     scenarioId: "fair-attendance-camera",
+    districtId: "robot",
     title: "กล้องเช็กชื่อที่จำหน้าไม่เท่ากัน",
     topic: "AI Ethics",
     difficulty: "ซับซ้อน",
@@ -53,6 +55,7 @@ export const AI_SCENARIOS = Object.freeze([
   },
   {
     scenarioId: "deepfake-rumor",
+    districtId: "cloud",
     title: "คลิปเสียงครูที่อาจถูกปลอม",
     topic: "AI Literacy",
     difficulty: "ปานกลาง",
@@ -67,6 +70,7 @@ export const AI_SCENARIOS = Object.freeze([
   },
   {
     scenarioId: "recommendation-bubble",
+    districtId: "cloud",
     title: "ฟีดที่เห็นแต่เรื่องเดิม",
     topic: "AI Literacy",
     difficulty: "เริ่มต้น",
@@ -81,6 +85,7 @@ export const AI_SCENARIOS = Object.freeze([
   },
   {
     scenarioId: "student-data-upload",
+    districtId: "cloud",
     title: "รายชื่อนักเรียนกับเครื่องมือ AI ฟรี",
     topic: "AI Ethics",
     difficulty: "ปานกลาง",
@@ -95,6 +100,7 @@ export const AI_SCENARIOS = Object.freeze([
   },
   {
     scenarioId: "ai-essay-grading",
+    districtId: "academy",
     title: "คะแนนเรียงความจาก AI",
     topic: "AI Ethics",
     difficulty: "ซับซ้อน",
@@ -109,6 +115,7 @@ export const AI_SCENARIOS = Object.freeze([
   },
   {
     scenarioId: "generative-art-credit",
+    districtId: "green",
     title: "โปสเตอร์งานโรงเรียนจาก AI",
     topic: "AI Ethics",
     difficulty: "ปานกลาง",
@@ -123,6 +130,7 @@ export const AI_SCENARIOS = Object.freeze([
   },
   {
     scenarioId: "wellbeing-chatbot",
+    districtId: "robot",
     title: "แชตบอตกับข้อความขอความช่วยเหลือ",
     topic: "AI Literacy",
     difficulty: "ซับซ้อน",

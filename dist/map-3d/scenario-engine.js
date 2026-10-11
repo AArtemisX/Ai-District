@@ -7,7 +7,7 @@ export const BOT_LEVELS = Object.freeze({
 });
 
 export function validateScenario(scenario) {
-  if (!scenario?.scenarioId || !scenario.title || !scenario.topic || !scenario.description) return false;
+  if (!scenario?.scenarioId || !scenario.districtId || !scenario.title || !scenario.topic || !scenario.description) return false;
   if (![30, 45, 60].includes(scenario.timeLimit) || scenario.choices?.length !== 3) return false;
   const points = scenario.choices.map((item) => item.consequence?.decisionPoints).sort((a, b) => a - b);
   return points.join(",") === "0,1,3" && scenario.choices.every((item) => item.id && item.label && item.consequence?.explanation);
@@ -27,6 +27,7 @@ export function resolveScenarioChoice(scenario, choiceId, actor = "player") {
   if (!selected) throw new Error(`Unknown scenario choice: ${choiceId}`);
   return {
     scenarioId: scenario.scenarioId,
+    districtId: scenario.districtId,
     actor,
     status: "ANSWERED",
     choiceId,
@@ -42,6 +43,7 @@ export function resolveScenarioChoice(scenario, choiceId, actor = "player") {
 export function createTimeoutResult(scenario, actor = "player") {
   return {
     scenarioId: scenario.scenarioId,
+    districtId: scenario.districtId,
     actor,
     status: "TIMEOUT",
     choiceId: null,

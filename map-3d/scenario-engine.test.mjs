@@ -7,6 +7,7 @@ test("มีสถานการณ์ที่ถูกต้อง 8 เร�
   assert.equal(AI_SCENARIOS.length, 8);
   for (const scenario of AI_SCENARIOS) {
     assert.equal(validateScenario(scenario), true);
+    assert.ok(scenario.districtId);
     assert.deepEqual(scenario.choices.map((item) => item.consequence.decisionPoints).sort((a, b) => a - b), [0, 1, 3]);
     assert.ok([30, 45, 60].includes(scenario.timeLimit));
   }

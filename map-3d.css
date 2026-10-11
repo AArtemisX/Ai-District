@@ -24,6 +24,8 @@ button, a { font:inherit; }
 .map-stat { padding:10px 12px;border:1px solid #d5ebf1;border-radius:14px;background:#f7fdff; }
 .map-stat span { display:block;color:#86a0ae;font-size:10px; }
 .map-stat strong { color:#2f708e;font-size:15px; }
+.map-stat.energy-stat { grid-column:1/-1;background:linear-gradient(135deg,#fff9df,#fffdf4);border-color:#f5dda0; }
+.map-stat.energy-stat strong { color:#b07900; }
 .map-actions { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
 .map-actions button { min-height:44px;border:0;border-radius:13px;color:#2f718d;background:#e9faff;box-shadow:0 4px 0 #cee8ef;cursor:pointer;font-weight:700; }
 .map-actions button.primary { grid-column:1/-1;color:#725300;background:linear-gradient(#ffe680,#ffcd43);box-shadow:0 5px 0 #e8ad22; }
@@ -45,6 +47,25 @@ button, a { font:inherit; }
 .event-continue { width:100%;min-height:44px;border:0;border-radius:13px;color:#725300;background:linear-gradient(#ffe680,#ffcd43);box-shadow:0 5px 0 #e8ad22;cursor:pointer;font-weight:800; }
 .event-continue:active { transform:translateY(3px);box-shadow:0 2px 0 #e8ad22; }
 .scenario-modal { position:absolute;z-index:15;top:96px;right:18px;width:min(430px,calc(100vw - 36px));max-height:calc(100vh - 126px);overflow:auto;padding:21px;border:2px solid rgba(255,255,255,.97);border-radius:26px;color:#31566c;background:rgba(255,255,255,.95);box-shadow:0 22px 70px rgba(35,103,151,.25);backdrop-filter:blur(20px); }
+.district-panel { position:absolute;z-index:15;top:96px;right:18px;width:min(420px,calc(100vw - 36px));max-height:calc(100vh - 126px);overflow:auto;padding:21px;border:2px solid rgba(255,255,255,.97);border-radius:26px;color:#31566c;background:rgba(255,255,255,.95);box-shadow:0 22px 70px rgba(35,103,151,.25);backdrop-filter:blur(20px); }
+.district-panel-heading { display:flex;align-items:flex-start;justify-content:space-between;gap:16px; }
+.district-panel h2 { margin:10px 0;color:#174f91;font-size:27px; }
+.district-status { display:inline-flex;margin-top:7px;padding:4px 9px;border-radius:999px;color:#718b98;background:#eaf3f6;font-size:10px;font-weight:800; }
+.district-status.owned { color:#2474a0;background:#e5f6ff; }.district-status.contested { color:#b56d00;background:#fff2c9; }
+.district-summary { display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px; }
+.district-summary>div { padding:11px;border:1px solid #d5ebf1;border-radius:14px;background:#f7fdff; }
+.district-summary span { display:block;color:#86a0ae;font-size:10px; }.district-summary strong { color:#2f708e;font-size:14px; }
+.influence-bars { display:grid;gap:9px;margin:12px 0 15px; }
+.influence-row { display:grid;grid-template-columns:48px 1fr 42px;align-items:center;gap:8px;font-size:10px;font-weight:700; }
+.influence-row>div { height:9px;overflow:hidden;border-radius:999px;background:#e7f0f3; }.influence-row i { display:block;height:100%;border-radius:inherit;background:#55b8ff;transition:width .35s ease; }.influence-row.bot i { background:#ff77a9; }
+.influence-row strong { color:#527486;text-align:right;font-size:10px; }
+.district-actions { display:grid;gap:9px; }
+.district-actions button { display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:12px 13px;border:1px solid #cce9f2;border-radius:14px;color:#376c84;background:#f4fbff;text-align:left;cursor:pointer; }
+.district-actions button.build { border-color:#f1d479;background:#fff8d9; }.district-actions button.influence { border-color:#a8daf0;background:#eaf8ff; }.district-actions button.skip { background:#f7f9fa; }
+.district-actions button:disabled { opacity:.45;cursor:not-allowed; }.district-actions button span { color:#78919e;font-size:10px; }
+.district-warning { margin:10px 0 0;padding:9px;border-radius:10px;color:#a35e72;background:#fff0f5;font-size:10px; }
+.district-feedback { display:grid;gap:5px;margin:13px 0;padding:14px;border:1px solid #c9e5f2;border-radius:16px;color:#44768c;background:#f0faff; }
+.district-feedback.captured { border-color:#f2d171;color:#8a6500;background:#fff9dd; }.district-feedback strong { font-size:14px; }.district-feedback span { font-size:10px; }
 .scenario-heading { display:flex;align-items:flex-start;justify-content:space-between;gap:16px; }
 .scenario-heading>div:first-child>span { display:inline-flex;margin-top:7px;padding:4px 9px;border-radius:999px;color:#7b5ba8;background:#f2eaff;font-size:10px;font-weight:800; }
 .scenario-clock { display:flex;align-items:baseline;gap:4px;min-width:82px;padding:8px 10px;border:1px solid #cdebf5;border-radius:15px;background:#f3fbff;text-align:center; }
@@ -77,9 +98,10 @@ button, a { font:inherit; }
 .district-list { display:grid;gap:7px;margin-top:14px; }
 .district-row { display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border:1px solid #dfeef2;border-radius:12px;background:rgba(250,254,255,.92);font-size:12px; }
 .district-row i { width:10px;height:10px;border-radius:50%;background:var(--district-color);box-shadow:0 0 0 3px color-mix(in srgb,var(--district-color) 20%,transparent); }
-.district-row span { flex:1; }.district-row b { color:#5d7d8c;font-size:10px; }
+.district-row span { flex:1; }.district-row span small { display:block;margin-top:2px;color:#8aa0aa;font-size:9px; }.district-row b { color:#5d7d8c;font-size:9px; }.district-row.selected { border-color:var(--district-color);box-shadow:0 0 0 2px color-mix(in srgb,var(--district-color) 18%,transparent); }
 .map-help { position:absolute;z-index:10;right:18px;bottom:18px;padding:10px 14px;border:2px solid rgba(255,255,255,.88);border-radius:14px;color:#557b8f;background:rgba(255,255,255,.76);box-shadow:0 8px 25px rgba(44,106,145,.12);backdrop-filter:blur(12px);font-size:11px;pointer-events:none; }
 .selection-chip { position:absolute;z-index:10;left:50%;bottom:18px;transform:translateX(-50%);padding:9px 16px;border:2px solid #fff;border-radius:999px;color:#725300;background:#ffe474;box-shadow:0 7px 22px rgba(113,84,0,.17);font-weight:700;font-size:12px;pointer-events:none; }
 .loading-map { height:100%;display:grid;place-items:center;color:#236985;background:linear-gradient(#dff8ff,#aedff4);font-size:18px; }
 @media (max-width:900px) { .scenario-modal{top:82px;right:12px;width:min(410px,calc(100vw - 24px));max-height:calc(100vh - 310px);padding:16px;border-radius:20px}.scenario-modal h2{font-size:21px} }
-@media (max-width:760px) { .map-panel{top:auto;bottom:12px;left:12px;width:calc(100vw - 24px);padding:14px;border-radius:18px}.map-panel h1{display:none}.district-list,.map-help{display:none}.map-topbar{top:10px;left:10px;right:10px}.map-brand span{display:none}.map-brand img{width:44px;height:44px}.map-back{padding:9px 12px}.selection-chip{display:none}.map-actions button{min-height:40px}.map-stats{margin-bottom:9px}.turn-indicator{margin:7px 0}.event-panel{top:82px;right:12px;width:calc(100vw - 24px);padding:16px;border-radius:18px}.event-panel h2{font-size:20px}.scenario-modal{left:12px;right:12px;width:auto;max-height:calc(100vh - 330px)} }
+@media (max-width:900px) { .district-panel{top:82px;right:12px;width:min(410px,calc(100vw - 24px));max-height:calc(100vh - 330px);padding:16px;border-radius:20px} }
+@media (max-width:760px) { .map-panel{top:auto;bottom:12px;left:12px;width:calc(100vw - 24px);padding:14px;border-radius:18px}.map-panel h1{display:none}.district-list,.map-help{display:none}.map-topbar{top:10px;left:10px;right:10px}.map-brand span{display:none}.map-brand img{width:44px;height:44px}.map-back{padding:9px 12px}.selection-chip{display:none}.map-actions button{min-height:40px}.map-stats{margin-bottom:9px}.turn-indicator{margin:7px 0}.event-panel{top:82px;right:12px;width:calc(100vw - 24px);padding:16px;border-radius:18px}.event-panel h2{font-size:20px}.scenario-modal,.district-panel{left:12px;right:12px;width:auto;max-height:calc(100vh - 350px)} }

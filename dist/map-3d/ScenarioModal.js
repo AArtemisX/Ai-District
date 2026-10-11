@@ -26,7 +26,7 @@ export function ScenarioModal({ session, feedback, seconds, gamePhase, onChoose,
         ${gamePhase === "TILE_EVENT" ? html`<div className="event-loading">กำลังโหลดสถานการณ์…</div>` : null}
       ` : html`
         <div className=${`scenario-feedback ${feedback.status === "TIMEOUT" ? "timeout" : feedback.quality.toLowerCase()}`}>
-          <div className="dp-award"><span>${feedback.status === "TIMEOUT" ? "TIMEOUT" : feedback.quality}</span><strong>+${feedback.decisionPoints} DP</strong></div>
+          <div className="dp-award"><span>${feedback.status === "TIMEOUT" ? "TIMEOUT" : feedback.quality}</span><strong>+${feedback.decisionPoints} DP · +${feedback.energyReward || 0} EN</strong></div>
           <h3>${feedback.impact}</h3>
           <p>${feedback.explanation}</p>
           <div className="learning-note"><b>สิ่งที่เรียนรู้</b><span>${feedback.learningSummary}</span></div>
