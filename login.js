@@ -13,8 +13,21 @@ const submitLabel = loginForm.querySelector("button[type='submit'] span");
 const submitButton = loginForm.querySelector("button[type='submit']");
 const forgotButton = document.querySelector("#forgot-button");
 const resendButton = document.querySelector("#resend-confirmation");
+const backButton = document.querySelector("#login-back-button");
 
 let authMode = "login";
+
+backButton?.addEventListener("click", (event) => {
+  try {
+    const previousUrl = document.referrer ? new URL(document.referrer) : null;
+    if (previousUrl?.origin === window.location.origin && window.history.length > 1) {
+      event.preventDefault();
+      window.history.back();
+    }
+  } catch {
+    // Keep the link's href as the fallback when the referrer is unavailable.
+  }
+});
 
 function setMessage(message, type = "error") {
   errorMessage.textContent = message;
