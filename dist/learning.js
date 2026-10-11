@@ -1,3 +1,4 @@
+import "./page-navigation.js";
 import { supabase, requirePlayer, setPlayerHeader, setupLogout, toast } from "./flow-common.js";
 
 let user;

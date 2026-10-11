@@ -301,13 +301,9 @@ input,.input-wrap { border-radius:16px!important; }
 .hero-copy { max-width:670px;padding:28px 30px;border:1px solid rgba(255,255,255,.62);border-radius:28px;background:linear-gradient(120deg,rgba(255,255,255,.64),rgba(255,255,255,.2));box-shadow:0 18px 44px rgba(43,108,160,.12);backdrop-filter:blur(7px); }
 .brand { color:#28536a; }.brand-mark { color:#7d5a00;background:linear-gradient(180deg,#ffe475,#ffc93d);clip-path:none;border-radius:15px;box-shadow:0 5px 0 #e4aa1d; }
 .hero-copy h1 { color:#155cae;font:800 clamp(46px,4.6vw,68px)/.98 var(--body);letter-spacing:-.035em;text-transform:none;text-shadow:0 3px 0 rgba(255,255,255,.74); }.hero-copy h1 em { color:#f153a1;-webkit-text-stroke:0;text-shadow:0 3px 0 rgba(255,255,255,.74); }.hero-subline { display:block;color:#234f69;font-size:.66em;line-height:1.18;letter-spacing:-.025em; }.hero-copy>p:last-child { max-width:590px;color:#315f7f;font-size:17px;line-height:1.65;font-weight:500;text-shadow:0 1px 0 rgba(255,255,255,.9); }.chapter { font-family:var(--body); }
-.login-panel { position:relative;padding-inline:clamp(20px,3vw,46px);background:linear-gradient(90deg,rgba(239,249,255,.08),rgba(239,249,255,.46));backdrop-filter:none; }.login-card { width:min(100%,470px);padding:36px;border:2px solid rgba(255,255,255,.94);border-radius:32px;background:rgba(255,255,255,.92);box-shadow:0 24px 70px rgba(39,104,155,.2);backdrop-filter:blur(16px); }.login-card h2 { color:#174f91;white-space:nowrap; }.muted,.register { color:#708da1; }.login-card label { color:#567488; }.input-wrap { border:2px solid #d9ebf1;background:#fff;box-shadow:inset 0 2px 4px rgba(69,128,149,.05); }.input-wrap:focus-within { border-color:#40bfdf;box-shadow:0 0 0 4px rgba(64,191,223,.14); }.input-wrap input { color:#315368; }.error.success { color:#4fae48; }.copyright { color:#668ba4;text-shadow:0 1px 0 #fff; }
-.login-back-button { position:absolute;top:26px;left:clamp(20px,3vw,46px);z-index:4;display:inline-flex;align-items:center;gap:10px;padding:10px 16px 10px 11px;border:1px solid rgba(255,255,255,.9);border-radius:999px;color:#174f91;background:rgba(255,255,255,.82);box-shadow:0 10px 28px rgba(39,104,155,.15);font-size:.9rem;text-decoration:none;backdrop-filter:blur(12px);transition:transform .18s ease,background .18s ease,box-shadow .18s ease; }
-.login-back-button span { display:grid;place-items:center;width:30px;height:30px;border-radius:50%;color:#fff;background:linear-gradient(135deg,#47c9ec,#3988e8);font-size:1.2rem;line-height:1; }
-.login-back-button:hover { transform:translateX(-3px);background:#fff;box-shadow:0 14px 34px rgba(39,104,155,.22); }
-.login-back-button:focus-visible { outline:3px solid rgba(255,196,61,.9);outline-offset:3px; }
-@media(max-width:900px){.login-screen{grid-template-columns:1fr}.login-panel{grid-column:1;padding-inline:clamp(20px,8vw,80px);background:rgba(239,249,255,.28)}.mobile-brand{position:absolute;top:22px;right:clamp(20px,8vw,80px);margin:0}.mobile-brand .brand-logo{width:48px;height:48px}}
-@media(max-width:560px){.login-panel{padding:88px 20px 24px}.login-back-button{top:18px;left:20px}.mobile-brand{top:18px;right:20px}.mobile-brand .brand-logo{width:44px;height:44px}.login-card h2{white-space:normal}.hero-subline{font-size:.72em}}
+.login-panel { padding-inline:clamp(20px,3vw,46px);background:linear-gradient(90deg,rgba(239,249,255,.08),rgba(239,249,255,.46));backdrop-filter:none; }.login-card { width:min(100%,470px);padding:36px;border:2px solid rgba(255,255,255,.94);border-radius:32px;background:rgba(255,255,255,.92);box-shadow:0 24px 70px rgba(39,104,155,.2);backdrop-filter:blur(16px); }.login-card h2 { color:#174f91;white-space:nowrap; }.muted,.register { color:#708da1; }.login-card label { color:#567488; }.input-wrap { border:2px solid #d9ebf1;background:#fff;box-shadow:inset 0 2px 4px rgba(69,128,149,.05); }.input-wrap:focus-within { border-color:#40bfdf;box-shadow:0 0 0 4px rgba(64,191,223,.14); }.input-wrap input { color:#315368; }.error.success { color:#4fae48; }.copyright { color:#668ba4;text-shadow:0 1px 0 #fff; }
+@media(max-width:900px){.login-screen{grid-template-columns:1fr}.login-panel{grid-column:1;padding-inline:clamp(20px,8vw,80px);background:rgba(239,249,255,.28)}}
+@media(max-width:560px){.login-panel{padding-inline:20px}.login-card h2{white-space:normal}.hero-subline{font-size:.72em}}
 
 /* Tablet-style side navigation */
 .lobby-header { z-index:10;background:rgba(255,255,255,.94);border:0;border-right:1px solid #d7e9ef;box-shadow:8px 0 24px rgba(71,133,153,.08);backdrop-filter:blur(16px); }
@@ -405,3 +401,39 @@ input,.input-wrap { border-radius:16px!important; }
   .lobby-header .profile-mini { padding:7px; }
   .lobby-header .logout-button { margin-left:0; }
 }
+
+/* Consistent back navigation for secondary game pages (never shown on Login). */
+.page-back-link {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  min-height:44px;
+  padding:6px 14px 6px 7px;
+  border:2px solid rgba(255,255,255,.94);
+  border-radius:999px;
+  color:#315f78;
+  background:rgba(255,255,255,.9);
+  box-shadow:0 7px 20px rgba(49,116,138,.13);
+  font-size:13px;
+  text-decoration:none;
+  pointer-events:auto;
+  backdrop-filter:blur(12px);
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+.page-back-link span {
+  display:grid;
+  place-items:center;
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  color:#fff;
+  background:linear-gradient(135deg,#47c9ec,#3988e8);
+  font-size:19px;
+  line-height:1;
+}
+.page-back-link:hover { transform:translateX(-3px);box-shadow:0 10px 26px rgba(49,116,138,.2); }
+.page-back-link:focus-visible { outline:3px solid #ffd44f;outline-offset:3px; }
+.lobby-header>.page-back-link { position:fixed;z-index:18;top:21px;left:94px; }
+.flow-header>.page-back-link,.game-topbar>.page-back-link { margin-left:18px;margin-right:auto; }
+@media(max-width:900px){.lobby-header>.page-back-link{top:17px;left:82px}}
+@media(max-width:560px){.page-back-link{min-height:42px;padding:5px}.page-back-link b{display:none}.page-back-link span{width:28px;height:28px}.flow-header>.page-back-link,.game-topbar>.page-back-link{margin-left:10px}}

@@ -1,3 +1,4 @@
+import "./page-navigation.js";
 import { supabase, requirePlayer, toast } from "./flow-common.js";
 
 try {
