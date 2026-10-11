@@ -2,6 +2,7 @@ import { html } from "./runtime.js";
 import { DISTRICT_RULES, canBuildDistrict, canIncreaseInfluence } from "./district-engine.js";
 
 const ownerLabel = (ownerId) => ownerId === "player" ? "ผู้เล่น" : ownerId === "bot" ? "บอท" : "ยังไม่มีเจ้าของ";
+const statusLabel = (status) => ({ NEUTRAL: "ยังไม่มีเจ้าของ", OWNED: "มีเจ้าของแล้ว", CONTESTED: "กำลังแย่งชิง" }[status] || status);
 
 export function DistrictPanel({ session, district, energy, seconds, currentTurn, actionUsed, feedback, onBuild, onInfluence, onSkip, onContinue }) {
   if (!session || !district) return null;
@@ -11,7 +12,7 @@ export function DistrictPanel({ session, district, energy, seconds, currentTurn,
   return html`
     <section className="district-panel" role="dialog" aria-modal="false" aria-labelledby="district-title">
       <div className="district-panel-heading">
-        <div><p className="map-kicker">DISTRICT ACTION · ${session.source.toUpperCase()}</p><span className=${`district-status ${district.status.toLowerCase()}`}>${district.status}</span></div>
+        <div><p className="map-kicker">จัดการเขต · ${session.source.toUpperCase()}</p><span className=${`district-status ${district.status.toLowerCase()}`}>${statusLabel(district.status)}</span></div>
         <div className=${`scenario-clock ${seconds <= 10 ? "urgent" : ""}`}><strong>${seconds}</strong><small>วินาที</small></div>
       </div>
       <h2 id="district-title">${district.districtName}</h2>
@@ -42,7 +43,7 @@ export function DistrictPanel({ session, district, energy, seconds, currentTurn,
           <strong>${feedback.message}</strong>
           <span>${feedback.type === "SKIP" ? "เทิร์นดำเนินต่อโดยไม่มีการเปลี่ยนแปลง" : `คงเหลือ ${feedback.energy} EN`}</span>
         </div>
-        ${currentTurn === "player" && feedback.type !== "TIMEOUT" ? html`<button type="button" className="event-continue" onClick=${onContinue}>ยืนยันและจบ District Action</button>` : html`<div className="event-loading">กำลังบันทึกผลและจบเทิร์น…</div>`}
+        ${currentTurn === "player" && feedback.type !== "TIMEOUT" ? html`<button type="button" className="event-continue" onClick=${onContinue}>ยืนยันและจบการจัดการเขต</button>` : html`<div className="event-loading">กำลังบันทึกผลและจบเทิร์น…</div>`}
       `}
     </section>
   `;

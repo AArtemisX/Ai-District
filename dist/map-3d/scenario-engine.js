@@ -49,7 +49,7 @@ export function createTimeoutResult(scenario, actor = "player") {
     choiceId: null,
     quality: null,
     decisionPoints: 0,
-    impact: "หมดเวลา — ไม่มีการเพิ่ม Decision Points",
+    impact: "หมดเวลา — ไม่ได้รับคะแนนการตัดสินใจ",
     explanation: "ระบบบันทึก TIMEOUT และใช้ผลลัพธ์ปลอดภัยเพื่อให้เกมดำเนินต่อได้",
     learningSummary: scenario.explanation,
     futureEffects: { decisionPoints: 0, resources: { insight: 0, trust: 0 }, buildRights: 0 },
