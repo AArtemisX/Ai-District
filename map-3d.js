@@ -27,6 +27,7 @@ function loadInventories() {
 }
 
 function App() {
+  const [surrenderOpen, setSurrenderOpen] = useState(false);
   const [selectedTile, setSelectedTile] = useState(0);
   const [selectedDistrict, setSelectedDistrict] = useState("academy");
   const [districtStates, setDistrictStates] = useState(initialDistricts);
@@ -415,24 +416,31 @@ function App() {
 
       <header className="map-topbar">
         <a className="map-brand" href="lobby.html"><img src="assets/ai-district-logo.png" alt="Ai District" /><span>AI DISTRICT · 3D WORLD</span></a>
-        <a className="map-back" href="ai-world.html">← กลับ AI World</a>
+        <button type="button" className="map-surrender" onClick=${() => setSurrenderOpen(true)}><span aria-hidden="true">⚑</span> ยอมแพ้</button>
       </header>
 
       <aside className="map-panel">
-        <p className="map-kicker">TURN-BASED DEMO · ROUND ${round}</p>
-        <h1>นครลอยฟ้า AI</h1>
-        <div className=${`turn-indicator ${currentTurn}`}><span>เทิร์นปัจจุบัน</span><strong>${currentTurn === "player" ? "ผู้เล่น" : "บอท"}</strong><b>${PHASE_LABELS[gamePhase]}</b></div>
+        <div className="panel-heading">
+          <div><p className="map-kicker">AI DISTRICT · MATCH CONTROL</p><h1>นครลอยฟ้า AI</h1></div>
+          <span className="round-pill"><small>ROUND</small>${round}</span>
+        </div>
+        <div className=${`turn-indicator ${currentTurn}`}>
+          <i className="turn-avatar" aria-hidden="true">${currentTurn === "player" ? "P" : "B"}</i>
+          <span>เทิร์นปัจจุบัน<strong>${currentTurn === "player" ? "ผู้เล่น" : "บอท"}</strong></span>
+          <b>${PHASE_LABELS[gamePhase]}</b>
+        </div>
         <div className="map-stats">
-          <div className="map-stat"><span>ตำแหน่งผู้เล่น / บอท</span><strong>${playerPosition + 1} / ${botPosition + 1}</strong></div>
-          <div className="map-stat"><span>ช่องปัจจุบัน</span><strong>${currentTile.tileIndex + 1} · ${currentTile.type}</strong></div>
-          <div className="map-stat"><span>ผลลูกเต๋า</span><strong>${gamePhase === GAME_PHASES.ROLLING ? "กำลังหมุน…" : diceResult == null ? "—" : movementSteps > diceResult ? `${diceResult} + ${movementSteps - diceResult}` : diceResult}</strong></div>
-          <div className="map-stat"><span>Decision Points</span><strong>${decisionPoints.player} / ${decisionPoints.bot} DP</strong></div>
-          <div className="map-stat energy-stat"><span>Energy ผู้เล่น / บอท</span><strong>${energy.player} / ${energy.bot} EN</strong></div>
+          <div className="map-stat"><i aria-hidden="true">◎</i><span>ตำแหน่ง P / B<strong>${playerPosition + 1} / ${botPosition + 1}</strong></span></div>
+          <div className="map-stat"><i aria-hidden="true">◈</i><span>ช่องปัจจุบัน<strong>${currentTile.tileIndex + 1} · ${currentTile.type}</strong></span></div>
+          <div className="map-stat"><i aria-hidden="true">⚄</i><span>ผลลูกเต๋า<strong>${gamePhase === GAME_PHASES.ROLLING ? "กำลังหมุน…" : diceResult == null ? "—" : movementSteps > diceResult ? `${diceResult} + ${movementSteps - diceResult}` : diceResult}</strong></span></div>
+          <div className="map-stat"><i aria-hidden="true">✦</i><span>Decision Points<strong>${decisionPoints.player} / ${decisionPoints.bot} DP</strong></span></div>
+          <div className="map-stat energy-stat"><i aria-hidden="true">⚡</i><span>Energy ผู้เล่น / บอท<strong>${energy.player} / ${energy.bot} EN</strong></span><em style=${{"--energy-level":`${Math.min(100, energy.player / 12 * 100)}%`}}></em></div>
         </div>
         <div className="map-actions">
           <button type="button" className="primary roll-button" disabled=${!canPlayerRoll} onClick=${() => startRoll("player")}>${currentTurn === "bot" ? "บอทกำลังเล่น…" : gamePhase === GAME_PHASES.WAITING ? "ทอยลูกเต๋า" : PHASE_LABELS[gamePhase]}</button>
         </div>
         <p className="map-movement-status" aria-live="polite">${gamePhase === GAME_PHASES.MOVING ? `${currentTurn === "player" ? "ผู้เล่น" : "บอท"} กำลังเดิน ${movementSteps || diceResult} ช่อง…` : PHASE_LABELS[gamePhase]}</p>
+        <div className="district-list-title"><span>เขตอิทธิพล</span><small>PLAYER / BOT IP</small></div>
         <div className="district-list">
           ${DISTRICTS.map((district)=>html`
             <button key=${district.id} type="button" className=${`district-row ${selectedDistrict === district.id ? "selected" : ""}`} onClick=${()=>setSelectedDistrict(district.id)} style=${{"--district-color":districtStates[district.id].ownerId ? (districtStates[district.id].ownerId === "player" ? "#55b8ff" : "#ff77a9") : district.color}}>
@@ -441,6 +449,22 @@ function App() {
           `)}
         </div>
       </aside>
+
+      ${surrenderOpen ? html`
+        <div className="surrender-backdrop" role="presentation" onClick=${() => setSurrenderOpen(false)}>
+          <section className="surrender-dialog" role="dialog" aria-modal="true" aria-labelledby="surrender-title" onClick=${(event) => event.stopPropagation()}>
+            <div className="surrender-icon" aria-hidden="true">⚑</div>
+            <p className="map-kicker">LEAVE CURRENT MATCH</p>
+            <h2 id="surrender-title">ยืนยันการยอมแพ้?</h2>
+            <p>การแข่งขันรอบนี้จะสิ้นสุด และความคืบหน้าระหว่างรอบที่ยังไม่บันทึกจะหายไป</p>
+            <div className="surrender-summary"><span>รอบที่ <b>${round}</b></span><span>คะแนน <b>${decisionPoints.player} DP</b></span><span>พลังงาน <b>${energy.player} EN</b></span></div>
+            <div className="surrender-actions">
+              <button type="button" className="surrender-cancel" onClick=${() => setSurrenderOpen(false)}>เล่นต่อ</button>
+              <button type="button" className="surrender-confirm" onClick=${() => window.location.assign("ai-world.html")}>ยอมแพ้และออก</button>
+            </div>
+          </section>
+        </div>
+      ` : null}
 
       <section className=${`event-panel ${eventPanelOpen ? "show" : ""}`} aria-hidden=${!eventPanelOpen}>
         <p className="map-kicker">TILE EVENT · ${currentTile.type}</p>
