@@ -42,7 +42,7 @@ document.querySelector("#create-room-form").addEventListener("submit", async (ev
     const { data: session, error: sessionError } = await supabase.from("ai_world_sessions").insert({ owner_id: user.id, room_id: room.id, character_code: selectedCharacter, board_state: { position: 0, insight: 0, energy: 3, items: [...selectedItems] } }).select().single();
     if (sessionError) throw sessionError;
     await supabase.from("lobby_rooms").update({ status: "in_game" }).eq("id", room.id);
-    window.location.assign(`game.html?session=${session.id}`);
+    window.location.assign(`map-3d.html?session=${session.id}`);
   } catch (error) { toast(error.message, "error"); button.disabled = false; }
 });
 
@@ -57,7 +57,7 @@ document.querySelector("#join-room-form").addEventListener("submit", async (even
     await supabase.from("lobby_members").upsert({ room_id: room.id, user_id: user.id, member_role: "member", is_ready: true });
     const { data: session } = await supabase.from("ai_world_sessions").select("id").eq("room_id", room.id).maybeSingle();
     if (!session) throw new Error("หัวหน้าห้องยังไม่เริ่มเกม กรุณาลองใหม่อีกครั้ง");
-    window.location.assign(`game.html?session=${session.id}`);
+    window.location.assign(`map-3d.html?session=${session.id}`);
   } catch (error) { toast(error.message, "error"); }
 });
 
