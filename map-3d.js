@@ -9,8 +9,22 @@ import { ScenarioModal } from "./map-3d/ScenarioModal.js";
 import { addDecisionPoints, chooseBotChoice, createTimeoutResult, resolveScenarioChoice, selectScenario } from "./map-3d/scenario-engine.js";
 import { DistrictPanel } from "./map-3d/DistrictPanel.js";
 import { DISTRICT_RULES, buildDistrict, chooseBotDistrictAction, clampEnergy, createInitialDistrictStates, getDistrictIdForTile, getScenarioEnergyReward, increaseInfluence } from "./map-3d/district-engine.js";
+import { ActionInventoryPanel } from "./map-3d/ActionInventoryPanel.js";
+import { activeEffects, chooseBotUtilityAction, consumeInfluenceBlock, consumeSpeedBoost, createInitialInventory, grantReward, resolveCardAction, resolveItemAction } from "./map-3d/action-engine.js";
+import { chooseReward } from "./map-3d/reward-config.js";
 
 const initialDistricts = createInitialDistrictStates(DISTRICTS);
+const inventoryStorageKey = `ai-district-phase5:${new URLSearchParams(window.location.search).get("session") || "demo"}`;
+
+function loadInventories() {
+  try {
+    const saved = JSON.parse(window.sessionStorage.getItem(inventoryStorageKey));
+    if (saved?.player?.hand && saved?.bot?.hand) return saved;
+  } catch {
+    // Ignore invalid preview state and start with the safe default inventory.
+  }
+  return { player: createInitialInventory("player"), bot: createInitialInventory("bot") };
+}
 
 function App() {
   const [selectedTile, setSelectedTile] = useState(0);
@@ -36,6 +50,18 @@ function App() {
   const [districtActionSession, setDistrictActionSession] = useState(null);
   const [districtFeedback, setDistrictFeedback] = useState(null);
   const [districtActionUsed, setDistrictActionUsed] = useState(false);
+  const [inventories, setInventories] = useState(loadInventories);
+  const [effects, setEffects] = useState([]);
+  const [cardActionUsed, setCardActionUsed] = useState(false);
+  const [itemActionUsed, setItemActionUsed] = useState(false);
+  const [utilityFeedback, setUtilityFeedback] = useState(null);
+  const [rewardNotification, setRewardNotification] = useState(null);
+  const [botUtilityResolved, setBotUtilityResolved] = useState(false);
+  const [turnNumber, setTurnNumber] = useState(0);
+  const [movementSteps, setMovementSteps] = useState(null);
+  const districtStatesRef = useRef(districtStates);
+  const energyRef = useRef(energy);
+  const effectsRef = useRef(effects);
   const awardedScenarioIds = useRef(new Set());
   const completedDistrictActionIds = useRef(new Set());
 
@@ -52,25 +78,36 @@ function App() {
     setGamePhase((current) => transitionPhase(current, nextPhase));
   }
 
+  function awardReward(actor, reward, eventId) {
+    const result = grantReward(inventories[actor], reward, eventId);
+    if (result.success) setInventories((current) => ({ ...current, [actor]: result.inventory }));
+    if (actor === "player") setRewardNotification(result);
+  }
+
   function startRoll(actor) {
     if (gamePhase !== GAME_PHASES.WAITING || currentTurn !== actor || isMoving) return;
     const value = rollDie();
+    const speed = consumeSpeedBoost(effects, actor, turnNumber);
+    const steps = value + speed.bonus;
+    setEffects(speed.effects);
     setDiceResult(null);
+    setMovementSteps(steps);
     setLandedTile(null);
     setLastActionResult(null);
     setScenarioSession(null);
     setScenarioFeedback(null);
     setDistrictActionSession(null);
     setDistrictFeedback(null);
-    setRollRequest({ id: `${actor}-${performance.now()}`, actor, value });
+    setRollRequest({ id: `${actor}-${performance.now()}`, actor, value, steps });
     advancePhase(GAME_PHASES.ROLLING);
   }
 
   function finishRoll(value) {
     if (gamePhase !== GAME_PHASES.ROLLING) return;
     const from = currentTurn === "player" ? playerPosition : botPosition;
+    const steps = rollRequest?.steps || value;
     setDiceResult(value);
-    setMovement({ id: `${currentTurn}-${performance.now()}`, actor: currentTurn, from, path: buildTilePath(from, value) });
+    setMovement({ id: `${currentTurn}-${performance.now()}`, actor: currentTurn, from, path: buildTilePath(from, steps) });
     setIsMoving(true);
     advancePhase(GAME_PHASES.MOVING);
   }
@@ -82,6 +119,9 @@ function App() {
     setSelectedTile(finalIndex);
     const tileEvent = getTileEvent(finalIndex);
     setLandedTile(tileEvent);
+    if (tileEvent.type === "ITEM") {
+      awardReward(actor, chooseReward("ITEM_TILE", round + finalIndex), `${actor}-item-${round}-${finalIndex}`);
+    }
     if (tileEvent.type === "AI_SCENARIO") {
       const scenario = selectScenario(finalIndex, scenarioHistory.map((result) => result.scenarioId));
       setScenarioSession({ id: `${actor}-${scenario.scenarioId}-${performance.now()}`, actor, scenario, status: "PENDING" });
@@ -122,6 +162,9 @@ function App() {
     setDecisionPoints((scores) => addDecisionPoints(scores, awardedResult));
     setEnergy((current) => ({ ...current, [result.actor]: clampEnergy(current[result.actor] + energyReward) }));
     setScenarioHistory((history) => [...history, awardedResult]);
+    if (awardedResult.quality === "BEST") {
+      awardReward(result.actor, chooseReward("SCENARIO_BEST", scenarioHistory.length), `scenario-${result.actor}-${round}-${result.scenarioId}`);
+    }
   }
 
   function chooseScenario(choiceId) {
@@ -145,14 +188,59 @@ function App() {
     advancePhase(GAME_PHASES.TURN_END);
   }
 
+  function applyUtilityResult(actor, kind, result) {
+    setUtilityFeedback(result);
+    if (!result.success) return false;
+    setInventories((current) => ({ ...current, [actor]: result.inventory }));
+    energyRef.current = { ...energyRef.current, [actor]: result.energy };
+    districtStatesRef.current = result.districts;
+    effectsRef.current = result.effects;
+    setEnergy(energyRef.current);
+    setDistrictStates(result.districts);
+    setEffects(result.effects);
+    if (kind === "CARD") setCardActionUsed(true);
+    else setItemActionUsed(true);
+    return true;
+  }
+
+  function useUtility(kind, instanceId, targetDistrictId, actor = currentTurn) {
+    if (gamePhase !== GAME_PHASES.ACTION_PHASE || isMoving || actor !== currentTurn) return false;
+    const shared = {
+      actorId: actor,
+      instanceId,
+      targetDistrictId,
+      inventory: inventories[actor],
+      energy: energy[actor],
+      districts: districtStates,
+      effects,
+      turnNumber,
+    };
+    const result = kind === "CARD"
+      ? resolveCardAction({ ...shared, actionUsed: cardActionUsed })
+      : resolveItemAction({ ...shared, actionUsed: itemActionUsed });
+    return applyUtilityResult(actor, kind, result);
+  }
+
   function completeDistrictAction(type) {
     if (gamePhase !== GAME_PHASES.ACTION_PHASE || !districtActionSession || districtFeedback || districtActionUsed) return;
     if (completedDistrictActionIds.current.has(districtActionSession.id)) return;
-    const district = districtStates[districtActionSession.districtId];
-    const actorEnergy = energy[currentTurn];
+    const district = districtStatesRef.current[districtActionSession.districtId];
+    const actorEnergy = energyRef.current[currentTurn];
     let result;
     if (type === "BUILD") result = { type, ...buildDistrict(district, currentTurn, actorEnergy) };
-    else if (type === "INFLUENCE") result = { type, ...increaseInfluence(district, currentTurn, actorEnergy) };
+    else if (type === "INFLUENCE") {
+      const blocked = consumeInfluenceBlock(effectsRef.current, currentTurn, district.districtId, turnNumber);
+      effectsRef.current = blocked.effects;
+      setEffects(blocked.effects);
+      result = blocked.blocked ? {
+        type: "BLOCKED",
+        success: true,
+        district,
+        energy: actorEnergy,
+        ownerChanged: false,
+        message: "Lag Pulse บล็อกการเพิ่ม Influence ครั้งนี้",
+      } : { type, ...increaseInfluence(district, currentTurn, actorEnergy) };
+    }
     else result = {
       type,
       success: true,
@@ -163,8 +251,10 @@ function App() {
     };
     if (!result.success) return;
     completedDistrictActionIds.current.add(districtActionSession.id);
-    setDistrictStates((current) => ({ ...current, [district.districtId]: result.district }));
-    setEnergy((current) => ({ ...current, [currentTurn]: result.energy }));
+    districtStatesRef.current = { ...districtStatesRef.current, [district.districtId]: result.district };
+    energyRef.current = { ...energyRef.current, [currentTurn]: result.energy };
+    setDistrictStates(districtStatesRef.current);
+    setEnergy(energyRef.current);
     setDistrictActionUsed(true);
     setDistrictFeedback(result);
     setDistrictActionSession((current) => current ? { ...current, status: "RESULT" } : current);
@@ -177,10 +267,36 @@ function App() {
   }
 
   useEffect(() => {
+    window.sessionStorage.setItem(inventoryStorageKey, JSON.stringify(inventories));
+  }, [inventories]);
+
+  useEffect(() => { districtStatesRef.current = districtStates; }, [districtStates]);
+  useEffect(() => { energyRef.current = energy; }, [energy]);
+  useEffect(() => { effectsRef.current = effects; }, [effects]);
+
+  useEffect(() => {
     if (gamePhase !== GAME_PHASES.TILE_EVENT) return undefined;
     const timer = window.setTimeout(() => advancePhase(GAME_PHASES.ACTION_PHASE), 420);
     return () => window.clearTimeout(timer);
   }, [gamePhase]);
+
+  useEffect(() => {
+    if (gamePhase !== GAME_PHASES.ACTION_PHASE || currentTurn !== "bot" || botUtilityResolved || isMoving) return undefined;
+    const timer = window.setTimeout(() => {
+      const action = chooseBotUtilityAction({
+        inventory: inventories.bot,
+        energy: energy.bot,
+        districts: districtStates,
+        effects,
+        cardUsed: cardActionUsed,
+        itemUsed: itemActionUsed,
+        turnNumber,
+      });
+      if (action) useUtility(action.kind, action.instanceId, action.targetDistrictId, "bot");
+      setBotUtilityResolved(true);
+    }, 320);
+    return () => window.clearTimeout(timer);
+  }, [gamePhase, currentTurn, botUtilityResolved, isMoving, inventories, energy, districtStates, effects, cardActionUsed, itemActionUsed, turnNumber]);
 
   useEffect(() => {
     if (gamePhase !== GAME_PHASES.ACTION_PHASE || !landedTile) return undefined;
@@ -253,6 +369,17 @@ function App() {
       setDistrictActionSession(null);
       setDistrictFeedback(null);
       setDistrictActionUsed(false);
+      setCardActionUsed(false);
+      setItemActionUsed(false);
+      setUtilityFeedback(null);
+      setRewardNotification(null);
+      setBotUtilityResolved(false);
+      setMovementSteps(null);
+      setTurnNumber((value) => {
+        const nextTurnNumber = value + 1;
+        setEffects((current) => activeEffects(current, nextTurnNumber));
+        return nextTurnNumber;
+      });
       advancePhase(GAME_PHASES.WAITING);
     }, 520);
     return () => window.clearTimeout(timer);
@@ -298,14 +425,14 @@ function App() {
         <div className="map-stats">
           <div className="map-stat"><span>ตำแหน่งผู้เล่น / บอท</span><strong>${playerPosition + 1} / ${botPosition + 1}</strong></div>
           <div className="map-stat"><span>ช่องปัจจุบัน</span><strong>${currentTile.tileIndex + 1} · ${currentTile.type}</strong></div>
-          <div className="map-stat"><span>ผลลูกเต๋า</span><strong>${gamePhase === GAME_PHASES.ROLLING ? "กำลังหมุน…" : diceResult ?? "—"}</strong></div>
+          <div className="map-stat"><span>ผลลูกเต๋า</span><strong>${gamePhase === GAME_PHASES.ROLLING ? "กำลังหมุน…" : diceResult == null ? "—" : movementSteps > diceResult ? `${diceResult} + ${movementSteps - diceResult}` : diceResult}</strong></div>
           <div className="map-stat"><span>Decision Points</span><strong>${decisionPoints.player} / ${decisionPoints.bot} DP</strong></div>
           <div className="map-stat energy-stat"><span>Energy ผู้เล่น / บอท</span><strong>${energy.player} / ${energy.bot} EN</strong></div>
         </div>
         <div className="map-actions">
           <button type="button" className="primary roll-button" disabled=${!canPlayerRoll} onClick=${() => startRoll("player")}>${currentTurn === "bot" ? "บอทกำลังเล่น…" : gamePhase === GAME_PHASES.WAITING ? "ทอยลูกเต๋า" : PHASE_LABELS[gamePhase]}</button>
         </div>
-        <p className="map-movement-status" aria-live="polite">${gamePhase === GAME_PHASES.MOVING ? `${currentTurn === "player" ? "ผู้เล่น" : "บอท"} กำลังเดิน ${diceResult} ช่อง…` : PHASE_LABELS[gamePhase]}</p>
+        <p className="map-movement-status" aria-live="polite">${gamePhase === GAME_PHASES.MOVING ? `${currentTurn === "player" ? "ผู้เล่น" : "บอท"} กำลังเดิน ${movementSteps || diceResult} ช่อง…` : PHASE_LABELS[gamePhase]}</p>
         <div className="district-list">
           ${DISTRICTS.map((district)=>html`
             <button key=${district.id} type="button" className=${`district-row ${selectedDistrict === district.id ? "selected" : ""}`} onClick=${()=>setSelectedDistrict(district.id)} style=${{"--district-color":districtStates[district.id].ownerId ? (districtStates[district.id].ownerId === "player" ? "#55b8ff" : "#ff77a9") : district.color}}>
@@ -349,6 +476,19 @@ function App() {
         onInfluence=${() => completeDistrictAction("INFLUENCE")}
         onSkip=${() => completeDistrictAction("SKIP")}
         onContinue=${finishDistrictAction}
+      />
+
+      <${ActionInventoryPanel}
+        inventory=${inventories.player}
+        districts=${districtStates}
+        effects=${effects}
+        currentTurn=${currentTurn}
+        canUse=${currentTurn === "player" && gamePhase === GAME_PHASES.ACTION_PHASE && !isMoving}
+        cardUsed=${cardActionUsed}
+        itemUsed=${itemActionUsed}
+        feedback=${utilityFeedback}
+        rewardNotification=${rewardNotification}
+        onUse=${(kind, instanceId, districtId) => useUtility(kind, instanceId, districtId, "player")}
       />
 
       <div className="selection-chip">${selectedTileData.index + 1} · ${selectedTileData.type}</div>

@@ -84,12 +84,19 @@ export function applyInfluenceChange(district, actorId, amount) {
   const nextValue = Math.min(DISTRICT_RULES.MAX_INFLUENCE, Math.max(0, current + amount));
   let ownerId = district.ownerId;
   const previousOwner = ownerId;
-  const ownerInfluence = ownerId ? (district.influenceByPlayer[ownerId] || 0) : -1;
-  if (district.isBuilt && actorId !== ownerId && nextValue > ownerInfluence) ownerId = actorId;
+  const nextInfluence = { ...district.influenceByPlayer, [actorId]: nextValue };
+  if (district.isBuilt && ownerId) {
+    const challenger = ownerId === "player" ? "bot" : "player";
+    if ((nextInfluence[challenger] || 0) > (nextInfluence[ownerId] || 0)) ownerId = challenger;
+  } else if (district.isBuilt && !ownerId) {
+    const playerIp = nextInfluence.player || 0;
+    const botIp = nextInfluence.bot || 0;
+    if (playerIp !== botIp) ownerId = playerIp > botIp ? "player" : "bot";
+  }
   const nextDistrict = withStatus({
     ...district,
     ownerId,
-    influenceByPlayer: { ...district.influenceByPlayer, [actorId]: nextValue },
+    influenceByPlayer: nextInfluence,
   });
   return { district: nextDistrict, ownerChanged: ownerId !== previousOwner, previousOwner, ownerId };
 }
