@@ -97,7 +97,19 @@ async function continueToGame(user, requestedUsername) {
     .eq("user_id", user.id)
     .maybeSingle();
   if (error) throw error;
-  window.location.assign(tutorial?.completed_at ? "lobby.html" : "tutorial.html");
+  const nextFromUrl = new URLSearchParams(window.location.search).get("next");
+  const savedNext = window.sessionStorage.getItem("ai-district-return-to");
+  const requestedNext = nextFromUrl || savedNext;
+  const safeNext = requestedNext && /^(?!\/|\\|[a-z]+:)[\w.-]+\.html(?:[?#].*)?$/i.test(requestedNext)
+    ? requestedNext
+    : null;
+  if (tutorial?.completed_at) {
+    window.sessionStorage.removeItem("ai-district-return-to");
+    window.location.assign(safeNext || "lobby.html");
+    return;
+  }
+  if (safeNext) window.sessionStorage.setItem("ai-district-return-to", safeNext);
+  window.location.assign("tutorial.html");
 }
 
 loginForm.addEventListener("submit", async (event) => {

@@ -45,7 +45,10 @@ next.addEventListener("click", async () => {
       if (error) throw error;
       const { error: profileError } = await supabase.from("profiles").update({ selected_character_code: "aria" }).eq("id", user.id);
       if (profileError) throw profileError;
-      window.location.assign("lobby.html?welcome=1");
+      const savedNext = window.sessionStorage.getItem("ai-district-return-to");
+      const safeNext = savedNext && /^(?!\/|\\|[a-z]+:)[\w.-]+\.html(?:[?#].*)?$/i.test(savedNext) ? savedNext : null;
+      window.sessionStorage.removeItem("ai-district-return-to");
+      window.location.assign(safeNext || "lobby.html?welcome=1");
     }
   } catch (error) { toast(error.message, "error"); } finally { next.disabled = false; }
 });
@@ -54,7 +57,12 @@ back.addEventListener("click", async () => { if (step > 1) { step -= 1; await sa
 try {
   ({ user } = await requirePlayer({ tutorialRequired: false }));
   const { data } = await supabase.from("player_tutorial_progress").select("current_step, completed_at").eq("user_id", user.id).maybeSingle();
-  if (data?.completed_at) window.location.replace("lobby.html");
+  if (data?.completed_at) {
+    const savedNext = window.sessionStorage.getItem("ai-district-return-to");
+    const safeNext = savedNext && /^(?!\/|\\|[a-z]+:)[\w.-]+\.html(?:[?#].*)?$/i.test(savedNext) ? savedNext : null;
+    window.sessionStorage.removeItem("ai-district-return-to");
+    window.location.replace(safeNext || "lobby.html");
+  }
   step = data?.current_step || 1;
   render();
 } catch (error) { if (!error.message.endsWith("REQUIRED")) toast(error.message, "error"); }

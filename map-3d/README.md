@@ -37,8 +37,9 @@ Dependencies ถูกล็อกเวอร์ชันผ่าน Import Ma
 
 - `Dice3D.js` — ลูกเต๋า Mesh 3D ครบ 6 หน้า กำหนดผลครั้งเดียวและหมุนก่อนหยุด
 - `turn-manager.js` — State Machine: WAITING → ROLLING → MOVING → TILE_EVENT → ACTION_PHASE → TURN_END
+- `battle-config.js` — District Battle 2.0 Action Encounter mapping และ EN economy กลาง
 - ผู้เล่นกดทอยเอง ส่วนบอททอย เดิน และเลือก Action ทดสอบอัตโนมัติ
-- `TILE_EVENTS` รองรับ NORMAL, AI_SCENARIO, BATTLE, ITEM, DISTRICT และ SPECIAL
+- `TILE_EVENTS` ในโหมด Battle รองรับ BATTLE, CARD, ITEM, ENERGY, DISTRICT และ RANDOM_EVENT โดยไม่เรียกคำถามจาก Learning World
 - Action Timer เริ่มหลัง Movement จบเท่านั้น กำหนดเวลาแต่ละ Event ได้และไม่น้อยกว่า 30 วินาที
 - เมื่อหมดเวลา ระบบเลือกผลลัพธ์ปลอดภัยและดำเนินเทิร์นต่อโดยอัตโนมัติ
 - `TURN_ORDER` เป็น Array จึงขยายจากผู้เล่น/บอทเป็นผู้เล่น 4 คนได้ภายหลัง

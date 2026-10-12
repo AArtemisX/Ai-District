@@ -1,4 +1,5 @@
 import { clearAuthSession, supabase } from "./supabase-client.js";
+import { startSocialPresence } from "./social-presence.js";
 
 const toast = document.querySelector("#toast");
 
@@ -16,7 +17,22 @@ function showPlayer(profile) {
     .forEach((node) => node.textContent = name.toUpperCase());
   document.querySelectorAll("#avatar-letter, #squad-avatar")
     .forEach((node) => node.textContent = firstLetter);
-  document.querySelector("#player-level").textContent = profile.level;
+}
+
+async function loadFriendPreview(userId) {
+  const { data: relationships, error } = await supabase.from("friendships").select("user_a,user_b").or(`user_a.eq.${userId},user_b.eq.${userId}`);
+  if (error) return;
+  const ids = (relationships || []).map((item) => item.user_a === userId ? item.user_b : item.user_a);
+  document.querySelector("#lobby-friend-count").textContent = `${ids.length} คน`;
+  if (!ids.length) {
+    document.querySelector("#lobby-friend-preview").innerHTML = `<div class="social-empty small">ยังไม่มีเพื่อน ลองแชร์ลิงก์เชิญของคุณ</div>`;
+    return;
+  }
+  const { data: profiles } = await supabase.from("profiles").select("id,username,display_name,status").in("id", ids.slice(0, 3));
+  document.querySelector("#lobby-friend-preview").innerHTML = (profiles || []).map((profile) => {
+    const name = profile.display_name || profile.username;
+    return `<a href="friends.html" class="lobby-friend-row"><span class="avatar">${name.charAt(0).toUpperCase()}</span><span><strong>${name}</strong><small>${profile.status === "online" ? "ออนไลน์" : "ออฟไลน์"}</small></span><i class="presence-dot ${profile.status === "online" ? "online" : "offline"}"></i></a>`;
+  }).join("");
 }
 
 async function loadLobby() {
@@ -25,6 +41,7 @@ async function loadLobby() {
     window.location.replace("login.html");
     return;
   }
+  startSocialPresence(user.id);
 
   const [profileResult, onlineResult, missionResult, learningResult, inventoryResult, characterResult] = await Promise.all([
     supabase.from("profiles").select("username, display_name, level, xp, credits, selected_character_code").eq("id", user.id).single(),
@@ -69,6 +86,7 @@ async function loadLobby() {
     .from("profiles")
     .update({ status: "online", last_seen_at: new Date().toISOString() })
     .eq("id", user.id);
+  await loadFriendPreview(user.id);
 }
 
 document.querySelector("#logout-button").addEventListener("click", async () => {
@@ -81,10 +99,6 @@ document.querySelector("#logout-button").addEventListener("click", async () => {
   }
   await clearAuthSession();
   window.location.replace("login.html");
-});
-
-document.querySelectorAll(".invite").forEach((button) => {
-  button.addEventListener("click", () => showToast("สร้างลิงก์เชิญทีมแล้ว"));
 });
 
 await loadLobby();

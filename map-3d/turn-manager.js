@@ -1,3 +1,5 @@
+import { BATTLE_TILE_EVENTS } from "./battle-config.js";
+
 export const GAME_PHASES = Object.freeze({
   WAITING: "WAITING",
   ROLLING: "ROLLING",
@@ -30,14 +32,7 @@ const TRANSITIONS = Object.freeze({
 
 export const TURN_ORDER = Object.freeze(["player", "bot"]);
 
-export const TILE_EVENTS = Object.freeze([
-  { type: "NORMAL", title: "พื้นที่ทั่วไป", description: "พักและตรวจสอบทรัพยากรก่อนเดินทางต่อ", duration: 30, safeResult: "ผ่านช่องโดยไม่มีผลเสีย" },
-  { type: "AI_SCENARIO", title: "สถานการณ์ AI", description: "วิเคราะห์สถานการณ์ด้านจริยธรรมและเลือกแนวทางที่เหมาะสม", duration: 40, safeResult: "เลือกแนวทางระมัดระวัง" },
-  { type: "BATTLE", title: "AI Challenge", description: "พบความท้าทายจำลอง ระบบต่อสู้จริงจะเพิ่มใน Phase ถัดไป", duration: 45, safeResult: "ตั้งรับและรักษาทรัพยากร" },
-  { type: "ITEM", title: "จุดค้นพบไอเทม", description: "พบสัญญาณของอุปกรณ์สนับสนุนบนเส้นทาง", duration: 30, safeResult: "เก็บข้อมูลไว้ตรวจสอบภายหลัง" },
-  { type: "DISTRICT", title: "เขตพัฒนาเมือง", description: "สำรวจพื้นที่ District และตรวจสอบสถานะเจ้าของ", duration: 35, safeResult: "ยังไม่สร้างสิ่งก่อสร้าง" },
-  { type: "SPECIAL", title: "พื้นที่พิเศษ", description: "พลังงานจาก AI Core ส่งผลต่อพื้นที่นี้", duration: 30, safeResult: "รับผลลัพธ์มาตรฐานที่ปลอดภัย" },
-]);
+export const TILE_EVENTS = BATTLE_TILE_EVENTS;
 
 export function canTransition(from, to) {
   return TRANSITIONS[from]?.includes(to) ?? false;

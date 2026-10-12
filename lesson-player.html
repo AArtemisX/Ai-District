@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#e8faff" />
+  <title>ภารกิจการเรียนรู้ — Ai District</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="assets/ai-district-logo.png" />
+  <link rel="stylesheet" href="style.css?v=20261012-stage4" />
+  <script type="module" src="lesson-player.js?v=20261012-stage4"></script>
+</head>
+<body class="lesson-player-page">
+  <main class="lesson-player-shell">
+    <header class="mission-topbar">
+      <a class="mission-brand" href="learning.html"><img src="assets/ai-district-logo.png" alt="Ai District" /></a>
+      <div class="mission-title"><p id="mission-kicker">LEARNING MISSION</p><h1 id="mission-title">กำลังโหลดภารกิจ…</h1><span id="mission-topic"></span></div>
+      <div id="mission-progress-wrap"></div>
+      <button id="exit-lesson" class="mission-exit">ออกจากบทเรียน</button>
+    </header>
+    <div class="mission-demo-banner" id="mission-demo-banner" role="note">เดโม่ทดสอบระบบ Stage 2 — ไม่ใช่เนื้อหาบทเรียนฉบับสมบูรณ์</div>
+    <section class="mission-stage" aria-live="polite">
+      <div class="mission-scene-meta"><span id="scene-phase">BRIEFING</span><small id="scene-caption">มีคำบรรยายข้อความตลอดบทเรียน</small></div>
+      <div class="mission-scene-grid">
+        <div id="scene-visual-wrap" class="scene-visual-wrap"></div>
+        <div id="scene-content" class="scene-content"></div>
+      </div>
+      <div id="scene-explanation-wrap"></div>
+    </section>
+    <footer class="mission-controls">
+      <button id="previous-scene" class="mission-secondary">← ย้อนกลับ</button>
+      <div class="mission-control-tools"><button id="toggle-explanation">ดูคำอธิบาย</button><button id="skip-animation">ลดการเคลื่อนไหว</button></div>
+      <button id="next-scene" class="mission-primary">ถัดไป <span>→</span></button>
+    </footer>
+    <div class="keyboard-hint">ใช้ปุ่ม ← → เพื่อเปลี่ยนช่วง · Esc เพื่อออก</div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </main>
+</body>
+</html>

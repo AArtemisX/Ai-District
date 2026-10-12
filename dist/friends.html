@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#dff8ff" />
+  <title>เพื่อน — Ai District</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="assets/ai-district-logo.png" />
+  <link rel="stylesheet" href="style.css" />
+  <script type="module" src="friends.js"></script>
+</head>
+<body class="friends-page">
+  <div class="noise" aria-hidden="true"></div><div class="orb orb-one" aria-hidden="true"></div><div class="orb orb-two" aria-hidden="true"></div>
+  <main class="flow-screen">
+    <header class="lobby-header">
+      <a class="brand compact" href="lobby.html"><img class="brand-logo" src="assets/ai-district-logo.png" alt="Ai District" /><span>Ai District</span></a>
+      <nav aria-label="เมนูหลัก"><a href="lobby.html">ล็อบบี้</a><a href="learning.html">บทเรียน</a><a class="nav-active" href="friends.html">เพื่อน</a><a href="ai-world.html">AI World</a></nav>
+      <div class="social-header-actions"><button id="notification-button" class="notification-button" aria-label="การแจ้งเตือน">🔔<b id="notification-count" hidden>0</b></button><div class="profile-mini"><div class="avatar" data-player-avatar>P</div><div><strong data-player-name>PLAYER</strong><small><i></i> ออนไลน์</small></div><button id="logout-button" class="logout-button" title="ออกจากระบบ">↪</button></div></div>
+    </header>
+
+    <div class="friends-shell">
+      <a class="friends-back-button" href="lobby.html" aria-label="ย้อนกลับไปหน้า Lobby"><span aria-hidden="true">←</span> กลับ Lobby</a>
+      <section class="friends-hero" aria-labelledby="friends-title">
+        <div class="friends-self-avatar avatar" data-player-avatar>P</div>
+        <div><p class="step">SOCIAL HUB</p><h1 id="friends-title">เพื่อนร่วมการผจญภัย</h1><p>พูดคุย ติดตามสถานะ และเตรียมออกสำรวจ AI District ไปด้วยกัน</p></div>
+      </section>
+
+      <section class="social-stat-grid" aria-label="สรุปเพื่อน">
+        <article><span>👥</span><div><b id="friend-total">0</b><small>เพื่อนทั้งหมด</small></div></article>
+        <article><span>✨</span><div><b id="friend-online">0</b><small>กำลังออนไลน์</small></div></article>
+        <article><span>💌</span><div><b id="request-total">0</b><small>คำขอที่รอตอบ</small></div></article>
+      </section>
+
+      <div class="friends-main-grid">
+        <section class="friends-panel frequent-panel">
+          <div class="friends-panel-heading"><div><p class="step">FREQUENT FRIENDS</p><h2>เพื่อนที่ติดต่อบ่อย</h2></div><div class="friends-actions"><button id="add-friend-button" class="social-secondary">＋ เพิ่มเพื่อน</button><button id="all-friends-button" class="social-primary">ดูเพื่อนทั้งหมด</button></div></div>
+          <div id="frequent-friends" class="friend-card-grid" aria-live="polite"><div class="social-loading">กำลังโหลดรายชื่อเพื่อน…</div></div>
+        </section>
+        <aside class="friends-panel requests-panel">
+          <div class="friends-panel-heading"><div><p class="step">REQUESTS</p><h2>คำขอเป็นเพื่อน</h2></div><b id="request-badge">0</b></div>
+          <div id="friend-requests" class="request-list"><div class="social-empty small">ยังไม่มีคำขอใหม่</div></div>
+        </aside>
+      </div>
+    </div>
+
+    <dialog id="all-friends-dialog" class="social-dialog wide-dialog"><div class="dialog-toolbar"><div><p class="step">ALL FRIENDS</p><h2>เพื่อนทั้งหมด <span id="all-friends-count">0</span></h2></div><button class="dialog-x" data-close-dialog aria-label="ปิด">×</button></div><label class="friend-search">⌕<input id="friend-search-input" type="search" placeholder="ค้นหาชื่อเพื่อน" /></label><div id="all-friends-list" class="all-friends-list"></div></dialog>
+
+    <dialog id="friend-profile-dialog" class="social-dialog profile-dialog"><button class="dialog-x floating" data-close-dialog aria-label="ปิด">×</button><div id="friend-profile-content"></div></dialog>
+
+    <dialog id="add-friend-dialog" class="social-dialog invite-dialog"><div class="dialog-toolbar"><div><p class="step">FRIEND LINK</p><h2>เพิ่มเพื่อน</h2></div><button class="dialog-x" data-close-dialog aria-label="ปิด">×</button></div><p>ส่งลิงก์หรือ QR นี้ให้เพื่อน ลิงก์ใหม่จะยกเลิกลิงก์เดิมโดยอัตโนมัติ</p><div class="qr-frame"><canvas id="friend-qr" width="220" height="220"></canvas></div><label class="invite-url-field"><span>ลิงก์เชิญส่วนตัว</span><input id="friend-invite-url" readonly /></label><div class="invite-action-row"><button id="copy-invite-button" class="social-primary">คัดลอกลิงก์</button><button id="save-qr-button" class="social-secondary">บันทึก QR</button><button id="rotate-invite-button" class="social-ghost">สร้างลิงก์ใหม่</button></div></dialog>
+
+    <dialog id="invite-preview-dialog" class="social-dialog profile-dialog"><button class="dialog-x floating" data-close-dialog aria-label="ปิด">×</button><div id="invite-preview-content"><div class="social-loading">กำลังตรวจสอบคำเชิญ…</div></div></dialog>
+
+    <dialog id="chat-dialog" class="social-dialog chat-dialog"><div class="chat-heading"><button class="dialog-x" data-close-dialog aria-label="ปิด">×</button><div class="avatar" id="chat-avatar">P</div><div><strong id="chat-name">เพื่อน</strong><small id="chat-status">ออฟไลน์</small></div></div><button id="load-older-messages" class="load-older" hidden>โหลดข้อความก่อนหน้า</button><div id="chat-messages" class="chat-messages" aria-live="polite"></div><form id="chat-form" class="chat-composer"><input id="chat-input" maxlength="1000" autocomplete="off" placeholder="พิมพ์ข้อความ…" required /><button aria-label="ส่งข้อความ">➤</button></form></dialog>
+
+    <dialog id="notification-dialog" class="social-dialog notification-dialog"><div class="dialog-toolbar"><div><p class="step">NOTIFICATIONS</p><h2>การแจ้งเตือน</h2></div><button class="dialog-x" data-close-dialog aria-label="ปิด">×</button></div><div id="notification-list" class="notification-list"></div><button id="mark-all-read" class="social-secondary full-button">อ่านทั้งหมดแล้ว</button></dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </main>
+</body>
+</html>

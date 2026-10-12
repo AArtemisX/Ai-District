@@ -20,7 +20,7 @@
     <section class="screen lobby-screen" aria-labelledby="lobby-title">
       <header class="lobby-header">
         <a class="brand compact" href="lobby.html"><img class="brand-logo" src="assets/ai-district-logo.png" alt="Ai District" /><span>Ai District</span></a>
-        <nav aria-label="เมนูหลัก"><a class="nav-active" href="lobby.html">ล็อบบี้</a><a href="learning.html">บทเรียน</a><a href="ai-world.html">AI World</a></nav>
+        <nav aria-label="เมนูหลัก"><a class="nav-active" href="lobby.html">ล็อบบี้</a><a href="learning.html">บทเรียน</a><a href="friends.html">เพื่อน</a><a href="ai-world.html">AI World</a></nav>
         <div class="profile-mini">
           <div class="avatar" id="avatar-letter">P</div>
           <div><strong id="nav-player-name">PLAYER</strong><small><i></i> ออนไลน์</small></div>
@@ -43,10 +43,11 @@
             <div class="flow-stats"><span><strong id="character-count">1</strong> ตัวละคร</span><span><strong id="item-count">0</strong> ไอเทม</span><span><strong id="player-xp">0</strong> XP</span></div>
           </article>
           <aside class="side-column">
-            <section class="squad-card">
-              <div class="card-title"><div><p class="step">YOUR SQUAD</p><h2>ทีมของคุณ</h2></div><span>1 / 4</span></div>
-              <div class="member self"><div class="avatar" id="squad-avatar">P</div><div><strong id="squad-player-name">PLAYER</strong><small>หัวหน้าทีม · LV. <span id="player-level">1</span></small></div><span>READY</span></div>
-              <button class="invite">＋ เชิญเพื่อนเข้าทีม</button><button class="invite">＋ เปิดสล็อตสาธารณะ</button>
+            <section class="squad-card friends-lobby-card">
+              <div class="card-title"><div><p class="step">SOCIAL HUB</p><h2>เพื่อนของคุณ</h2></div><span id="lobby-friend-count">0 คน</span></div>
+              <div id="lobby-friend-preview" class="lobby-friend-preview"><div class="social-loading">กำลังโหลดเพื่อน…</div></div>
+              <a class="invite social-lobby-link" href="friends.html">👥 เปิด Friends Hub <span>→</span></a>
+              <a class="invite social-lobby-link" href="friends.html?action=add">＋ เพิ่มเพื่อนด้วยลิงก์หรือ QR</a>
             </section>
             <section class="daily-card">
               <div class="card-title"><div><p class="step">DAILY MISSION</p><h2 id="mission-title">ภารกิจวันนี้</h2></div><b id="mission-reward">+500 XP</b></div>

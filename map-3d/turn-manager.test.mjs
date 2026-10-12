@@ -38,9 +38,10 @@ test("all dice results have a final 3D orientation and match movement steps", ()
   assert.equal(buildTilePath(30, 6).at(-1), 4);
 });
 
-test("tile events cover all six demo types and enforce at least 30 seconds", () => {
+test("tile events cover all six Action Encounter types and enforce at least 30 seconds", () => {
   const types = Array.from({ length: 6 }, (_, index) => getTileEvent(index).type);
   assert.deepEqual(types, TILE_EVENTS.map((event) => event.type));
+  assert.equal(types.includes("AI_SCENARIO"), false);
   for (let index = 0; index < 64; index += 1) assert.ok(getTileEvent(index).duration >= 30);
 });
 

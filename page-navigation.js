@@ -1,6 +1,8 @@
 const PAGE_BACK_TARGETS = Object.freeze({
   "learning.html": { href: "lobby.html", label: "Lobby" },
+  "friends.html": { href: "lobby.html", label: "Lobby" },
   "ai-world.html": { href: "lobby.html", label: "Lobby" },
+  "room.html": { href: "ai-world.html", label: "AI World" },
   "game.html": { href: "ai-world.html", label: "AI World" },
   "results.html": { href: "lobby.html", label: "Lobby" },
 });

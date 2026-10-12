@@ -1,0 +1,4 @@
+export function missingQuestionIds(questions,answers){return questions.filter(q=>!Array.isArray(answers[q.id])||answers[q.id].length===0).map(q=>q.id);}
+export function attemptStats(attempts=[]){if(!attempts.length)return{latest:null,best:null,everPassed:false};const sorted=[...attempts].sort((a,b)=>new Date(b.submitted_at)-new Date(a.submitted_at));return{latest:sorted[0],best:[...attempts].sort((a,b)=>b.score-a.score)[0],everPassed:attempts.some(x=>x.passed)};}
+export function percentage(score,max){return max?Math.round(score/max*100):0;}
+export function evaluateForTest(questions,answers,keys,passScore=8){const details=questions.map(q=>{const a=[...(answers[q.id]||[])].sort(),k=[...(keys[q.id]||[])].sort();return{questionId:q.id,correct:JSON.stringify(a)===JSON.stringify(k),lo:q.learning_objective_id};});const score=details.filter(x=>x.correct).length;return{score,maxScore:questions.length,passed:score>=passScore,details};}

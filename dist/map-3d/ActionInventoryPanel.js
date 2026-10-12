@@ -1,7 +1,7 @@
 import { html, React } from "./runtime.js";
 import { ACTION_CARD_BY_ID, CARD_TYPES } from "./action-card-data.js";
 import { ITEM_BY_ID } from "./item-data.js";
-import { INVENTORY_RULES } from "./action-engine.js";
+import { INVENTORY_RULES, previewCardAction } from "./action-engine.js";
 
 const { useEffect, useState } = React;
 const TYPE_LABELS = { ATTACK: "โจมตี", DEFENSE: "ป้องกัน", CONTROL: "ควบคุม", SUPPORT: "สนับสนุน" };
@@ -14,11 +14,12 @@ function districtValid(targetType, district, actorId) {
   return true;
 }
 
-export function ActionInventoryPanel({ inventory, districts, effects, currentTurn, canUse, cardUsed, itemUsed, feedback, rewardNotification, selectedDistrictId, onSelectTarget, onUse }) {
+export function ActionInventoryPanel({ inventory, districts, effects, energy, currentTurn, canUse, cardUsed, itemUsed, feedback, rewardNotification, selectedDistrictId, allowedDistrictIds = null, onSelectTarget, onUse }) {
   const [open, setOpen] = useState(() => window.innerWidth >= 1280);
   const [tab, setTab] = useState("cards");
   const [selected, setSelected] = useState(null);
   const [targetDistrictId, setTargetDistrictId] = useState(null);
+  const [isConfirming, setIsConfirming] = useState(false);
 
   useEffect(() => {
     if (!canUse) {
@@ -34,14 +35,26 @@ export function ActionInventoryPanel({ inventory, districts, effects, currentTur
     ? (selected.kind === "CARD" ? ACTION_CARD_BY_ID[selectedInstance.cardId] : ITEM_BY_ID[selectedInstance.itemId])
     : null;
   const needsTarget = definition && definition.targetType !== "SELF";
-  const confirmDisabled = !canUse || !definition || (selected.kind === "CARD" ? cardUsed : itemUsed) || (needsTarget && !targetDistrictId);
+  const cardPreview = selected?.kind === "CARD" && definition ? previewCardAction({
+    actorId: "player",
+    instanceId: selected.instanceId,
+    targetDistrictId,
+    inventory,
+    energy,
+    districts,
+    effects,
+    actionUsed: cardUsed,
+    allowedDistrictIds,
+  }) : null;
+  const confirmDisabled = isConfirming || !canUse || !definition || (selected.kind === "CARD" ? !cardPreview?.valid : itemUsed) || (needsTarget && !targetDistrictId);
   const playerEffects = effects.filter((effect) => effect.targetPlayerId === "player");
 
   useEffect(() => {
     if (!selectedDistrictId || !definition || definition.targetType === "SELF") return;
     const district = districts[selectedDistrictId];
-    if (districtValid(definition.targetType, district, "player")) setTargetDistrictId(selectedDistrictId);
-  }, [selectedDistrictId, definition, districts]);
+    const encounterAllows = !Array.isArray(allowedDistrictIds) || allowedDistrictIds.includes(selectedDistrictId);
+    if (encounterAllows && districtValid(definition.targetType, district, "player")) setTargetDistrictId(selectedDistrictId);
+  }, [selectedDistrictId, definition, districts, allowedDistrictIds]);
 
   function pick(kind, instanceId) {
     setSelected({ kind, instanceId });
@@ -50,9 +63,13 @@ export function ActionInventoryPanel({ inventory, districts, effects, currentTur
 
   function confirm() {
     if (confirmDisabled) return;
-    onUse(selected.kind, selected.instanceId, targetDistrictId);
-    setSelected(null);
-    setTargetDistrictId(null);
+    setIsConfirming(true);
+    const result = onUse(selected.kind, selected.instanceId, targetDistrictId);
+    if (result?.success) {
+      setSelected(null);
+      setTargetDistrictId(null);
+    }
+    setIsConfirming(false);
   }
 
   return html`
@@ -84,8 +101,15 @@ export function ActionInventoryPanel({ inventory, districts, effects, currentTur
             ${definition ? html`
               <div className=${`preview-icon ${selected.kind.toLowerCase()}`}>${selected.kind === "CARD" ? ICONS[definition.type] : ICONS.ITEM}</div>
               <div><p>${selected.kind === "CARD" ? `${TYPE_LABELS[definition.type]} · ${definition.cost} EN` : "CONSUMABLE ITEM"}</p><h3>${definition.name}</h3><span>${definition.description}</span></div>
-              ${needsTarget ? html`<div className="target-grid"><small>เลือกเขตเป้าหมาย หรือคลิกเขตบนกระดาน</small>${Object.values(districts).map((district)=>html`<button key=${district.districtId} type="button" className=${targetDistrictId === district.districtId ? "selected" : ""} disabled=${!districtValid(definition.targetType,district,"player")} onClick=${()=>{setTargetDistrictId(district.districtId);onSelectTarget?.(district.districtId)}}>${district.districtName}<b>${district.influenceByPlayer.player}/${district.influenceByPlayer.bot} IP</b></button>`)}</div>` : null}
-              <button type="button" className="utility-confirm" disabled=${confirmDisabled} onClick=${confirm}>ยืนยันการใช้</button>
+              ${selected.kind === "CARD" ? html`<div className=${`utility-effect-preview ${cardPreview?.valid ? "ready" : "blocked"}`}><b>${cardPreview?.effectPreview}</b><span>${cardPreview?.message} · คงเหลือ ${Math.max(0, energy - definition.cost)} EN</span></div>` : null}
+              ${needsTarget ? html`<div className="target-grid"><small>เลือกเขตเป้าหมาย หรือคลิกเขตบนกระดาน</small>${Object.values(districts).map((district)=>{
+                const encounterAllows = !Array.isArray(allowedDistrictIds) || allowedDistrictIds.includes(district.districtId);
+                return html`<button key=${district.districtId} type="button" className=${targetDistrictId === district.districtId ? "selected" : ""} disabled=${!encounterAllows || !districtValid(definition.targetType,district,"player")} onClick=${()=>{setTargetDistrictId(district.districtId);onSelectTarget?.(district.districtId)}}>${district.districtName}<b>${district.influenceByPlayer.player}/${district.influenceByPlayer.bot} IP</b></button>`;
+              })}</div>` : null}
+              <div className="utility-actions">
+                <button type="button" className="utility-cancel" disabled=${isConfirming} onClick=${()=>{setSelected(null);setTargetDistrictId(null)}}>ยกเลิก</button>
+                <button type="button" className="utility-confirm" disabled=${confirmDisabled} onClick=${confirm}>${isConfirming ? "กำลังใช้…" : "ยืนยันการใช้"}</button>
+              </div>
             ` : html`<div className="preview-placeholder"><strong>เลือก${tab === "cards" ? "การ์ด" : "ไอเทม"}</strong><span>ดูรายละเอียด เลือกเป้าหมาย และยืนยันการใช้งาน</span></div>`}
           </div>
         </div>

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#dff8ff" />
+  <title>ห้องรอ — Ai District</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="assets/ai-district-logo.png" />
+  <link rel="stylesheet" href="style.css" />
+  <script type="module" src="room.js"></script>
+</head>
+<body class="waiting-room-page">
+  <div class="noise" aria-hidden="true"></div><div class="orb orb-one" aria-hidden="true"></div><div class="orb orb-two" aria-hidden="true"></div>
+  <main class="waiting-room-shell">
+    <header class="waiting-room-topbar">
+      <a class="brand compact" href="ai-world.html"><img class="brand-logo" src="assets/ai-district-logo.png" alt="Ai District" /><span>Ai District</span></a>
+      <a class="waiting-room-back" href="ai-world.html"><span aria-hidden="true">←</span> ย้อนกลับ</a>
+      <div class="profile-mini"><div class="avatar" data-player-avatar>P</div><div><strong data-player-name>PLAYER</strong><small><i></i> ออนไลน์</small></div></div>
+    </header>
+
+    <section class="waiting-room-hero">
+      <div><p class="step">AI WORLD / WAITING ROOM</p><h1 id="waiting-room-name">กำลังโหลดห้อง…</h1><p id="waiting-room-message">เชิญเพื่อนหรือเพิ่มบอทให้พร้อมก่อนเริ่มการผจญภัย</p></div>
+      <div class="room-code-card"><span>เลขห้อง</span><strong id="waiting-room-code">------</strong><button id="copy-room-code">คัดลอกรหัส</button></div>
+    </section>
+
+    <div class="waiting-room-layout">
+      <section class="player-slots-panel">
+        <div class="waiting-panel-heading"><div><p class="step">PARTY</p><h2>สมาชิกในห้อง</h2></div><span id="room-count-label">0 / 4</span></div>
+        <div id="player-slots" class="player-slot-grid" aria-live="polite"></div>
+        <div class="room-share-row"><button id="invite-friends-button" class="social-primary">＋ เชิญเพื่อน</button><button id="copy-room-link" class="social-secondary">🔗 คัดลอกลิงก์ห้อง</button></div>
+      </section>
+
+      <aside class="room-control-panel">
+        <div><p class="step">ROOM SETTINGS</p><h2>ตั้งค่าก่อนเริ่ม</h2></div>
+        <section id="owner-controls" hidden>
+          <label class="player-count-control"><span>จำนวนผู้เล่นทั้งหมด</span><select id="max-player-select"><option value="2">2 คน</option><option value="3">3 คน</option><option value="4">4 คน</option></select></label>
+          <div class="bot-control"><div><span>ผู้ช่วย AI</span><small>เพิ่มบอทเพื่อเติมช่องว่าง</small></div><div><button id="remove-bot" aria-label="ลดบอท">−</button><b id="bot-count">0</b><button id="add-bot" aria-label="เพิ่มบอท">＋</button></div></div>
+        </section>
+        <div id="member-controls" hidden><button id="ready-button" class="ready-button">ฉันพร้อมแล้ว</button></div>
+        <div class="room-readiness"><span id="readiness-icon">⌛</span><div><strong id="readiness-title">กำลังรอสมาชิก</strong><small id="readiness-detail">ต้องมีผู้เล่นอย่างน้อย 2 คน</small></div></div>
+        <button id="start-game-button" class="primary-button room-start-button" hidden><span>เริ่มเกม</span><b>→</b></button>
+        <button id="leave-room-button" class="room-leave-button">ออกจากห้อง</button>
+      </aside>
+    </div>
+
+    <dialog id="room-friends-dialog" class="social-dialog wide-dialog"><div class="dialog-toolbar"><div><p class="step">INVITE FRIENDS</p><h2>เชิญเพื่อนเข้าห้อง</h2></div><button class="dialog-x" data-close-dialog aria-label="ปิด">×</button></div><p class="dialog-help">เพื่อนจะได้รับคำเชิญในหน้าศูนย์รวมเพื่อน</p><div id="room-friend-list" class="room-friend-list"></div></dialog>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </main>
+</body>
+</html>

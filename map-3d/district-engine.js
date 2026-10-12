@@ -1,12 +1,14 @@
+import { BATTLE_RULES, clampBattleEnergy } from "./battle-config.js";
+
 export const DISTRICT_RULES = Object.freeze({
-  STARTING_ENERGY: 5,
-  MAX_ENERGY: 10,
+  STARTING_ENERGY: BATTLE_RULES.STARTING_ENERGY,
+  MAX_ENERGY: BATTLE_RULES.MAX_ENERGY,
   BUILD_COST: 3,
   INFLUENCE_COST: 2,
   BUILD_INFLUENCE: 3,
   INFLUENCE_GAIN: 2,
   MAX_INFLUENCE: 12,
-  ACTION_SECONDS: 30,
+  ACTION_SECONDS: BATTLE_RULES.ACTION_SECONDS,
 });
 
 export const DISTRICT_STATUS = Object.freeze({
@@ -16,7 +18,7 @@ export const DISTRICT_STATUS = Object.freeze({
 });
 
 export function clampEnergy(value) {
-  return Math.min(DISTRICT_RULES.MAX_ENERGY, Math.max(0, Number(value) || 0));
+  return clampBattleEnergy(value);
 }
 
 export function createInitialDistrictStates(districts) {

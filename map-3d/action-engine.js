@@ -3,6 +3,8 @@ import { ITEM_BY_ID, ITEM_TARGETS } from "./item-data.js";
 import { DISTRICT_RULES, applyInfluenceChange, clampEnergy } from "./district-engine.js";
 
 export const INVENTORY_RULES = Object.freeze({ MAX_HAND: 5, MAX_ITEMS: 3 });
+export const PLAYER_STARTER_CARD_IDS = Object.freeze(["patch-update", "firewall-guard", "energy-boost"]);
+export const BOT_CARD_POOL_IDS = Object.freeze(["data-strike", "firewall-guard", "energy-boost"]);
 export const EFFECT_TYPES = Object.freeze({
   FIREWALL_SHIELD: "FIREWALL_SHIELD",
   INFLUENCE_BLOCK: "INFLUENCE_BLOCK",
@@ -25,17 +27,50 @@ export function createItemInstance(itemId, instanceId = nextInstanceId("item")) 
   return { instanceId, itemId };
 }
 
-export function createInitialInventory(actorId = "player") {
+export function normalizeBattleCardPool(cardIds, fallbackIds = PLAYER_STARTER_CARD_IDS) {
+  if (!Array.isArray(cardIds)) return [...fallbackIds];
+  const uniqueValidIds = [...new Set(cardIds.filter((id) => Boolean(ACTION_CARD_BY_ID[id])))];
+  return uniqueValidIds.length === 3 ? uniqueValidIds : [...fallbackIds];
+}
+
+export function createInitialInventory(actorId = "player", playerCardIds = null) {
   const cardIds = actorId === "bot"
-    ? ["data-strike", "firewall-guard", "energy-boost"]
-    : ["patch-update", "firewall-guard", "energy-boost"];
+    ? [...BOT_CARD_POOL_IDS]
+    : normalizeBattleCardPool(playerCardIds);
   const itemIds = actorId === "bot" ? ["repair-kit"] : ["energy-cell"];
   return {
     hand: cardIds.map((id, index) => createCardInstance(id, `${actorId}-card-${index + 1}`)),
     items: itemIds.map((id, index) => createItemInstance(id, `${actorId}-item-${index + 1}`)),
     discard: [],
+    poolCardIds: [...cardIds],
     claimedRewardIds: [],
   };
+}
+
+export function isInventoryCompatibleWithPool(inventory, allowedCardIds) {
+  const pool = normalizeBattleCardPool(allowedCardIds);
+  if (!inventory || !Array.isArray(inventory.hand) || !Array.isArray(inventory.discard)) return false;
+  if (!Array.isArray(inventory.poolCardIds) || inventory.poolCardIds.length !== pool.length) return false;
+  const allowed = new Set(pool);
+  const storedPool = new Set(inventory.poolCardIds);
+  if (storedPool.size !== allowed.size || [...allowed].some((id) => !storedPool.has(id))) return false;
+  return [...inventory.hand, ...inventory.discard].every((instance) => allowed.has(instance.cardId));
+}
+
+export function drawCardFromPool(inventory, eventId, seed = 0) {
+  if (!inventory?.poolCardIds?.length) return { success: false, inventory, message: "ไม่พบการ์ดใน Battle Card Pool" };
+  if (inventory.claimedRewardIds.includes(eventId)) return { success: false, duplicate: true, inventory, message: "ประมวลผลช่องการ์ดนี้แล้ว" };
+  if (inventory.hand.length >= INVENTORY_RULES.MAX_HAND) return { success: false, full: true, inventory, message: `มือการ์ดเต็ม ${INVENTORY_RULES.MAX_HAND} ใบ — ไม่จั่วเพิ่ม` };
+  const cardId = inventory.poolCardIds[Math.abs(Number(seed) || 0) % inventory.poolCardIds.length];
+  const card = ACTION_CARD_BY_ID[cardId];
+  if (!card) return { success: false, inventory, message: "การ์ดใน Battle Card Pool ไม่ถูกต้อง" };
+  const instance = createCardInstance(cardId);
+  const next = {
+    ...inventory,
+    hand: [...inventory.hand, instance],
+    claimedRewardIds: [...inventory.claimedRewardIds, eventId],
+  };
+  return { success: true, inventory: next, reward: { kind: "CARD", id: cardId, name: card.name }, message: `จั่ว ${card.name} จาก Loadout Pool` };
 }
 
 export function createEffect({ sourcePlayerId, targetPlayerId, districtId = null, effectType, remainingUses = 1, expiresAtTurn = null, amount = 0 }) {
@@ -106,26 +141,58 @@ function failed(message, snapshot) {
   return { success: false, message, ...snapshot };
 }
 
-export function resolveCardAction({ actorId, instanceId, targetDistrictId = null, inventory, energy, districts, effects = [], actionUsed = false, turnNumber = 0 }) {
-  const snapshot = { inventory, energy: clampEnergy(energy), districts, effects, actionUsed };
-  if (actionUsed) return failed("ใช้การ์ดครบ 1 ใบสำหรับเทิร์นนี้แล้ว", snapshot);
-  const instance = inventory.hand.find((item) => item.instanceId === instanceId);
-  const card = instance ? ACTION_CARD_BY_ID[instance.cardId] : null;
-  if (!card) return failed("ไม่พบการ์ดในมือ", snapshot);
-  if (energy < card.cost) return failed("Energy ไม่พอสำหรับใช้การ์ดนี้", snapshot);
-  const district = targetDistrictId ? districts[targetDistrictId] : null;
-  if (!validDistrictTarget(card.targetType, district, actorId)) return failed("เป้าหมายไม่ตรงตามเงื่อนไขของการ์ด", snapshot);
+export function createUtilityActionId({ actorId, turnNumber = 0, kind, instanceId, targetDistrictId = null }) {
+  return [actorId, turnNumber, kind, instanceId, targetDistrictId || "self"].join(":");
+}
 
+function describeCardEffect(card) {
+  if (card.effect.kind === "DAMAGE_IP") return `ผลเมื่อสำเร็จ: คู่แข่ง -${card.effect.amount} IP`;
+  if (card.effect.kind === "ADD_IP") return `ผลเมื่อสำเร็จ: คุณ +${card.effect.amount} IP`;
+  if (card.effect.kind === "ADD_ENERGY") return `ผลเมื่อสำเร็จ: ฟื้น +${card.effect.amount} EN`;
+  if (card.effect.kind === "FIREWALL_SHIELD") return "ผลเมื่อสำเร็จ: ป้องกันการ์ดโจมตีครั้งถัดไป";
+  if (card.effect.kind === "INFLUENCE_BLOCK") return "ผลเมื่อสำเร็จ: บล็อกการเพิ่ม IP ครั้งถัดไป";
+  if (card.effect.kind === "ATTACK_BLOCK") return "ผลเมื่อสำเร็จ: ปิดการโจมตีของคู่แข่งชั่วคราว";
+  return "พร้อมใช้งาน";
+}
+
+export function previewCardAction({ actorId, instanceId, targetDistrictId = null, inventory, energy, districts, effects = [], actionUsed = false, turnNumber = 0, allowedDistrictIds = null }) {
+  const instance = inventory?.hand?.find((item) => item.instanceId === instanceId);
+  const card = instance ? ACTION_CARD_BY_ID[instance.cardId] : null;
+  const base = { success: false, valid: false, card, energyCost: card?.cost ?? 0, effectPreview: card ? describeCardEffect(card) : "" };
+  if (actionUsed) return { ...base, message: "ใช้การ์ดครบ 1 ใบสำหรับเทิร์นนี้แล้ว" };
+  if (!card) return { ...base, message: "ไม่พบการ์ดในมือ" };
+  if (energy < card.cost) return { ...base, message: `Energy ไม่พอ (ต้องใช้ ${card.cost} EN)` };
+  if (card.targetType !== CARD_TARGETS.SELF && Array.isArray(allowedDistrictIds) && !allowedDistrictIds.includes(targetDistrictId)) {
+    return { ...base, message: "District นี้ไม่ใช่เป้าหมายของ Encounter ปัจจุบัน" };
+  }
+  const district = targetDistrictId ? districts?.[targetDistrictId] : null;
+  if (!validDistrictTarget(card.targetType, district, actorId)) return { ...base, message: "เป้าหมายไม่ตรงตามเงื่อนไขของการ์ด" };
   if (card.type === CARD_TYPES.ATTACK) {
     const blocked = matchingEffect(effects, EFFECT_TYPES.ATTACK_BLOCK, actorId, targetDistrictId, turnNumber);
-    if (blocked) return failed("Access Denied ปิดการใช้การ์ดโจมตีต่อ District นี้", snapshot);
+    if (blocked) return { ...base, blockedBy: "ACCESS_DENIED", message: "Access Denied ปิดการใช้การ์ดโจมตีต่อ District นี้" };
   }
+  return { ...base, success: true, valid: true, message: "พร้อมยืนยันการใช้การ์ด" };
+}
+
+export function resolveCardAction({ actorId, instanceId, targetDistrictId = null, inventory, energy, districts, effects = [], actionUsed = false, turnNumber = 0 }) {
+  const snapshot = { inventory, energy: clampEnergy(energy), districts, effects, actionUsed };
+  const preview = previewCardAction({ actorId, instanceId, targetDistrictId, inventory, energy, districts, effects, actionUsed, turnNumber });
+  if (!preview.valid) return failed(preview.message, {
+    ...snapshot,
+    card: preview.card,
+    targetDistrictId,
+    resolution: { targetDistrictId, ipChange: 0, ownerChanged: false, blockedBy: preview.blockedBy || null },
+  });
+  const instance = inventory.hand.find((item) => item.instanceId === instanceId);
+  const card = preview.card;
+  const district = targetDistrictId ? districts[targetDistrictId] : null;
 
   let nextDistricts = districts;
   let nextEffects = activeEffects(effects, turnNumber);
   let nextEnergy = clampEnergy(energy - card.cost);
   let message = `${card.name} ทำงานสำเร็จ`;
   const targetActor = opponentOf(actorId);
+  const resolution = { targetDistrictId, ipChange: 0, ownerChanged: false, blockedBy: null };
 
   if (card.effect.kind === "DAMAGE_IP") {
     let damage = card.effect.amount;
@@ -133,6 +200,7 @@ export function resolveCardAction({ actorId, instanceId, targetDistrictId = null
     if (firewall) {
       damage = 0;
       nextEffects = consumeEffect(nextEffects, firewall.effectId);
+      resolution.blockedBy = "FIREWALL_GUARD";
       message = `${card.name} ถูก Firewall Guard ป้องกันทั้งหมด`;
     } else {
       const shield = matchingEffect(nextEffects, EFFECT_TYPES.SHIELD_MODULE, targetActor, targetDistrictId, turnNumber);
@@ -143,13 +211,19 @@ export function resolveCardAction({ actorId, instanceId, targetDistrictId = null
       }
     }
     if (damage > 0) {
+      const beforeIp = district.influenceByPlayer[targetActor] || 0;
       const changed = applyInfluenceChange(district, targetActor, -damage);
       nextDistricts = { ...districts, [targetDistrictId]: changed.district };
+      resolution.ipChange = (changed.district.influenceByPlayer[targetActor] || 0) - beforeIp;
+      resolution.ownerChanged = changed.ownerChanged;
       message = `${card.name} ลด IP ของ${targetActor === "player" ? "ผู้เล่น" : "บอท"} ${damage}${changed.ownerChanged ? " และเปลี่ยนผู้ครอบครอง" : ""}`;
     }
   } else if (card.effect.kind === "ADD_IP") {
+    const beforeIp = district.influenceByPlayer[actorId] || 0;
     const changed = applyInfluenceChange(district, actorId, card.effect.amount);
     nextDistricts = { ...districts, [targetDistrictId]: changed.district };
+    resolution.ipChange = (changed.district.influenceByPlayer[actorId] || 0) - beforeIp;
+    resolution.ownerChanged = changed.ownerChanged;
     message = `${card.name} เพิ่ม IP +${card.effect.amount}${changed.ownerChanged ? " และยึด District สำเร็จ" : ""}`;
   } else if (card.effect.kind === "ADD_ENERGY") {
     nextEnergy = clampEnergy(nextEnergy + card.effect.amount);
@@ -166,6 +240,9 @@ export function resolveCardAction({ actorId, instanceId, targetDistrictId = null
     success: true,
     message,
     card,
+    targetDistrictId,
+    resolution,
+    energyChange: nextEnergy - clampEnergy(energy),
     inventory: removeHandCard(inventory, instance),
     energy: nextEnergy,
     districts: nextDistricts,
@@ -240,16 +317,29 @@ export function grantReward(inventory, reward, eventId) {
   return { success: true, inventory: next, reward: { ...reward, name: definition.name }, message: `ได้รับ ${definition.name}` };
 }
 
-export function chooseBotUtilityAction({ inventory, energy, districts, effects = [], cardUsed = false, itemUsed = false, turnNumber = 0 }) {
+export function chooseBotUtilityAction({ inventory, energy, districts, effects = [], cardUsed = false, itemUsed = false, turnNumber = 0, allowedDistrictIds = null }) {
+  const allowed = (district) => !Array.isArray(allowedDistrictIds) || allowedDistrictIds.includes(district.districtId);
+  const availableDistricts = Object.values(districts).filter((district) => district.isBuilt && allowed(district));
   if (!cardUsed) {
+    const affordableCards = inventory.hand.filter((entry) => energy >= ACTION_CARD_BY_ID[entry.cardId].cost);
+    const attacks = affordableCards.filter((entry) => ["system-crash", "data-strike"].includes(entry.cardId));
+    const capture = attacks.flatMap((entry) => {
+      const card = ACTION_CARD_BY_ID[entry.cardId];
+      return availableDistricts
+        .filter((district) => district.ownerId === "player" && (district.influenceByPlayer.player || 0) > 0)
+        .map((district) => ({ entry, district, captures: (district.influenceByPlayer.bot || 0) > Math.max(0, (district.influenceByPlayer.player || 0) - card.effect.amount) }));
+    }).find((candidate) => candidate.captures);
+    if (capture) return { kind: "CARD", instanceId: capture.entry.instanceId, targetDistrictId: capture.district.districtId };
+    const guard = inventory.hand.find((entry) => entry.cardId === "firewall-guard");
+    const ownedAtRisk = availableDistricts.find((district) => district.ownerId === "bot" && (district.influenceByPlayer.player || 0) >= (district.influenceByPlayer.bot || 0) - 2);
+    if (guard && ownedAtRisk && energy >= 1) return { kind: "CARD", instanceId: guard.instanceId, targetDistrictId: ownedAtRisk.districtId };
+    const attack = attacks[0];
+    const target = availableDistricts
+      .filter((district) => (district.influenceByPlayer.player || 0) > 0)
+      .sort((a, b) => (b.influenceByPlayer.player || 0) - (a.influenceByPlayer.player || 0))[0];
+    if (attack && target) return { kind: "CARD", instanceId: attack.instanceId, targetDistrictId: target.districtId };
     const energyBoost = inventory.hand.find((entry) => entry.cardId === "energy-boost");
     if (energy <= 2 && energyBoost) return { kind: "CARD", instanceId: energyBoost.instanceId, targetDistrictId: null };
-    const attack = inventory.hand.find((entry) => ["system-crash", "data-strike"].includes(entry.cardId));
-    const target = Object.values(districts).find((district) => district.isBuilt && (district.influenceByPlayer.player || 0) > 0);
-    if (attack && target && energy >= ACTION_CARD_BY_ID[attack.cardId].cost) return { kind: "CARD", instanceId: attack.instanceId, targetDistrictId: target.districtId };
-    const guard = inventory.hand.find((entry) => entry.cardId === "firewall-guard");
-    const ownedAtRisk = Object.values(districts).find((district) => district.ownerId === "bot" && (district.influenceByPlayer.player || 0) >= (district.influenceByPlayer.bot || 0) - 2);
-    if (guard && ownedAtRisk && energy >= 1) return { kind: "CARD", instanceId: guard.instanceId, targetDistrictId: ownedAtRisk.districtId };
   }
   if (!itemUsed) {
     const energyItem = inventory.items.find((entry) => ["energy-cell", "lucky-cache"].includes(entry.itemId));

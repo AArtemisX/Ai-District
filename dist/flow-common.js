@@ -1,11 +1,14 @@
 import { clearAuthSession, supabase } from "./supabase-client.js";
+import { startSocialPresence } from "./social-presence.js";
 
 export { supabase };
 
 export async function requirePlayer({ tutorialRequired = true } = {}) {
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user) {
-    window.location.replace("login.html");
+    const returnTo = `${window.location.pathname.split("/").pop() || "lobby.html"}${window.location.search}${window.location.hash}`;
+    window.sessionStorage.setItem("ai-district-return-to", returnTo);
+    window.location.replace(`login.html?next=${encodeURIComponent(returnTo)}`);
     throw new Error("AUTH_REQUIRED");
   }
   const { data: profile, error: profileError } = await supabase
@@ -21,6 +24,7 @@ export async function requirePlayer({ tutorialRequired = true } = {}) {
       throw new Error("TUTORIAL_REQUIRED");
     }
   }
+  startSocialPresence(user.id);
   return { user, profile };
 }
 

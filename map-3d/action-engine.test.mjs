@@ -11,6 +11,11 @@ import {
   consumeSpeedBoost,
   createCardInstance,
   createInitialInventory,
+  createUtilityActionId,
+  drawCardFromPool,
+  isInventoryCompatibleWithPool,
+  normalizeBattleCardPool,
+  previewCardAction,
   createItemInstance,
   grantReward,
   resolveCardAction,
@@ -37,6 +42,37 @@ test("ผู้เล่นและบอทเริ่มด้วยกา�
   assert.equal(new Set([...player.hand, ...player.items, ...bot.hand, ...bot.items].map((entry) => entry.instanceId)).size, 8);
 });
 
+test("ผู้เล่นเริ่มแมตช์ด้วย permanent unlock ที่เลือกไว้ได้โดยไม่เปลี่ยนกติกา 3 ใบ", () => {
+  const inventory = createInitialInventory("player", ["access-denied", "firewall-guard", "energy-boost"]);
+  assert.deepEqual(inventory.hand.map((entry) => entry.cardId), ["access-denied", "firewall-guard", "energy-boost"]);
+  assert.equal(inventory.hand.length, 3);
+});
+
+test("Battle Card Pool ยอมรับ Loadout ที่ถูกต้องและ fallback เมื่อมีการ์ดไม่รู้จัก", () => {
+  assert.deepEqual(normalizeBattleCardPool(["access-denied", "firewall-guard", "energy-boost"]), ["access-denied", "firewall-guard", "energy-boost"]);
+  assert.deepEqual(normalizeBattleCardPool(["access-denied", "locked-client-card", "energy-boost"]), ["patch-update", "firewall-guard", "energy-boost"]);
+});
+
+test("CARD tile จั่วได้เฉพาะการ์ดจาก Loadout Pool และรับซ้ำด้วย Event เดิมไม่ได้", () => {
+  const loadout = ["access-denied", "firewall-guard", "energy-boost"];
+  const inventory = createInitialInventory("player", loadout);
+  const first = drawCardFromPool(inventory, "player-turn-1-tile-1", 0);
+  assert.equal(first.success, true);
+  assert.equal(first.reward.id, "access-denied");
+  assert.equal(first.inventory.hand.length, 4);
+  assert.ok(first.inventory.hand.every((instance) => loadout.includes(instance.cardId)));
+  const duplicate = drawCardFromPool(first.inventory, "player-turn-1-tile-1", 1);
+  assert.equal(duplicate.success, false);
+  assert.equal(duplicate.duplicate, true);
+});
+
+test("saved Battle Inventory ต้องตรงกับ Loadout ที่ตรวจจาก Server", () => {
+  const allowed = ["access-denied", "firewall-guard", "energy-boost"];
+  const inventory = createInitialInventory("player", allowed);
+  assert.equal(isInventoryCompatibleWithPool(inventory, allowed), true);
+  assert.equal(isInventoryCompatibleWithPool({ ...inventory, hand: [{ instanceId: "bad", cardId: "system-crash" }] }, allowed), false);
+});
+
 test("ใช้การ์ดสำเร็จแล้วหัก EN และย้ายไป Discard", () => {
   const inventory = cardInventory(["patch-update"]);
   const academy = ownedAcademy();
@@ -55,6 +91,9 @@ test("การโจมตีลด IP ผ่านฟังก์ชันก�
   assert.equal(result.districts.academy.influenceByPlayer.player, 0);
   assert.equal(result.districts.academy.ownerId, "bot");
   assert.equal(result.energy, 2);
+  assert.equal(result.resolution.ipChange, -3);
+  assert.equal(result.resolution.ownerChanged, true);
+  assert.equal(result.energyChange, -3);
 });
 
 test("Firewall Guard ป้องกันการโจมตีครั้งถัดไปทั้งหมด", () => {
@@ -66,6 +105,8 @@ test("Firewall Guard ป้องกันการโจมตีครั้�
   assert.equal(attack.success, true);
   assert.equal(attack.districts.academy.influenceByPlayer.player, 3);
   assert.equal(attack.effects.some((effect) => effect.effectType === EFFECT_TYPES.FIREWALL_SHIELD), false);
+  assert.equal(attack.resolution.blockedBy, "FIREWALL_GUARD");
+  assert.equal(attack.resolution.ipChange, 0);
 });
 
 test("Lag Pulse บล็อก District Influence หนึ่งครั้งแล้วหมดอายุ", () => {
@@ -86,7 +127,17 @@ test("Access Denied บล็อก ATTACK ถึงจบเทิร์นถ�
   const blocked = resolveCardAction({ actorId: "bot", instanceId: attackInventory.hand[0].instanceId, targetDistrictId: "academy", inventory: attackInventory, energy: 5, districts, effects: control.effects, turnNumber: 1 });
   const expired = resolveCardAction({ actorId: "bot", instanceId: attackInventory.hand[0].instanceId, targetDistrictId: "academy", inventory: attackInventory, energy: 5, districts, effects: activeEffects(control.effects, 2), turnNumber: 2 });
   assert.equal(blocked.success, false);
+  assert.equal(blocked.resolution.blockedBy, "ACCESS_DENIED");
   assert.equal(expired.success, true);
+});
+
+test("ค่าลอย IP ใช้ผลเปลี่ยนจริงเมื่อเป้าหมายมี IP น้อยกว่าความเสียหาย", () => {
+  const inventory = cardInventory(["data-strike"]);
+  const academy = { ...ownedAcademy("bot"), influenceByPlayer: { player: 0, bot: 1 } };
+  const result = resolveCardAction({ actorId: "player", instanceId: inventory.hand[0].instanceId, targetDistrictId: "academy", inventory, energy: 5, districts: { ...freshDistricts(), academy }, effects: [] });
+  assert.equal(result.success, true);
+  assert.equal(result.resolution.ipChange, -1);
+  assert.equal(result.energyChange, -1);
 });
 
 test("Speed Chip เพิ่มก้าวครั้งถัดไป +1 และถูกใช้เพียงครั้งเดียว", () => {
@@ -129,6 +180,32 @@ test("ห้ามใช้ Card Action ซ้ำในเทิร์นเด�
   assert.equal(blocked.inventory.hand.length, 2);
 });
 
+test("Card preview ตรวจ EN เป้าหมาย และแสดงผล IP ก่อนยืนยัน", () => {
+  const inventory = cardInventory(["data-strike"]);
+  const districts = { ...freshDistricts(), academy: ownedAcademy("bot") };
+  const lowEnergy = previewCardAction({ actorId: "player", instanceId: inventory.hand[0].instanceId, targetDistrictId: "academy", inventory, energy: 0, districts });
+  assert.equal(lowEnergy.valid, false);
+  assert.match(lowEnergy.message, /Energy/);
+  const ready = previewCardAction({ actorId: "player", instanceId: inventory.hand[0].instanceId, targetDistrictId: "academy", inventory, energy: 5, districts });
+  assert.equal(ready.valid, true);
+  assert.match(ready.effectPreview, /-2 IP/);
+});
+
+test("Utility Action ID คงที่เพื่อกัน Confirm ซ้ำ แต่แยกตามเทิร์น", () => {
+  const action = { actorId: "player", turnNumber: 3, kind: "CARD", instanceId: "card-1", targetDistrictId: "academy" };
+  assert.equal(createUtilityActionId(action), createUtilityActionId(action));
+  assert.notEqual(createUtilityActionId(action), createUtilityActionId({ ...action, turnNumber: 4 }));
+});
+
+test("ใช้การ์ดจากมือไม่ลบสิทธิ์ใน Permanent Battle Pool", () => {
+  const inventory = createInitialInventory("player", ["patch-update", "firewall-guard", "energy-boost"]);
+  const districts = { ...freshDistricts(), academy: ownedAcademy() };
+  const used = resolveCardAction({ actorId: "player", instanceId: inventory.hand[0].instanceId, targetDistrictId: "academy", inventory, energy: 5, districts });
+  assert.equal(used.success, true);
+  assert.deepEqual(used.inventory.poolCardIds, inventory.poolCardIds);
+  assert.equal(used.inventory.discard[0].cardId, "patch-update");
+});
+
 test("Bot ใช้ Energy Boost เมื่อ EN ต่ำและโจมตีเมื่อมีเป้าหมาย", () => {
   const inventory = createInitialInventory("bot");
   const lowEnergy = chooseBotUtilityAction({ inventory, energy: 2, districts: freshDistricts() });
@@ -137,6 +214,20 @@ test("Bot ใช้ Energy Boost เมื่อ EN ต่ำและโจม�
   const attack = chooseBotUtilityAction({ inventory, energy: 5, districts });
   assert.equal(attack.kind, "CARD");
   assert.equal(attack.targetDistrictId, "academy");
+});
+
+test("Bot ป้องกันเขตเสี่ยงก่อนโจมตีที่ยังยึดไม่ได้ และไม่เลือกเป้านอก Encounter", () => {
+  const inventory = createInitialInventory("bot");
+  const districts = {
+    ...freshDistricts(),
+    academy: { ...ownedAcademy("bot"), influenceByPlayer: { player: 2, bot: 3 } },
+    cloud: { ...ownedAcademy("player"), districtId: "cloud", districtName: "Cloud Data", influenceByPlayer: { player: 8, bot: 0 } },
+  };
+  const defend = chooseBotUtilityAction({ inventory, energy: 5, districts });
+  assert.equal(inventory.hand.find((entry) => entry.instanceId === defend.instanceId).cardId, "firewall-guard");
+  assert.equal(defend.targetDistrictId, "academy");
+  const restricted = chooseBotUtilityAction({ inventory, energy: 5, districts, allowedDistrictIds: ["cloud"] });
+  assert.equal(restricted.targetDistrictId, "cloud");
 });
 
 test("จำลอง 5 รอบ การ์ดและไอเทมไม่ทำให้ State ค้างหรือค่าเกินขอบเขต", () => {
