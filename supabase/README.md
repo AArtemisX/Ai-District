@@ -46,6 +46,10 @@
 - XP, credits, inventory, mission rewards และ match results ไม่เปิดให้ browser เขียนโดยตรง เพื่อป้องกันการโกง
 - หลังสมัครสมาชิก หน้าเว็บต้องสร้างแถว `profiles` ด้วย `id` ที่ได้จาก `auth.users`
 
+## Phase 4B.2A migration draft
+
+`action_card_catalog_phase4b2a.sql` เตรียม Canonical Action Card rows, Scenario-only starter eligibility, five-unique loadout constraint และ server-validated save RPC. ไฟล์นี้ยังไม่ได้ Apply และต้องผ่าน preflight/staging review ตาม `../CARD_CATALOG_MIGRATION_PLAN.md` ก่อนใช้งานจริง โดยไม่ควรรัน `scenario_adventure_round2_loadout.sql` ซ้ำร่วมกันโดยไม่ review ลำดับ migration.
+
 ## ขั้นตอนถัดไป
 
 หลังรัน SQL แล้ว จึงนำ Project URL และ publishable key มาเชื่อม `login.js` กับ Supabase Auth และเปลี่ยน `lobby.js` ให้โหลดข้อมูลจริงจากตารางเหล่านี้

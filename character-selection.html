@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#d9f5ff" />
+  <title>เลือกตัวละคร — AI District</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="assets/ai-district-logo.png" />
+  <link rel="stylesheet" href="character-selection.css?v=character-roster-1" />
+  <script type="module" src="character-selection.js?v=phase5a-nancy-preview"></script>
+</head>
+<body>
+  <main class="character-select-shell">
+    <header class="character-select-topbar">
+      <a href="lobby.html" aria-label="กลับหน้า Lobby">← กลับ Lobby</a>
+      <img src="assets/ai-district-logo.png" alt="AI District" />
+      <span>CHARACTER IDENTITY</span>
+    </header>
+
+    <section class="character-select-hero" aria-labelledby="character-select-title">
+      <div><p>S+ ORIGINAL ROSTER</p><h1 id="character-select-title">เลือกตัวละครของคุณ</h1><span>ตัวละครนี้ใช้เป็น Identity บน UI ของ Scenario Adventure เท่านั้น และยังไม่เปลี่ยนตัวหมากบนกระดาน</span></div>
+      <div class="character-select-progress"><small>เส้นทางการเตรียมตัว</small><strong><b>1</b> ตัวละคร <i>→</i> 2 Deck 5 ใบ <i>→</i> 3 ผจญภัย</strong></div>
+    </section>
+
+    <section class="character-gallery-section" aria-labelledby="roster-title">
+      <div class="character-gallery-heading"><div><p>FULL S+ CARD ARTWORK</p><h2 id="roster-title">Character Roster</h2></div><span><b id="free-count">3</b> ตัวเริ่มต้น · <b id="locked-count">6</b> รอปลดล็อก</span></div>
+      <div id="character-gallery" class="character-gallery" aria-live="polite"></div>
+    </section>
+
+    <footer class="character-confirm-bar">
+      <div><small>ตัวละครที่เลือก</small><strong id="selected-character-name">ยังไม่ได้เลือก</strong><span id="selection-note">เลือกตัวละคร Free 1 ตัวเพื่อดำเนินการต่อ</span></div>
+      <button id="confirm-character" type="button" disabled>ยืนยันและจัด Deck 5 ใบ <span>→</span></button>
+    </footer>
+  </main>
+
+  <dialog id="character-detail" class="character-detail-dialog" aria-labelledby="detail-character-name">
+    <button class="dialog-close" type="button" data-close-dialog aria-label="ปิดรายละเอียด">×</button>
+    <div class="character-detail-layout"><div class="character-detail-art"><img id="detail-character-art" alt="" /></div><div class="character-detail-copy"><small id="detail-character-access"></small><h2 id="detail-character-name"></h2><p id="detail-character-message"></p><button id="detail-select-character" type="button">เลือกตัวละครนี้</button></div></div>
+  </dialog>
+  <div id="character-toast" class="character-toast" role="status" aria-live="polite"></div>
+</body>
+</html>
+

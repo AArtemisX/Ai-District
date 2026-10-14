@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createMissionRuntime, evaluateDecision, evaluateSimulation, sceneRequirement } from "./mission-player-engine.mjs";
+import { classificationProgress, createMissionRuntime, evaluateDecision, evaluateSimulation, sceneRequirement } from "./mission-player-engine.mjs";
 
 const mission = { scenes: [
   { id: "talk", type: "dialogue", dialogue: [{}, {}, {}] },
@@ -44,4 +44,21 @@ test("interactive scenes block navigation until their action is complete", () =>
   assert.equal(sceneRequirement(mission.scenes[3], runtime).ready, false);
   runtime.decisions.choice.submitted = true;
   assert.equal(sceneRequirement(mission.scenes[3], runtime).ready, true);
+});
+
+test("runtime restores bounded narrative interaction state", () => {
+  const narrativeMission = { scenes: [
+    { id: "opening", dialogue: [{ characterId: "milo" }], openingChoices: [{ id: "data" }] },
+    { id: "incident", statements: [{ id: "fact", answer: "FACT" }, { id: "guess", answer: "INTERPRETATION" }] },
+    { id: "reflection", reflectionPrompt: "สะท้อน" },
+  ] };
+  const runtime = createMissionRuntime(narrativeMission, {
+    openingChoices: { opening: "invalid" },
+    classifications: { incident: { fact: "FACT", guess: "INVALID", injected: "FACT" } },
+    reflections: { reflection: "แนวทางตรวจสอบและอุทธรณ์" },
+  });
+  assert.equal(runtime.openingChoices.opening, null);
+  assert.deepEqual(runtime.classifications.incident, { fact: "FACT" });
+  assert.equal(runtime.reflections.reflection, "แนวทางตรวจสอบและอุทธรณ์");
+  assert.deepEqual(classificationProgress(narrativeMission.scenes[1], runtime.classifications.incident), { answered: 1, correct: 1, total: 2, complete: false });
 });

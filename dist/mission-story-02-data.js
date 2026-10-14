@@ -1,0 +1,221 @@
+const CITY = "assets/ai-district-login-bg.png";
+
+const CAST = Object.freeze([
+  { characterId: "nancy", speaker: "Nancy", role: "ผู้รับฟังและสื่อสารกับชุมชน" },
+  { characterId: "milo", speaker: "Milo", role: "ผู้ตรวจสอบข้อมูล" },
+  { characterId: "alexander", speaker: "Alexander", role: "ผู้ประสานการทบทวน" },
+]);
+
+const dialogue = (characterId, text) => ({ ...CAST.find((item) => item.characterId === characterId), text });
+
+export const MISSION_STORY_02_DRAFT_KEY = "mission-story-02-nancy-draft";
+
+export function buildMissionStory02Draft() {
+  return {
+    schemaVersion: 1,
+    draftKey: MISSION_STORY_02_DRAFT_KEY,
+    missionId: null,
+    lessonId: null,
+    published: false,
+    navigationEnabled: false,
+    previewNavigationEnabled: true,
+    rewardClaimEnabled: false,
+    characterUnlockEnabled: false,
+    rewardCharacterId: null,
+    demo: true,
+    demoLabel: "MISSION STORY 02 · DRAFT PREVIEW",
+    title: "คะแนนที่มองไม่เห็น",
+    gradeLevel: "มัธยมศึกษา",
+    topic: "Algorithmic Fairness · Accountability · Explainability · Human Oversight",
+    estimatedDuration: 18,
+    accent: "#a678e2",
+    objectives: [
+      "วิเคราะห์ว่าปัจจัยการประเมินสะท้อนผลงานและโอกาสของผู้เรียนอย่างเป็นธรรมหรือไม่",
+      "อธิบายเหตุผลและข้อจำกัดของผลประเมิน AI ด้วยหลักฐาน",
+      "เสนอช่องทางทบทวน อุทธรณ์ และการกำกับโดยมนุษย์ที่ตรวจสอบได้",
+    ],
+    finalAssessment: {
+      status: "PLACEHOLDER",
+      quizEnabled: false,
+      passingScore: null,
+      rewardClaimEnabled: false,
+      characterUnlockEnabled: false,
+    },
+    scenes: [
+      {
+        id: "opening",
+        phase: "OPENING · ASSESSMENT ALERT",
+        type: "dialogue",
+        title: "ผลประเมินที่ชวนสงสัย",
+        accent: "#58c8eb",
+        environmentLabel: "SMART ACADEMY",
+        cast: CAST,
+        dialogue: [
+          dialogue("alexander", "ระบบประเมินผลงานส่งผลบางกลุ่มต่างจากที่ครูและนักเรียนคาดไว้ เราต้องพักการสรุปผลก่อนแล้วตรวจว่าความต่างเกิดตรงไหน"),
+          dialogue("nancy", "ฉันอยากเริ่มจากฟังผู้ที่ได้รับผลกระทบ เพราะคะแนนเดียวอาจมองไม่เห็นเงื่อนไขและโอกาสที่แต่ละคนมี"),
+          dialogue("milo", "จากนั้นค่อยเทียบคำบอกเล่ากับเกณฑ์ ข้อมูล และคำอธิบายที่ระบบบันทึกไว้"),
+        ],
+        openingChoices: [
+          { id: "listen", label: "ฟังผู้ได้รับผลกระทบ", feedback: "เริ่มจากบริบทของผู้เรียน แล้วนำข้อกังวลไปตรวจเทียบกับหลักฐาน" },
+          { id: "criteria", label: "ตรวจเกณฑ์การประเมิน", feedback: "เริ่มจากดูว่าเกณฑ์แต่ละข้อวัดสิ่งที่ตั้งใจวัดจริงหรือไม่" },
+          { id: "explanation", label: "ขอคำอธิบายผล", feedback: "เริ่มจากตรวจว่าระบบและผู้ดูแลสามารถอธิบายปัจจัยที่มีผลต่อคะแนนได้เพียงใด" },
+        ],
+        prompt: "เลือกจุดเริ่มต้นหนึ่งทาง ทุกทางยังต้องตรวจทั้งเสียงของผู้เรียนและหลักฐาน",
+      },
+      {
+        id: "meet-nancy",
+        phase: "SCENE 1 · MEET NANCY",
+        type: "dialogue",
+        title: "เสียงที่คะแนนไม่เคยบอก",
+        accent: "#f09bc6",
+        cast: CAST,
+        dialogue: [
+          dialogue("nancy", "นักเรียนบางคนทำโครงงานได้ดี แต่เข้าถึงอุปกรณ์หรือกิจกรรมนอกเวลาไม่เท่ากัน พวกเขาอยากรู้ว่าเหตุใดคะแนนจึงลดลง"),
+          dialogue("milo", "คำบอกเล่าเป็นหลักฐานเรื่องผลกระทบ แต่เรายังต้องตรวจว่าปัจจัยใดถูกใช้และมีน้ำหนักเท่าไร"),
+          dialogue("alexander", "เป้าหมายไม่ใช่หาคนผิดให้เร็วที่สุด แต่ต้องทำให้ผลที่มีผลต่อผู้เรียนอธิบายและทบทวนได้"),
+        ],
+        openingChoices: [
+          { id: "impact", label: "บันทึกผลกระทบ", feedback: "ระบุว่าใครได้รับผลกระทบและผลนั้นสำคัญอย่างไร" },
+          { id: "expectation", label: "ถามสิ่งที่ผู้เรียนคาดหวัง", feedback: "ช่วยแยกความไม่พอใจออกจากสิทธิ์ที่ควรได้รับ เช่น คำอธิบายและการอุทธรณ์" },
+          { id: "process", label: "ขอดูกระบวนการ", feedback: "ช่วยเชื่อมประสบการณ์ของผู้เรียนกับขั้นตอนที่ตรวจสอบได้" },
+        ],
+        prompt: "รับฟัง Nancy โดยไม่สรุปแทนผู้ได้รับผลกระทบ",
+      },
+      {
+        id: "assessment-evidence",
+        phase: "SCENE 2 · ASSESSMENT EVIDENCE",
+        type: "evidence",
+        title: "โต๊ะตรวจหลักเกณฑ์",
+        body: "ตรวจหลักฐานจำลองอย่างน้อย 2 ชิ้น แล้วตั้งคำถามที่ยังต้องหาคำตอบก่อนตัดสินความเป็นธรรม",
+        image: CITY,
+        cast: CAST,
+        dialogue: [
+          dialogue("milo", "เราต้องแยกคะแนนผลงานจริง ตัวแทนทางอ้อม และขั้นตอนที่มนุษย์ใช้ทบทวนผล"),
+          dialogue("nancy", "ถ้าผู้เรียนไม่รู้ว่าคะแนนมาจากอะไร เขาก็ยากจะชี้ข้อมูลผิดหรือขอให้ทบทวน"),
+          dialogue("alexander", "หลักฐานแต่ละชิ้นบอกความเสี่ยงคนละด้าน ไม่มีชิ้นเดียวที่ตอบทุกอย่าง"),
+        ],
+        requiredEvidence: 2,
+        evidenceQuestionPrompt: "มีข้อมูลอะไรอีกที่ต้องตรวจเพื่ออธิบายผลอย่างรับผิดชอบ?",
+        evidence: [
+          { id: "rubric", marker: "A", x: 26, y: 48, title: "เกณฑ์และน้ำหนัก", summary: "คะแนนโครงงาน 55% การส่งตรงเวลา 20% และกิจกรรมนอกเวลา 25%", insight: "ต้องตรวจว่าแต่ละตัวแปรเกี่ยวข้องกับวัตถุประสงค์การประเมินและไม่ลงโทษข้อจำกัดที่ไม่เกี่ยวกับผลงาน" },
+          { id: "explanation-log", marker: "B", x: 58, y: 38, title: "บันทึกคำอธิบาย", summary: "ระบบแสดงคะแนนรวม แต่ไม่แสดงปัจจัยที่ทำให้คะแนนของแต่ละคนเปลี่ยน", insight: "คะแนนที่ไม่มีเหตุผลรายกรณีทำให้ตรวจข้อผิดพลาดและอุทธรณ์ได้ยาก" },
+          { id: "review-path", marker: "C", x: 75, y: 66, title: "ช่องทางทบทวน", summary: "ครูสามารถแก้คะแนนได้ แต่ยังไม่มีขั้นตอนหรือกำหนดเวลาที่ผู้เรียนมองเห็น", insight: "Human Oversight ต้องเข้าถึงได้ มีผู้รับผิดชอบ และมีร่องรอยการตัดสินใจ" },
+        ],
+        check: {
+          question: "ข้อสรุปใดเหมาะสมที่สุดจากหลักฐานชุดนี้?",
+          options: [
+            { id: "e1", label: "AI ไม่ควรประเมินการเรียนทุกกรณี", correct: false, feedback: "หลักฐานชี้ความเสี่ยงเฉพาะระบบนี้ แต่ยังไม่รองรับข้อสรุปครอบคลุมทุกกรณี" },
+            { id: "e2", label: "ต้องตรวจความเกี่ยวข้องของเกณฑ์ คำอธิบาย และช่องทางทบทวนร่วมกัน", correct: true, feedback: "ถูกต้อง เพราะความเป็นธรรมขึ้นกับทั้งการออกแบบผลประเมินและวิธีรับผิดชอบเมื่อเกิดข้อผิดพลาด" },
+            { id: "e3", label: "คะแนนรวมสูงแปลว่าระบบยุติธรรม", correct: false, feedback: "ค่าเฉลี่ยรวมอาจซ่อนผลกระทบที่ต่างกันระหว่างผู้เรียน" },
+          ],
+        },
+        prompt: "สำรวจหลักฐาน ตั้งคำถาม และตอบ Knowledge Check",
+      },
+      {
+        id: "evaluation-simulation",
+        phase: "SCENE 3 · EVALUATION SIMULATION",
+        type: "simulation",
+        title: "ทดลองน้ำหนักการประเมิน",
+        body: "เปรียบเทียบอย่างน้อย 2 รอบด้วยข้อมูลสมมติเพื่อการเรียนรู้ ผลที่เห็นไม่ใช่คะแนนนักเรียนจริงและไม่ใช่สูตรที่อนุมัติให้ใช้จริง",
+        cast: CAST,
+        dialogue: [
+          dialogue("milo", "ลองเปลี่ยนน้ำหนักเพื่อดูความไวของผล แต่คะแนนจำลองไม่สามารถบอกเองว่าเกณฑ์ใดยุติธรรม"),
+          dialogue("nancy", "เมื่อผลเปลี่ยน ลองถามด้วยว่าใครได้ประโยชน์ ใครเสียโอกาส และเขามีทางอธิบายบริบทหรือไม่"),
+          dialogue("alexander", "การทดลองนี้ช่วยตั้งคำถาม ไม่ได้แทนการทบทวนโดยครูและผู้เกี่ยวข้อง"),
+        ],
+        requiredRuns: 2,
+        simulationReflectionPrompt: "ผลจำลองยังไม่บอกอะไรเกี่ยวกับความเป็นธรรมและบริบทของผู้เรียน?",
+        controls: [
+          { id: "quality", label: "หลักฐานจากผลงาน", type: "range", min: 20, max: 100, step: 10, initial: 70, unit: "%" },
+          { id: "coverage", label: "ความครอบคลุมบริบท", type: "range", min: 20, max: 100, step: 10, initial: 40, unit: "%" },
+          { id: "oversight", label: "การทบทวนโดยมนุษย์", type: "select", initial: "appeal", options: [{ value: "none", label: "ไม่มี" }, { value: "sample", label: "สุ่มตรวจ" }, { value: "appeal", label: "ตรวจเมื่อมีความเสี่ยงหรืออุทธรณ์" }] },
+        ],
+        presets: [
+          { id: "score-only", label: "A · เน้นคะแนนรวม", values: { quality: 50, coverage: 20, oversight: "none" } },
+          { id: "work-first", label: "B · เน้นหลักฐานผลงาน", values: { quality: 90, coverage: 50, oversight: "sample" } },
+          { id: "reviewable", label: "C · ตรวจบริบทและทบทวนได้", values: { quality: 90, coverage: 90, oversight: "appeal" } },
+        ],
+        model: { coverageWeight: .45, qualityWeight: .35, oversightScores: { none: 0, sample: 55, appeal: 100 }, oversightWeight: .2 },
+        check: {
+          question: "เหตุใดผลจำลองที่ดีขึ้นจึงยังไม่พิสูจน์ว่าระบบยุติธรรม?",
+          options: [
+            { id: "s1", label: "เพราะต้องตรวจผลจริง เหตุผลของเกณฑ์ และประสบการณ์ผู้ได้รับผลกระทบด้วย", correct: true, feedback: "ถูกต้อง แบบจำลองช่วยเปรียบเทียบ แต่ความเป็นธรรมต้องอาศัยหลักฐานและการกำกับในบริบทจริง" },
+            { id: "s2", label: "เพราะ AI คำนวณตัวเลขไม่ได้", correct: false, feedback: "AI คำนวณได้ แต่ตัวเลขไม่ได้ตัดสินคุณค่าหรือความเป็นธรรมแทนผู้เกี่ยวข้อง" },
+            { id: "s3", label: "เพราะครูถูกเสมอ", correct: false, feedback: "มนุษย์ก็อาจผิดพลาด จึงต้องมีเกณฑ์ ร่องรอย และช่องทางทบทวน" },
+          ],
+        },
+        prompt: "ทดลอง 2 รอบและบันทึกสิ่งที่แบบจำลองยังตอบไม่ได้",
+      },
+      {
+        id: "fairness-decision",
+        phase: "SCENE 4 · FAIRNESS DECISION",
+        type: "decision",
+        title: "ออกแบบการประเมินที่ทบทวนได้",
+        body: "เลือกมาตรการที่ทำงานร่วมกัน โดยคำนึงถึงความเป็นธรรม ความโปร่งใส ความรับผิดชอบ และข้อจำกัดของมนุษย์",
+        cast: CAST,
+        dialogue: [
+          dialogue("nancy", "ผู้เรียนควรรู้ว่าถูกประเมินจากอะไร และส่งข้อมูลเพิ่มเติมได้เมื่อระบบมองบริบทไม่ครบ"),
+          dialogue("milo", "ทีมต้องตรวจผลแยกกลุ่มและเก็บเหตุผลเมื่อปรับเกณฑ์ ไม่ใช่ดูเพียงคะแนนรวม"),
+          dialogue("alexander", "เราต้องกำหนดว่าใครรับผิดชอบการทบทวน และต้องตอบกลับภายในเวลาเท่าไร"),
+        ],
+        minChoices: 1,
+        options: [
+          { id: "rubric-audit", label: "ตรวจความเกี่ยวข้องของเกณฑ์และผลแยกกลุ่ม", quality: 3, impact: "ช่วยพบเกณฑ์ที่ไม่สัมพันธ์กับผลงานหรือกระทบบางกลุ่มมากผิดปกติ", remainingRisks: ["ต้องกำหนดนิยามความเป็นธรรมให้เหมาะกับบริบทการเรียน"] },
+          { id: "explanation", label: "แสดงปัจจัยสำคัญและข้อจำกัดของผลประเมิน", quality: 3, impact: "ช่วยให้ผู้เรียนและครูตรวจข้อมูลผิดหรือเหตุผลที่ไม่สมเหตุสมผล", remainingRisks: ["คำอธิบายที่มีอยู่ไม่ได้รับประกันว่าผลจะยุติธรรม"] },
+          { id: "appeal", label: "เปิดช่องอุทธรณ์พร้อมผู้รับผิดชอบและกำหนดเวลา", quality: 3, impact: "ทำให้ Human Oversight ใช้งานได้จริงและแก้ไขผลได้", remainingRisks: ["ผู้ทบทวนต้องมีข้อมูลและแนวทางลดอคติของตนเอง"] },
+          { id: "auto-final", label: "ใช้คะแนน AI เป็นผลสุดท้ายเพื่อให้ทุกคนได้มาตรฐานเดียว", quality: 0, impact: "ลดโอกาสแก้ข้อมูลผิดและอาจทำให้ความไม่เท่าเทียมถูกทำซ้ำอย่างสม่ำเสมอ", remainingRisks: ["ไม่มีผู้รับผิดชอบเมื่อผลไม่เหมาะสม"] },
+        ],
+        check: {
+          question: "ระบบประเมินที่รับผิดชอบควรทำอะไรเมื่อผู้เรียนโต้แย้งผล?",
+          options: [
+            { id: "d1", label: "ให้คำอธิบาย รับหลักฐานเพิ่มเติม และมีมนุษย์ทบทวนตามขั้นตอน", correct: true, feedback: "ถูกต้อง การอุทธรณ์ต้องนำไปสู่การตรวจที่แก้ไขผลได้ ไม่ใช่มีเพียงแบบฟอร์มรับเรื่อง" },
+            { id: "d2", label: "ซ่อนเกณฑ์เพื่อป้องกันผู้เรียนปรับพฤติกรรม", correct: false, feedback: "การปิดบังลดความโปร่งใสและทำให้ตรวจข้อผิดพลาดยากขึ้น" },
+            { id: "d3", label: "ให้ระบบเดิมตรวจคำตอบของตัวเองโดยไม่บันทึกเหตุผล", correct: false, feedback: "ยังขาดผู้รับผิดชอบและร่องรอยสำหรับตรวจสอบ" },
+          ],
+        },
+        prompt: "เลือกมาตรการ อ่านข้อจำกัด และตอบ Knowledge Check",
+      },
+      {
+        id: "reflection",
+        phase: "SCENE 5 · REFLECTION",
+        type: "reflection",
+        title: "คะแนนต้องไม่ลบเสียงของผู้เรียน",
+        body: "AI ช่วยจัดข้อมูลการประเมินได้ แต่โรงเรียนยังต้องรับผิดชอบต่อเกณฑ์ คำอธิบาย ผลกระทบ และการแก้ไขผล",
+        cast: CAST,
+        dialogue: [
+          dialogue("nancy", "ความเป็นธรรมเริ่มจากการมองเห็นผู้ที่คะแนนมองข้าม และให้เขามีส่วนร่วมในกระบวนการทบทวน"),
+          dialogue("milo", "คำอธิบายที่ดีต้องเชื่อมกับหลักฐานและบอกข้อจำกัด ไม่ใช่เพียงทำให้ผลลัพธ์ดูน่าเชื่อ"),
+          dialogue("alexander", "การกำกับโดยมนุษย์มีความหมายเมื่อมีอำนาจตรวจ แก้ผล และรับผิดชอบต่อการตัดสินใจ"),
+        ],
+        reflectionPrompt: "ถ้าคุณออกแบบสิทธิ์อุทธรณ์ผลประเมิน จะทำให้ผู้เรียนเข้าถึง เข้าใจ และได้รับการทบทวนจริงอย่างไร?",
+        takeaways: [
+          "เกณฑ์ควรวัดสิ่งที่ตั้งใจประเมินและตรวจผลกระทบต่อผู้เรียนหลายบริบท",
+          "Explainability ต้องช่วยตรวจข้อผิดพลาดและนำไปสู่การทบทวนได้",
+          "Accountability ต้องระบุผู้รับผิดชอบ ขั้นตอน และร่องรอยการตัดสินใจ",
+          "Human Oversight สำคัญ แต่ต้องออกแบบเพื่อลดความผิดพลาดและอคติของมนุษย์ด้วย",
+        ],
+        prompt: "เขียนกระบวนการอุทธรณ์ที่ผู้เรียนใช้งานได้จริง",
+      },
+      {
+        id: "final-assessment-placeholder",
+        phase: "SCENE 6 · FINAL ASSESSMENT PLACEHOLDER",
+        type: "summary",
+        title: "Mission Completion Preview",
+        body: "คุณสำรวจเกณฑ์ ทดลองปัจจัย และออกแบบช่องทางทบทวนครบแล้ว Final Assessment และรางวัลตัวละครยังอยู่ระหว่างพัฒนา",
+        takeaways: [
+          "ผลประเมินต้องอธิบายปัจจัยและข้อจำกัดได้",
+          "ผู้ได้รับผลกระทบควรตรวจข้อมูลและยื่นอุทธรณ์ได้",
+          "Human Oversight ต้องมีผู้รับผิดชอบและแก้ไขผลได้จริง",
+          "Nancy ยังคงเป็นตัวละคร Locked ใน Preview นี้",
+        ],
+        assessmentStatus: "PLACEHOLDER",
+        quizReady: false,
+        quizEnabled: false,
+        rewardClaimEnabled: false,
+        characterUnlockEnabled: false,
+        previewNote: "Final Assessment ยังอยู่ระหว่างพัฒนา · ไม่มี Reward Claim · Nancy ยังไม่ถูกปลดล็อก",
+        prompt: "รอ Phase ถัดไปกำหนด Mission ID, Quiz และ Backend reward verification",
+      },
+    ],
+  };
+}

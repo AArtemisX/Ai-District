@@ -1,0 +1,8 @@
+.story-character-portrait { --portrait-size:clamp(82px,9vw,124px); display:grid; justify-items:center; gap:8px; margin:0; color:#24516c; transition:opacity .2s ease,transform .2s ease; }
+.story-character-portrait.size-small { --portrait-size:72px; }.story-character-portrait.size-large { --portrait-size:clamp(118px,14vw,176px); }
+.story-character-portrait__frame { position:relative;display:grid;place-items:center;width:var(--portrait-size); aspect-ratio:1; overflow:hidden; border:3px solid rgba(255,255,255,.94); border-radius:50%; background:linear-gradient(145deg,#dff7ff,#eee7ff); box-shadow:0 0 0 3px rgba(78,191,232,.26),0 12px 30px rgba(41,127,167,.18); -webkit-mask-image:radial-gradient(circle,#000 67%,rgba(0,0,0,.92) 73%,transparent 76%); mask-image:radial-gradient(circle,#000 67%,rgba(0,0,0,.92) 73%,transparent 76%); }
+.story-character-portrait__fallback { color:#54758b;font:800 18px/1 "Kanit",sans-serif; }
+.story-character-portrait img { position:absolute;inset:0;width:100%; height:100%; display:block; object-fit:cover; object-position:var(--portrait-position,50% 39%); transform:scale(1.24); }
+.story-character-portrait.is-fallback img { display:none; }
+.story-character-portrait figcaption { font:700 13px/1.2 "Kanit",sans-serif; }.story-character-portrait.is-active { transform:translateY(-2px); }.story-character-portrait.is-inactive { opacity:.46; filter:saturate(.55); transform:scale(.94); }
+@media (prefers-reduced-motion:reduce){.story-character-portrait{transition:none}}

@@ -9,17 +9,21 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=20261012-stage5" />
-  <link rel="stylesheet" href="stage5.css?v=20261012-stage5" />
-  <script type="module" src="card-inventory.js?v=20261012-stage5"></script>
+  <link rel="stylesheet" href="style.css?v=action-cards-phase4b1" />
+  <link rel="stylesheet" href="stage5.css?v=action-cards-phase4b1" />
+  <script type="module" src="card-inventory.js?v=action-cards-phase4b1"></script>
 </head>
 <body class="card-inventory-page">
   <main class="card-inventory-shell">
     <header class="card-vault-header">
-      <a href="learning.html">← กลับ Learning World</a>
-      <div><small>PERMANENT UNLOCK COLLECTION</small><h1>คลัง Action Cards</h1><p>เลือกการ์ดที่ใช้ได้ 3 ใบเป็นชุดเริ่มต้นสำหรับ District Battle</p></div>
+      <a href="lobby.html">← กลับ Lobby</a>
+      <div><small>PERMANENT UNLOCK COLLECTION</small><h1>คลัง Action Cards</h1><p>สิทธิ์การ์ดถาวรและชุดเริ่มต้น 3 ใบสำหรับ District Battle เดิม</p></div>
       <img src="assets/ai-district-logo.png" alt="Ai District" />
     </header>
+    <nav class="card-vault-links" aria-label="ทางลัดระบบ Action Card">
+      <a href="action-card-preview.html"><strong>ดู Prototype Artwork 10 ใบ</strong><span>พื้นที่ทดลอง UI — ไม่ใช่สิทธิ์การ์ดในบัญชี</span></a>
+      <a class="primary" href="map-3d.html?mode=scenario-adventure"><strong>จัด Deck Scenario 5 ใบ</strong><span>เลือกได้เฉพาะ Starter หรือการ์ดที่ปลดล็อกแล้ว</span></a>
+    </nav>
     <section class="loadout-summary" aria-live="polite">
       <div><small>BATTLE LOADOUT</small><h2>ชุดการ์ดเริ่มต้น</h2><p>การใช้การ์ดในแมตช์จะไม่ลบสิทธิ์ปลดล็อกถาวร</p></div>
       <div id="loadout-slots" class="loadout-slots"></div>
