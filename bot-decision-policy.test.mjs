@@ -54,10 +54,14 @@ test('DECISION trades RP and Stability from current score and remaining turns',(
  assert.deepEqual(chooseEventIntent({event:event('DECISION'),deck:deck(),match:matchWith({stability:9,rp:5,opponentRp:3,turns:4}),actorId:'bot'}),{choiceId:'review'});
 });
 
-test('MOVEMENT is deterministic, uses visible deltas only, and preserves current Rule A preference',()=>{
- const input={event:event('MOVEMENT'),deck:deck(),match:matchWith(),actorId:'bot',futureRoll:()=>{throw Error('FUTURE_READ');}};
- assert.deepEqual(chooseEventIntent(input),{choiceId:'review'});
- assert.deepEqual(chooseEventIntent(input),chooseEventIntent(input));
+test('BONUS needs no bot choice (v2); a FORWARD_2 destination event is decided as its own type',()=>{
+ for(const contentId of ['FORWARD_2','RP_PLUS_1','STABILITY_PLUS_1','REST']){
+  const input={event:{type:'BONUS',contentId,bonusKind:contentId,actorId:'bot'},deck:deck(),match:matchWith(),actorId:'bot',futureRoll:()=>{throw Error('FUTURE_READ');}};
+  assert.equal(chooseEventIntent(input),null);
+ }
+ const destination={...event('DECISION'),viaBonus:{kind:'FORWARD_2'}};
+ assert.deepEqual(chooseEventIntent({event:destination,deck:deck(),match:matchWith({stability:2}),actorId:'bot'}),{choiceId:'review'});
+ assert.deepEqual(chooseEventIntent({event:destination,deck:deck(),match:matchWith({stability:2}),actorId:'bot'}),chooseEventIntent({event:destination,deck:deck(),match:matchWith({stability:2}),actorId:'bot'}));
 });
 
 test('equal Effective cards use predictable instance-id tie-break',()=>{

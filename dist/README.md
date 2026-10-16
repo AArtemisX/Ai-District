@@ -1,9 +1,46 @@
 # AI District 2.0 — Project Handoff README
 
 > เอกสารนี้จัดทำเพื่อส่งต่อโปรเจกต์ไปพัฒนาบนเครื่องอื่น หรือให้ AI/Coding Agent ตัวใหม่อ่านก่อนเริ่มแก้โค้ด  
-> อัปเดตล่าสุด: 16 ตุลาคม 2026 (Asia/Bangkok) — Round 5H โต๊ะไพ่กลางจอสำหรับ ACTION (presentation) / กติกาช่องโบนัส v2 ยังไม่ทำ (รอหลังเดโม่) / ไม่มี Deploy
+> อัปเดตล่าสุด: 16 ตุลาคม 2026 (Asia/Bangkok) — Board Rules v2 "ช่องโบนัส" (เปลี่ยนกติกาตามที่เจ้าของอนุมัติ) / ต่อจาก Round 5H โต๊ะไพ่กลางจอ / ไม่มี SQL, Supabase หรือ Deploy
 
 > กติกาการทำงานถาวร: ทุกครั้งที่มีการแก้หรือเพิ่มระบบ ต้องอัปเดตไฟล์ `README.md` นี้ในรอบเดียวกัน โดยระบุสถานะล่าสุด ไฟล์ที่แก้ ผลทดสอบ ข้อจำกัด และงานถัดไปตามจริง
+
+## CURRENT DEMO — Board Rules v2: ช่องโบนัส (16 ตุลาคม 2026)
+
+### สถานะ: **READY WITH LIMITATIONS** — รอเจ้าของเซ็นรับ Gameplay v2
+
+สัญญากติกาใหม่อยู่ที่ **`GAMEPLAY_FREEZE_HANDOFF_v2.md`** (v1 เก็บไว้เป็นประวัติ) ซึ่งเปลี่ยน v1 เฉพาะเรื่องต่อไปนี้:
+
+- **ช่อง 8 จาก 32 ช่องเป็นช่องโบนัสทันที** (ไม่มีป๊อปอัพให้เลือก) มี 4 แบบ แบบละ 2 ช่อง: ⏩ เดินหน้า 2 ช่อง (ช่อง 3, 19) · ★ RP +1 (ช่อง 7, 23) · ♥ Stability +1 สูงสุด 10 (ช่อง 11, 27) · ☕ พักเติมพลัง ไม่มีผล (ช่อง 15, 31) — เลขช่องนับแบบที่เห็นบนกระดาน (index + 1)
+- ช่อง MOVEMENT แบบเลือก (เดินหน้า 2 / ถอย 2 +1 RP) ถูกยุบรวมเป็นช่องโบนัส สัดส่วนใหม่คือ **ACTION 12 / BONUS 8 / SUPPORT 4 / RISK 4 / DECISION 4**
+- **Rule A':** เดินหน้า 2 แล้วถ้าช่องปลายทางเป็นช่องสถานการณ์ จะเปิดเหตุการณ์นั้น 1 ครั้งในเทิร์นเดียวกัน (และนับเป็นเหตุการณ์ของเทิร์นนั้น) ถ้าปลายทางเป็นช่องโบนัสอีกช่อง จะไม่ต่อโบนัส ผ่าน START ไม่ได้อะไรเพิ่ม
+- ช่องโบนัสนับเป็นเทิร์นของผู้เล่น ยังเล่นคนละ 6 เทิร์นเหมือนเดิม
+
+### สิ่งที่เปลี่ยน
+
+- `scenario-adventure/board-events.js`: mapping v2 (`TILE_EVENT_TYPES`, `TILE_BONUS_KINDS`, `BONUS_CONFIG`) และ `landOnTile()` ฟังก์ชันเดียวที่ใช้ทั้ง Online และ Local ส่วน `chooseEventIntent()` คืนค่า `null` สำหรับ BONUS
+- `scenario-adventure/online-rooms.mjs`: `roll` ทำ ทอย → เดิน → โบนัส/เหตุการณ์ปลายทาง ใน commit และ revision เดียว เพิ่ม `room.bonus` และ `movement.bonusPath` ส่วน guard เดิมทุกตัวยังอยู่
+- `scenario-adventure/app.js` (Local Practice): ใช้ `landOnTile` ช่องโบนัสไปที่ผลลัพธ์ทันที
+- ภาพ: `event-visuals.js` (BONUS + สัญลักษณ์ ⏩ ★ ♥ ☕), `ScenarioAdventureScene.js`, `map-3d/BoardTile.js` (วาดสัญลักษณ์จาก visual อย่างเดียว), `BoardEventPanel.js`
+- Online UI `online-app.js`: แสดง toast "ช่องโบนัส: เดินหน้า 2 ช่อง" ฯลฯ หลังเดินจบ (ถ้าเป็นเทิร์นคนอื่นจะมีชื่อนำหน้า) การ +2 ใช้ glide ของ `CharacterToken.js` เดิม แล้วค่อยเปิด popup หรือโต๊ะไพ่ของเหตุการณ์ปลายทาง CSS อยู่ใน `scenario-adventure.css` และ `online-room.html` เปลี่ยนเลข cache เป็น `?v=board-v2`
+- เทสต์: ใหม่ `board-rules-v2.test.mjs` (15 เทสต์) และอัปเดตเทสต์ที่ยืนยัน mapping v1 ให้เป็น v2 โดยตั้งใจ ได้แก่ `board-events.test.mjs`, `neo-district-visual.test.mjs`, `bot-decision-policy.test.mjs`, `scenario-online-http.test.mjs`
+
+### ผลทดสอบ
+
+- `node --test` ทั้งโปรเจกต์: **457/457 ผ่าน**
+- ชุด dist (`board-events`, `bot-decision-policy`, `neo-district-visual`, `scenario-online-http`, `board-rules-v2`, `scenario-online`, `turn-popup`): **52/52 ผ่าน**
+- dist mirror: 18 ไฟล์ที่เปลี่ยน SHA-256 ตรงกันทั้งหมด (รวม `CardTable.js`/`ai-world.css`/`online-app.js` ของ Round 5H ที่อยู่ในไฟล์เดียวกัน)
+- **Browser QA** (Browser pane, static worktree ที่ `127.0.0.1:4175` + room server ที่ `4181` เพราะ 4174/4180 ถูก session อื่นใช้อยู่): ห้อง "Board v2 QA 20261016" มี 2 ที่นั่ง คือคน + Bot เล่นจบ **3 แมตช์ติดกันจนถึงหน้าผลลัพธ์** (เล่นอีกครั้ง 2 ครั้ง) 12/12 events ทุกแมตช์ ไม่มี turn ค้าง และ room server ไม่มี error
+  - เห็นจริง: Bot ได้ ★ RP +1 (+1 RP), ผู้เล่นได้ ☕ พัก (ไม่มีผล นับเทิร์น), ★ RP +1 และ ♥ Stability +1; Bot ได้ ⏩ จากช่อง 19 ไปช่อง 21 แล้วเปิด DECISION 1 ครั้ง (`viaBonus: FORWARD_2`) พร้อม toast "เปิดเหตุการณ์ช่อง 21"
+  - Replay reset: ตำแหน่ง 0, 0 RP / 10 Stability, 0/6 เทิร์น, history/actionIds ว่าง, `bonus: null`
+
+### ข้อจำกัด / งานถัดไป
+
+- ในเลย์เอาต์จริง ⏩ จะไม่มีวันไปตกช่องโบนัสอีกช่อง กรณีไม่ต่อโบนัสจึงทดสอบด้วยเทสต์อัตโนมัติเท่านั้น
+- ถ้าเทิร์นสุดท้ายตกช่องโบนัส แมตช์จะจบทันทีตอนทอย และไม่เห็น toast สุดท้าย
+- ข้อความแถบเทิร์นของคนอื่นยังใช้คำว่า "เลือก:" กับผลโบนัส (เช่น "เลือก: RP +1")
+- `gameplay-balance-sim.mjs` ยังเป็นสคริปต์ของ v1 (ยังมี MOVEMENT) ยังไม่ได้อัปเดต
+- ยังไม่ commit งานรอบนี้ และไม่มี SQL, Supabase หรือ Deploy
 
 ## CURRENT DEMO — Round 5H: โต๊ะไพ่กลางจอสำหรับเทิร์น ACTION (16 ตุลาคม 2026)
 

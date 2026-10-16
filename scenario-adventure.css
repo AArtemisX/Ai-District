@@ -26,3 +26,13 @@ html[data-game-mode="scenario-adventure"] body{background:#bfeeff;color:var(--ad
 .event-type-badge{display:inline-flex;align-items:center;gap:7px;margin-bottom:8px;padding:6px 10px;border-radius:999px;background:color-mix(in srgb,var(--event-color) 16%,white);border:1px solid color-mix(in srgb,var(--event-color) 42%,white);color:var(--event-dark);font:800 11px/1.2 Kanit,sans-serif;letter-spacing:.55px}.event-type-badge::before{content:"";width:9px;height:9px;border-radius:3px;background:var(--event-color);box-shadow:0 0 0 3px color-mix(in srgb,var(--event-color) 18%,transparent)}
 /* Visual polish v1 (presentation only): non-color event icon inside the type badge */
 .event-type-icon{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}.event-type-badge:has(.event-type-icon)::before{display:none}
+/* Board rules v2 — BONUS tile announcement (presentation only). */
+.aw-bonus-toast{position:fixed;left:50%;top:84px;z-index:9;display:flex;align-items:center;gap:10px;max-width:calc(100vw - 32px);padding:10px 18px 10px 12px;border-radius:999px;background:#fffaf0;border:3px solid #fff;box-shadow:0 0 0 3px #39c86a,0 5px 0 #14753a,0 14px 26px #0f2a1440;color:#24412c;font:600 15px/1.35 Kanit,sans-serif;transform:translateX(-50%);pointer-events:none;animation:aw-bonus-pop 2.8s ease-out both}
+.aw-bonus-toast-glyph{display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:50%;background:#39c86a;color:#fff;font-size:19px;box-shadow:inset 0 -3px 0 #14753a}
+.aw-bonus-toast b{font-weight:700}
+.aw-bonus-toast small{color:#4f5f49;font-size:12.5px}
+.bonus-via-note{margin:4px 0 6px;padding:4px 10px;border-radius:10px;background:#e7f8ec;color:#14753a;font-size:13px;font-weight:600}
+.bonus-glyph{display:inline-block;margin-right:2px}
+@keyframes aw-bonus-pop{0%{opacity:0;translate:0 -10px;scale:.9}10%{opacity:1;translate:0 0;scale:1}82%{opacity:1}100%{opacity:0;translate:0 -6px}}
+@media(max-width:600px){.aw-bonus-toast{top:70px;font-size:13.5px;padding:8px 14px 8px 10px}.aw-bonus-toast small{display:none}}
+@media(prefers-reduced-motion:reduce){.aw-bonus-toast{animation:none}}

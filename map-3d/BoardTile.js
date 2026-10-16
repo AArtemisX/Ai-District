@@ -4,7 +4,7 @@ import { RoundedBox } from "@react-three/drei";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { html } from "./runtime.js";
 
-function drawEventIcon(context, eventType) {
+function drawEventIcon(context, eventType, visual) {
   context.save();
   context.strokeStyle = "#ffffff";
   context.fillStyle = "#ffffff";
@@ -15,8 +15,12 @@ function drawEventIcon(context, eventType) {
     context.strokeRect(73, 70, 70, 82);
     context.strokeRect(91, 55, 70, 82);
     context.beginPath(); context.moveTo(112, 92); context.lineTo(142, 92); context.stroke();
-  } else if (eventType === "MOVEMENT") {
-    context.beginPath(); context.moveTo(62, 105); context.lineTo(105, 72); context.lineTo(105, 91); context.lineTo(148, 91); context.lineTo(148, 72); context.lineTo(190, 105); context.lineTo(148, 138); context.lineTo(148, 119); context.lineTo(105, 119); context.lineTo(105, 138); context.closePath(); context.fill();
+  } else if (eventType === "BONUS") {
+    // Per-kind glyph (⏩ ★ ♥ ☕) comes from the visual passed in by the scene; no tile mapping is read here.
+    context.font = "700 92px sans-serif";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(visual.glyph || "★", 121, 108);
   } else if (eventType === "SUPPORT") {
     context.fillRect(105, 57, 32, 96); context.fillRect(73, 89, 96, 32);
   } else if (eventType === "RISK") {
@@ -57,7 +61,7 @@ function useTileTexture(tile, eventType, visual) {
     context.translate(121, 92);
     context.scale(.86, .86);
     context.translate(-121, -105);
-    drawEventIcon(context, eventType);
+    drawEventIcon(context, eventType, visual);
     context.restore();
     context.font = "800 25px sans-serif";
     context.textAlign = "center";
@@ -77,7 +81,7 @@ function useTileTexture(tile, eventType, visual) {
     next.minFilter = LinearFilter;
     next.generateMipmaps = false;
     return next;
-  }, [tile.index, eventType, visual.color, visual.dark, visual.shortLabel]);
+  }, [tile.index, eventType, visual.color, visual.dark, visual.shortLabel, visual.glyph]);
   useEffect(() => () => texture.dispose(), [texture]);
   return texture;
 }
