@@ -62,7 +62,12 @@ export function PlayerAvatar({ controller, portraitSrc, focusY = .39, accent = "
       let diff = ctrl.player.heading - current;
       diff = Math.atan2(Math.sin(diff), Math.cos(diff));
       body.current.rotation.y = reducedMotion ? ctrl.player.heading : current + diff * Math.min(1, delta * 12);
-      body.current.position.y = !reducedMotion && ctrl.player.moving ? Math.abs(Math.sin(clock.elapsedTime * 11)) * .12 : 0;
+      // Walk cycle: a hop-bob plus a slight forward lean that eases in and out.
+      body.current.rotation.order = "YXZ"; // lean around the avatar's own sideways axis
+      const moving = !reducedMotion && ctrl.player.moving;
+      body.current.position.y = moving ? Math.abs(Math.sin(clock.elapsedTime * 11)) * .12 : 0;
+      const lean = moving ? .14 : 0;
+      body.current.rotation.x += (lean - body.current.rotation.x) * Math.min(1, delta * 10);
     }
   });
 

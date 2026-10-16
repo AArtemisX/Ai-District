@@ -1,6 +1,6 @@
 // 2D collision for the palace floor. Pure functions: walkable rects + circle obstacles,
 // axis-separated sliding, sub-stepped so a large frame delta can never tunnel through a wall.
-import { COLUMN_RADIUS, ELMS, FOUNTAIN, INTERIOR_COLUMNS, PLAYER_RADIUS, WALKABLE_RECTS } from "../config/palace-layout.js";
+import { COLUMN_RADIUS, ELMS, FOUNTAIN, INTERIOR_COLUMNS, PLAYER_RADIUS, SIGNPOSTS, WALKABLE_RECTS } from "../config/palace-layout.js";
 import { EXHIBITS, STAND_RADIUS } from "../config/exhibits.js";
 
 export const MAX_STEP = .2;
@@ -10,6 +10,7 @@ export function buildCollisionWorld({ rects = WALKABLE_RECTS, exhibits = EXHIBIT
     ...INTERIOR_COLUMNS.map((p) => ({ x: p.x, z: p.z, r: COLUMN_RADIUS, kind: "column" })),
     ...ELMS.map((p) => ({ x: p.x, z: p.z, r: p.trunk, kind: "elm" })),
     { x: FOUNTAIN.x, z: FOUNTAIN.z, r: FOUNTAIN.radius, kind: "fountain" },
+    ...SIGNPOSTS.map((p) => ({ x: p.x, z: p.z, r: p.radius, kind: "signpost" })),
     ...exhibits.filter((item) => item.obstacle !== false).map((item) => ({ x: item.x, z: item.z, r: STAND_RADIUS, kind: "stand", id: item.id })),
   ];
   return Object.freeze({ rects, circles, radius });

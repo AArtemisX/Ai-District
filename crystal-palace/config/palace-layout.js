@@ -67,6 +67,25 @@ export const ELMS = Object.freeze([
   Object.freeze({ x: 3.4, z: 9.6, trunk: .7, height: 9.2 }),
 ]);
 
+// Wooden signpost at the atrium crossing: one arrow board per open wing (angle = world heading the
+// arrow points along, measured like the player's heading: atan2(dx, dz)).
+export const SIGNPOSTS = Object.freeze([
+  Object.freeze({ x: 4.4, z: 4.4, radius: .35, boards: Object.freeze([
+    Object.freeze({ zone: "archive", heading: Math.PI }),
+    Object.freeze({ zone: "ethics", heading: -Math.PI / 2 }),
+    Object.freeze({ zone: "impact", heading: Math.PI / 2 }),
+    Object.freeze({ zone: "entrance", heading: 0 }),
+  ]) }),
+]);
+
+// Floor paths: chevrons lead in from the entrance to the atrium, then out to each wing in its colour.
+export const FLOOR_PATHS = Object.freeze([
+  Object.freeze({ zone: "ethics", from: [-7.5, 0], to: [-29, 0], color: "#2b7f40" }),
+  Object.freeze({ zone: "impact", from: [7.5, 0], to: [29, 0], color: "#c4532c" }),
+  Object.freeze({ zone: "archive", from: [0, -7.5], to: [0, -20.5], color: "#6a4fc0" }),
+  Object.freeze({ zone: "atrium", from: [0, 18.5], to: [0, 7.5], color: "#b07a10" }),
+]);
+
 // Zones as data. `bounds` are used for "which zone am I in" (first match wins, so order matters).
 export const ZONES = Object.freeze([
   Object.freeze({ id: "entrance", name: "Grand Entrance", nameTh: "ประตูใหญ่ & มุมพาสปอร์ต", color: "#ffc93c", open: true, bounds: { xMin: -6, xMax: 6, zMin: 14, zMax: 22 }, sign: { x: 0, z: 14.4, y: 3.4 } }),

@@ -10,7 +10,7 @@ import { buildCollisionWorld, isWalkable } from "./systems/collision.js";
 import { fetchPalaceData } from "./data/palace-data-client.js";
 import { deriveArchiveCards, deriveExhibitStates, derivePassportStamps } from "./data/palace-state.js";
 import { saveVisit, takeVisit } from "./data/visit-session.js";
-import { directionFromJoystick, directionFromKeys, isMovementKey, stepPlayer } from "./systems/movement.js";
+import { directionFromJoystick, directionFromKeys, isMovementKey, smoothDirection, stepPlayer } from "./systems/movement.js";
 import { createCameraRig, focusCamera, releaseCamera, stepCameraRig } from "./systems/camera-rig.js";
 import { isInteractKey, nearestExhibit } from "./systems/interaction.js";
 import { PalaceScene } from "./scene/PalaceScene.js";
@@ -18,11 +18,14 @@ import { HUD } from "./ui/HUD.js";
 import { ExhibitPanel } from "./ui/ExhibitPanel.js";
 import { Joystick } from "./ui/Joystick.js";
 import { FallbackList } from "./ui/FallbackList.js";
+import { MINIMAP_SIZE, Minimap } from "./ui/Minimap.js";
+import { minimapLayout, playerMarkerTransform } from "./systems/minimap.js";
 
 const { useCallback, useEffect, useMemo, useRef, useState } = React;
 
 const media = (query) => Boolean(globalThis.matchMedia?.(query)?.matches);
 const WORLD = buildCollisionWorld();
+const MAP_LAYOUT = minimapLayout(MINIMAP_SIZE.width, MINIMAP_SIZE.height);
 
 function webglAvailable() {
   if (new URLSearchParams(location.search).get("view") === "list") return false;
@@ -94,6 +97,8 @@ function CrystalPalaceApp({ avatar, userId, visit }) {
   const [nearest, setNearest] = useState(null);
   const [open, setOpen] = useState(null);
   const openRef = useRef(null);
+  const markerRef = useRef(null);
+  const markerKey = useRef("");
   const palace = usePalaceData(userId);
   const derived = useMemo(() => palace.data ? {
     states: deriveExhibitStates(EXHIBITS, palace.data),
@@ -146,8 +151,11 @@ function CrystalPalaceApp({ avatar, userId, visit }) {
     const ctrl = controller.current;
     if (!openRef.current) {
       const keyDir = directionFromKeys(ctrl.keys);
-      const direction = keyDir.x || keyDir.z ? keyDir : directionFromJoystick(ctrl.joy.x, ctrl.joy.y);
-      if (direction.x || direction.z) ctrl.pendingOpen = null;
+      const desired = keyDir.x || keyDir.z ? keyDir : directionFromJoystick(ctrl.joy.x, ctrl.joy.y);
+      if (desired.x || desired.z) { ctrl.pendingOpen = null; ctrl.target = null; }
+      // Ease keys / joystick (instant under reduced motion); a tap target steers on its own.
+      ctrl.velocity = reducedMotion || ctrl.target ? desired : smoothDirection(ctrl.velocity || { x: 0, z: 0 }, desired, dt);
+      const direction = ctrl.velocity;
       const next = stepPlayer(WORLD, ctrl.player, { direction, target: ctrl.target, dt });
       Object.assign(ctrl.player, { x: next.x, z: next.z, heading: next.heading, moving: next.moving });
       ctrl.target = next.target;
@@ -167,6 +175,11 @@ function CrystalPalaceApp({ avatar, userId, visit }) {
     if (ctrl.pendingOpen && !ctrl.target && near?.id === ctrl.pendingOpen) openExhibit(near);
     else if (ctrl.pendingOpen && !ctrl.target) ctrl.pendingOpen = null;
     ctrl.rig = stepCameraRig(ctrl.rig, { player: ctrl.player, dt, reducedMotion });
+    const marker = markerRef.current;
+    if (marker) {
+      const transform = playerMarkerTransform(MAP_LAYOUT, ctrl.player);
+      if (transform !== markerKey.current) { marker.setAttribute("transform", transform); markerKey.current = transform; }
+    }
   }, [openExhibit, reducedMotion]);
 
   useEffect(() => {
@@ -210,6 +223,12 @@ function CrystalPalaceApp({ avatar, userId, visit }) {
     ctrl.pendingOpen = item.id;
   }, [openExhibit]);
 
+  const walkToMapPoint = useCallback((point) => {
+    if (openRef.current) return;
+    controller.current.target = point;
+    controller.current.pendingOpen = null;
+  }, []);
+
   const explore = useCallback(() => { if (nearest) openExhibit(nearest); }, [nearest, openExhibit]);
 
   const panelProps = {
@@ -237,6 +256,7 @@ function CrystalPalaceApp({ avatar, userId, visit }) {
       </${SceneBoundary}>
     </div>
     <${HUD} zone=${zone} nearest=${nearest} panelOpen=${Boolean(open)} onExplore=${explore} onBackToEntrance=${backToEntrance} showTouchHint=${touch} palace=${palace} passport=${derived?.passport} />
+    <${Minimap} exhibits=${EXHIBITS} states=${derived?.states} markerRef=${markerRef} onPick=${walkToMapPoint} />
     ${touch && !open && html`<${Joystick} controller=${controller} />`}
     <${ExhibitPanel} exhibit=${open} onClose=${closeExhibit} ...${panelProps} />
   </main>`;

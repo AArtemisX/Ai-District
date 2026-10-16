@@ -8,6 +8,8 @@ import { ExhibitStands } from "./ExhibitStand.js";
 import { ZoneSign } from "./ZoneSign.js";
 import { PlayerAvatar } from "./PlayerAvatar.js";
 import { CardGallery } from "./CardGallery.js";
+import { LightShafts, SoftEnvironment } from "./Atmosphere.js";
+import { Signposts } from "./Signpost.js";
 import { ZONES } from "../config/palace-layout.js";
 
 const SKY = "#bfe9f7";
@@ -44,8 +46,8 @@ function FrameLoop({ controller, onTick }) {
       sun.target.updateMatrixWorld();
     }
   });
-  return html`<directionalLight ref=${light} intensity=${2.1} color="#fff0d6" castShadow
-    shadow-mapSize-width=${1024} shadow-mapSize-height=${1024} shadow-bias=${-.0006}
+  return html`<directionalLight ref=${light} intensity=${2.15} color="#ffe2b5" castShadow
+    shadow-mapSize-width=${1024} shadow-mapSize-height=${1024} shadow-bias=${-.0006} shadow-radius=${3}
     shadow-camera-near=${1} shadow-camera-far=${70} shadow-camera-left=${-20} shadow-camera-right=${20} shadow-camera-top=${20} shadow-camera-bottom=${-20} />`;
 }
 
@@ -78,16 +80,19 @@ export function PalaceScene({ controller, exhibits, exhibitStates, archive, avat
     onCreated=${(state) => { state.gl.localClippingEnabled = true; glRef.current = state.gl; }}>
     <color attach="background" args=${[SKY]} />
     <fog attach="fog" args=${[SKY, 70, 170]} />
-    <hemisphereLight args=${["#e6f6ff", "#8fd16a", 1.05]} />
-    <ambientLight intensity=${.25} />
+    <${SoftEnvironment} intensity=${.32} />
+    <hemisphereLight args=${["#fff3dd", "#a9d88a", .55]} />
+    <ambientLight intensity=${.12} color="#ffe9c7" />
     <${FrameLoop} controller=${controller} onTick=${onTick} />
     <${PalaceGround} onFloorClick=${onFloorClick} />
     <${PalaceStructure} />
     <${TranseptVault} />
-    <${AtriumLandmarks} />
-    <${ParkTrees} />
+    <${LightShafts} reducedMotion=${reducedMotion} />
+    <${AtriumLandmarks} reducedMotion=${reducedMotion} />
+    <${ParkTrees} reducedMotion=${reducedMotion} />
     <${ExhibitStands} exhibits=${exhibits} controller=${controller} reducedMotion=${reducedMotion} onStandClick=${onStandClick} exhibitStates=${exhibitStates} />
     <${CardGallery} archive=${archive} />
+    <${Signposts} fontsReady=${fontsReady} />
     ${ZONES.map((zone) => html`<${ZoneSign} key=${zone.id} zone=${zone} fontsReady=${fontsReady} controller=${controller} />`)}
     <${PlayerAvatar} controller=${controller} portraitSrc=${avatar.portraitSrc} focusY=${avatar.focusY} accent=${avatar.accent} reducedMotion=${reducedMotion} />
     <${TargetMarker} controller=${controller} />

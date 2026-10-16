@@ -27,12 +27,28 @@ export function directionFromKeys(pressed) {
   return length ? { x: x / length, z: z / length } : { x: 0, z: 0 };
 }
 
-// Joystick vector in screen space (right = +x, down = +y), already clamped to the unit circle.
+// Joystick vector in screen space (right = +x, down = +y), clamped to the unit circle. The magnitude
+// past the dead zone is remapped 0…1 and eased (power curve) so small thumb moves give fine control.
 export function directionFromJoystick(jx, jy, deadZone = .15) {
   const length = Math.hypot(jx, jy);
   if (length < deadZone) return { x: 0, z: 0 };
-  const scale = Math.min(1, length) / length;
-  return { x: jx * scale, z: jy * scale };
+  const magnitude = ((Math.min(1, length) - deadZone) / (1 - deadZone)) ** 1.4;
+  return { x: (jx / length) * magnitude, z: (jy / length) * magnitude };
+}
+
+// Frame-rate independent ease of the input direction toward the desired one: quick to start,
+// slightly quicker to stop, so joystick and keys feel smooth without feeling floaty.
+export function smoothDirection(current, desired, dt, { accel = 12, decel = 16 } = {}) {
+  const stopping = !desired.x && !desired.z;
+  const k = 1 - Math.exp(-(stopping ? decel : accel) * Math.min(dt, .1));
+  const x = current.x + (desired.x - current.x) * k;
+  const z = current.z + (desired.z - current.z) * k;
+  return Math.hypot(x, z) < .02 && stopping ? { x: 0, z: 0 } : { x, z };
+}
+
+// Tap-to-walk slows down over the last stretch instead of stopping dead.
+export function arrivalSpeedFactor(distance, easeDistance = 1.2) {
+  return Math.min(1, .35 + (.65 * distance) / easeDistance);
 }
 
 // One movement tick. Input priority: keys/joystick → tap target. Returns the new position, heading
@@ -46,7 +62,8 @@ export function stepPlayer(world, state, { direction, target, dt }) {
     const dz = nextTarget.z - state.z;
     const distance = Math.hypot(dx, dz);
     if (distance <= ARRIVE_DISTANCE) return { x: state.x, z: state.z, heading: state.heading, target: null, moving: false };
-    const reach = Math.min(1, distance / (WALK_SPEED * delta));
+    const speed = arrivalSpeedFactor(distance);
+    const reach = Math.min(speed, distance / (WALK_SPEED * delta));
     dir = { x: (dx / distance) * reach, z: (dz / distance) * reach };
   }
   if (!dir) return { x: state.x, z: state.z, heading: state.heading, target: nextTarget, moving: false };

@@ -1,8 +1,8 @@
-import { BoxGeometry, DoubleSide, ExtrudeGeometry, Plane, PlaneGeometry, Shape, Vector3 } from "three";
-import { useMemo } from "react";
+import { BoxGeometry, CanvasTexture, DoubleSide, ExtrudeGeometry, Plane, PlaneGeometry, RepeatWrapping, Shape, ShapeGeometry, SRGBColorSpace, Vector3 } from "three";
+import { useEffect, useMemo } from "react";
 import { html } from "../../map-3d/runtime.js";
 import { Instances } from "./instancing.js";
-import { BAY, PALACE, ROOF_TIERS } from "../config/palace-layout.js";
+import { BAY, FLOOR_PATHS, PALACE, ROOF_TIERS } from "../config/palace-layout.js";
 
 // Paxton's 1851 Hyde Park building: a modular cast-iron grid, flat roofs stepping down from the nave
 // to the outer aisles, ridge-and-furrow glazing on every tier, and (in TranseptVault) one barrel vault.
@@ -140,50 +140,113 @@ export function PalaceStructure() {
     return { walls, columns: columns(), girders: girders(), ridges: ridges() };
   }, []);
   return html`<group>
-    <${Instances} geometry=${geo.box} items=${data.columns} clip=${CUTAWAY} color=${PALACE_COLORS.column} castShadow roughness=${.55} />
+    <${Instances} geometry=${geo.box} items=${data.columns} clip=${CUTAWAY} color=${PALACE_COLORS.column} castShadow roughness=${.45} metalness=${.15} />
     <${Instances} geometry=${geo.box} items=${data.girders} clip=${CUTAWAY} roughness=${.6} />
     <${Instances} geometry=${geo.box} items=${data.walls.bars} clip=${CUTAWAY} color=${PALACE_COLORS.girder} roughness=${.6} />
     <${Instances} geometry=${geo.box} items=${data.ridges.caps} clip=${CUTAWAY} color=${PALACE_COLORS.girder} roughness=${.6} />
-    <${Instances} geometry=${geo.prism} items=${data.ridges.glass} clip=${CUTAWAY} color=${PALACE_COLORS.glass} opacity=${.28} side=${DoubleSide} roughness=${.15} />
-    <${Instances} geometry=${geo.plane} items=${data.walls.panes} clip=${CUTAWAY} color=${PALACE_COLORS.glass} opacity=${.16} side=${DoubleSide} roughness=${.1} />
+    <${Instances} geometry=${geo.prism} items=${data.ridges.glass} clip=${CUTAWAY} color=${PALACE_COLORS.glass} opacity=${.26} side=${DoubleSide} roughness=${.08} metalness=${.2} />
+    <${Instances} geometry=${geo.plane} items=${data.walls.panes} clip=${CUTAWAY} color=${PALACE_COLORS.glass} opacity=${.13} side=${DoubleSide} roughness=${.05} metalness=${.1} />
   </group>`;
 }
 
-// Floor, nave carpet, closed Future Expansion hoardings and the Hyde Park lawn outside.
+// Warm parquet: one small canvas pattern (planks along the nave) shared by every floor plane.
+function plankTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 128;
+  const ctx = canvas.getContext("2d");
+  const tones = ["#ecd9b0", "#e6d1a5", "#efdeb9", "#e3cc9d"];
+  for (let row = 0; row < 8; row += 1) {
+    const offset = (row % 2) * 48;
+    for (let col = -1; col < 2; col += 1) {
+      ctx.fillStyle = tones[(row * 3 + col + 4) % tones.length];
+      ctx.fillRect(offset + col * 96, row * 16, 96, 16);
+      ctx.fillStyle = "#cdb487";
+      ctx.fillRect(offset + col * 96, row * 16, 1.5, 16);
+    }
+    ctx.fillStyle = "#d5bf94";
+    ctx.fillRect(0, row * 16 + 15, 128, 1);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  texture.wrapS = texture.wrapT = RepeatWrapping;
+  texture.anisotropy = 4;
+  return texture;
+}
+
+function FloorPlane({ width, depth, position, texture }) {
+  const map = useMemo(() => {
+    const tex = texture.clone();
+    tex.needsUpdate = true;
+    tex.repeat.set(width / 6, depth / 6);
+    return tex;
+  }, [texture, width, depth]);
+  useEffect(() => () => map.dispose(), [map]);
+  return html`<mesh rotation-x=${-Math.PI / 2} position=${position} receiveShadow>
+    <planeGeometry args=${[width, depth]} />
+    <meshStandardMaterial map=${map} roughness=${.62} metalness=${0} envMapIntensity=${.6} />
+  </mesh>`;
+}
+
+// Zone-tinted carpets (one instanced draw call) — the colour under your feet says where you are.
+export const ZONE_CARPETS = Object.freeze([
+  { p: [-(PALACE.openHalfLength + T) / 2, .012, 0], s: [PALACE.openHalfLength - T, 1, 3.2], color: "#86c88f" },
+  { p: [(PALACE.openHalfLength + T) / 2, .012, 0], s: [PALACE.openHalfLength - T, 1, 3.2], color: "#f0a985" },
+  { p: [0, .012, (PALACE.transeptNorth - T) / 2], s: [3.2, 1, -PALACE.transeptNorth - T], color: "#bba7ea" },
+  { p: [0, .012, (PALACE.transeptSouth + T) / 2], s: [3.2, 1, PALACE.transeptSouth - T], color: "#f2cf74" },
+]);
+
+export function pathChevrons(paths = FLOOR_PATHS, spacing = 2) {
+  const items = [];
+  for (const path of paths) {
+    const [x0, z0] = path.from;
+    const [x1, z1] = path.to;
+    const length = Math.hypot(x1 - x0, z1 - z0);
+    const heading = Math.atan2(x1 - x0, z1 - z0);
+    for (let d = 0; d <= length + 1e-6; d += spacing) {
+      const t = d / length;
+      items.push({ p: [x0 + (x1 - x0) * t, .02, z0 + (z1 - z0) * t], r: [0, heading, 0], s: [1, 1, 1], color: path.color });
+    }
+  }
+  return items;
+}
+
+function chevronGeometry() {
+  const shape = new Shape();
+  shape.moveTo(-.55, -.2); shape.lineTo(0, .3); shape.lineTo(.55, -.2); shape.lineTo(.55, -.48); shape.lineTo(0, .02); shape.lineTo(-.55, -.48); shape.closePath();
+  // Lay flat with the tip pointing along +z (the instance heading rotates it).
+  return new ShapeGeometry(shape).rotateX(-Math.PI / 2).rotateY(Math.PI);
+}
+
+// Floor, zone carpets, paths, closed Future Expansion hoardings and the Hyde Park lawn outside.
 export function PalaceGround({ onFloorClick }) {
   const floorEvents = onFloorClick ? { onClick: onFloorClick } : {};
   const hoardings = useMemo(() => [-1, 1].map((side) => ({ x: side * PALACE.openHalfLength })), []);
+  const texture = useMemo(plankTexture, []);
+  useEffect(() => () => texture.dispose(), [texture]);
+  const geo = useMemo(() => ({ plane: new PlaneGeometry(1, 1).rotateX(-Math.PI / 2), chevron: chevronGeometry() }), []);
+  const chevrons = useMemo(() => pathChevrons(), []);
+  const northDepth = -PALACE.outerAisle - PALACE.transeptNorth;
+  const southDepth = PALACE.transeptSouth - PALACE.outerAisle;
   return html`<group>
     <mesh rotation-x=${-Math.PI / 2} position=${[0, -.02, 0]} receiveShadow raycast=${() => null}>
       <planeGeometry args=${[260, 260]} />
-      <meshStandardMaterial color=${PALACE_COLORS.grass} roughness=${1} />
+      <meshStandardMaterial color=${PALACE_COLORS.grass} roughness=${1} envMapIntensity=${.4} />
     </mesh>
     <mesh rotation-x=${-Math.PI / 2} position=${[0, -.01, PALACE.transeptSouth + 14]} receiveShadow raycast=${() => null}>
       <planeGeometry args=${[6, 28]} />
       <meshStandardMaterial color=${PALACE_COLORS.path} roughness=${1} />
     </mesh>
     <group ...${floorEvents}>
-      <mesh rotation-x=${-Math.PI / 2} position=${[0, 0, 0]} receiveShadow>
-        <planeGeometry args=${[2 * L, 2 * PALACE.outerAisle]} />
-        <meshStandardMaterial color=${PALACE_COLORS.floor} roughness=${.9} />
-      </mesh>
-      <mesh rotation-x=${-Math.PI / 2} position=${[0, 0, (PALACE.transeptNorth - PALACE.outerAisle) / 2]} receiveShadow>
-        <planeGeometry args=${[2 * T, -PALACE.outerAisle - PALACE.transeptNorth]} />
-        <meshStandardMaterial color=${PALACE_COLORS.floor} roughness=${.9} />
-      </mesh>
-      <mesh rotation-x=${-Math.PI / 2} position=${[0, 0, (PALACE.transeptSouth + PALACE.outerAisle) / 2]} receiveShadow>
-        <planeGeometry args=${[2 * T, PALACE.transeptSouth - PALACE.outerAisle]} />
-        <meshStandardMaterial color=${PALACE_COLORS.floor} roughness=${.9} />
-      </mesh>
+      <${FloorPlane} width=${2 * L} depth=${2 * PALACE.outerAisle} position=${[0, 0, 0]} texture=${texture} />
+      <${FloorPlane} width=${2 * T} depth=${northDepth} position=${[0, 0, (PALACE.transeptNorth - PALACE.outerAisle) / 2]} texture=${texture} />
+      <${FloorPlane} width=${2 * T} depth=${southDepth} position=${[0, 0, (PALACE.transeptSouth + PALACE.outerAisle) / 2]} texture=${texture} />
     </group>
-    <mesh rotation-x=${-Math.PI / 2} position=${[0, .01, 0]} receiveShadow raycast=${() => null}>
-      <planeGeometry args=${[2 * PALACE.openHalfLength, 3.2]} />
-      <meshStandardMaterial color=${PALACE_COLORS.carpet} roughness=${1} />
+    <${Instances} geometry=${geo.plane} items=${ZONE_CARPETS} receiveShadow roughness=${.95} />
+    <mesh rotation-x=${-Math.PI / 2} position=${[0, .014, 0]} receiveShadow raycast=${() => null}>
+      <ringGeometry args=${[3.1, 4.6, 48]} />
+      <meshStandardMaterial color="#9fd6dc" roughness=${.9} />
     </mesh>
-    <mesh rotation-x=${-Math.PI / 2} position=${[0, .011, (PALACE.transeptNorth + PALACE.transeptSouth) / 2]} receiveShadow raycast=${() => null}>
-      <planeGeometry args=${[3.2, PALACE.transeptSouth - PALACE.transeptNorth]} />
-      <meshStandardMaterial color=${PALACE_COLORS.carpet} roughness=${1} />
-    </mesh>
+    <${Instances} geometry=${geo.chevron} items=${chevrons} roughness=${.8} materialProps=${{ transparent: true, opacity: .55, depthWrite: false }} />
     ${hoardings.map((h) => html`<mesh key=${h.x} position=${[h.x, 1.6, 0]} castShadow receiveShadow raycast=${() => null}>
       <boxGeometry args=${[.3, 3.2, 2 * PALACE.outerAisle]} />
       <meshStandardMaterial color=${PALACE_COLORS.hoarding} roughness=${.9} flatShading />

@@ -39,7 +39,9 @@ export function ExhibitStands({ exhibits, controller, reducedMotion, onStandClic
       const active = item.id === nearestId;
       dummy.position.set(item.x, CRYSTAL_Y + Math.sin(t * 1.6 + index) * .08 + (active ? .12 : 0), item.z);
       dummy.rotation.set(0, t * (active ? 1.4 : .5) + index, 0);
-      dummy.scale.set(active ? 1.2 : 1, active ? 1.8 : 1.5, active ? 1.2 : 1);
+      // Lessons you can still take breathe gently so they read as "available".
+      const pulse = exhibitStates?.[item.id]?.status === "available" ? 1 + Math.sin(t * 2.4 + index) * .1 : 1;
+      dummy.scale.set((active ? 1.2 : 1) * pulse, (active ? 1.8 : 1.5) * pulse, (active ? 1.2 : 1) * pulse);
       dummy.updateMatrix();
       mesh.setMatrixAt(index, dummy.matrix);
     });

@@ -1,11 +1,109 @@
 # AI District 2.0 — Project Handoff README
 
 > เอกสารนี้จัดทำเพื่อส่งต่อโปรเจกต์ไปพัฒนาบนเครื่องอื่น หรือให้ AI/Coding Agent ตัวใหม่อ่านก่อนเริ่มแก้โค้ด  
-> อัปเดตล่าสุด: 16 ตุลาคม 2026 (Asia/Bangkok) — Crystal Palace Phase 3 Connected Demo (crystal-palace.html) / READY WITH LIMITATIONS / ไม่มี Deploy
+> อัปเดตล่าสุด: 16 ตุลาคม 2026 (Asia/Bangkok) — Round 5H โต๊ะไพ่กลางจอสำหรับ ACTION (presentation) / กติกาช่องโบนัส v2 ยังไม่ทำ (รอหลังเดโม่) / ไม่มี Deploy
 
 > กติกาการทำงานถาวร: ทุกครั้งที่มีการแก้หรือเพิ่มระบบ ต้องอัปเดตไฟล์ `README.md` นี้ในรอบเดียวกัน โดยระบุสถานะล่าสุด ไฟล์ที่แก้ ผลทดสอบ ข้อจำกัด และงานถัดไปตามจริง
 
-## CURRENT DEMO — Crystal Palace Phase 3: Connected Demo (16 ตุลาคม 2026)
+## CURRENT DEMO — Round 5H: โต๊ะไพ่กลางจอสำหรับเทิร์น ACTION (16 ตุลาคม 2026)
+
+### สถานะ: **READY WITH LIMITATIONS**
+
+- เจ้าของขอให้การ์ด Action แสดงกลางจอเหมือนเกมไพ่ ซึ่งเป็น presentation เท่านั้น: เลือกการ์ดด้วย `setSelected` เดิม และยืนยันด้วย `action('respond', …)` เดิม payload เหมือนเดิมทุกตัว (resolver, คะแนน, deck/hand, server ไม่เปลี่ยน)
+- เจ้าของขอเปลี่ยนกติกาให้มีช่องโบนัสด้วย แต่เลือกให้ทำ **หลังเดโม่** เพราะกระทบ Gameplay Freeze v1 กติกาที่เลือกไว้:
+  - ช่องโบนัสผสม 4 แบบ: เดินหน้า 2 / RP +1 / Stability +1 / ช่องพัก
+  - ใช้ 8 ช่องจาก 32 ช่อง
+  - เดินโบนัสแล้วให้เปิดสถานการณ์ปลายทางได้ 1 ครั้ง โดยไม่ต่อโบนัสซ้ำ (เปลี่ยน Rule A)
+  - รอบนี้ **ยังไม่ได้แตะ** `board-events.js` หรือกติกาใดๆ
+
+### สิ่งที่เปลี่ยน
+
+- **ใหม่ `scenario-adventure/CardTable.js`:** overlay เต็มจอตอนเทิร์นเราใน ACTION (`RESPONSE_SELECTION` + `room.scenario` + ยังไม่มี `room.result`)
+  - ด้านบนเป็นการ์ดสถานการณ์ (หมวด, ชื่อ, เนื้อเรื่อง)
+  - ตรงกลางเป็นไพ่ในมือกางเป็นพัด และไพ่ใบสุดท้ายคือ "ตอบแบบพื้นฐาน"
+  - ด้านล่างมีคำใบ้ความเข้ากัน (ข้อความเดิมจาก `evaluateCardCompatibility`), จำนวน มือ/จั่ว/ทิ้ง และปุ่มยืนยัน
+  - หน้าไพ่ใช้ artwork ถ้ามีการ map กับ Prototype (ตอนนี้มี Firewall Guard) ใบอื่นเป็นภาพประกอบตามประเภท (⚡ ATTACK / 🛡️ DEFENSE / 🧭 CONTROL / ✚ SUPPORT) และมีเหรียญ EN มุมซ้ายบน
+  - ปุ่ม "ดูกระดาน ▾" ซ่อนโต๊ะไพ่ และกด "เปิดหน้าต่างเทิร์นของฉัน" เพื่อกลับมา
+- **`scenario-adventure/online-app.js`** (markup และเงื่อนไขแสดงผลเท่านั้น): เพิ่ม `cardTurn` ซึ่ง `GamePopup` จะไม่เปิดระหว่าง `cardTurn` และ render `CardTable` แทน ส่วนเทิร์นของผู้เล่นอื่น, Event ชนิดอื่น และผลลัพธ์ยังใช้ popup เดิม
+- **`ai-world.css`:**
+  - ไพ่กางเป็นพัดด้วย `rotate`/`translate` แยก property; ไพ่ที่เลือกยกขึ้น ตั้งตรง ขยาย 1.08 และมีขอบทอง
+  - แจกไพ่ทีละใบตอนเปิด
+  - ขนาดไพ่คำนวณตามความกว้างจอและจำนวนไพ่ (เผื่อระยะการหมุน) และบนมือถือซ้อนแน่นขึ้น ไพ่ใหญ่ขึ้น อยู่กลางจอ
+  - รองรับ reduced motion
+- `online-room.html`: cache `?v=card-table-1`
+
+### Tests / Parity / QA
+
+- `node --test` ทั้งชุดผ่าน **449/449**
+- `dist/` ที่ HEAD ตรงกับ source ก่อนแก้ และหลัง mirror ตรงกัน **4/4 ไฟล์**
+- Browser pane (หน้าทดสอบแยกที่ใช้ `CardTable.js` + `ai-world.css` ตัวจริงกับข้อมูลสมมติ):
+  - 602px: ไพ่ 4 ใบอยู่ในจอทั้งหมด, เลือก Firewall Guard แล้วไพ่ยกขึ้นและปุ่มยืนยันเปิดใช้
+  - 390×844: ไพ่กว้างประมาณ 115px อยู่กลางจอ และไม่มี scroll แนวนอน
+- **ยังไม่ได้ตรวจ:** เทิร์น ACTION จริงในห้อง Online (ทอย → เดิน → โต๊ะไพ่ → ยืนยัน → ผลลัพธ์) และ Safari
+
+### STOP
+
+- ไม่ Deploy, ไม่แก้ SQL และไม่แตะ Gameplay ส่วนกติกาช่องโบนัส v2 รออนุมัติให้เริ่มหลังเดโม่
+
+## CURRENT DEMO — Crystal Palace Phase 4: Polish (16 ตุลาคม 2026)
+
+### สถานะ: **READY WITH LIMITATIONS** — หยุดหลัง Phase 4 ตามแผน
+
+- งานภาพ/UX เท่านั้น: **ไม่แตะข้อมูล, SQL, Gameplay, rooms, Auth**; ไม่ Deploy, ไม่ commit (git ให้ session หลักจัดการ)
+- ยังคงอัตลักษณ์ Crystal Palace ไฮด์ปาร์ก 1851: หลังคาโค้งกลางหลังเดียว, หลังคาลดหลั่น, ridge-and-furrow
+
+### สิ่งที่เปลี่ยน
+
+- **แสงและวัสดุ**
+  - ใหม่ `crystal-palace/scene/Atmosphere.js`: `SoftEnvironment` สร้าง environment map แบบ procedural ครั้งเดียว (โดมท้องฟ้าอุ่น + พื้นหญ้า + จุดแดด ผ่าน `PMREMGenerator` ไม่โหลด HDR) ให้กระจก/เหล็กมีเงาสะท้อนนุ่มๆ **โดยไม่ใช้ transmission**; `LightShafts` ลำแสงอุ่นใต้หลังคาโค้ง (instanced 1 draw call, additive, หายใจช้าๆ)
+  - แสงอุ่นขึ้น (hemisphere/ambient/sun สีครีมทอง, เงานุ่มขึ้น `shadow-radius`) ยังเป็นไฟเงาดวงเดียว 1024
+  - กระจกผนัง/สันหลังคา/หลังคาโค้ง: roughness ต่ำ + metalness เล็กน้อยเพื่อ sheen; เสาเหล็กมีเงาวาวเล็กน้อย
+  - พื้นไม้ปาร์เก้จาก canvas pattern เดียว (ใช้ซ้ำทุกแผ่นพื้น), พรมแยกสีตามโซน (instanced 1 draw call), วงแหวนสีฟ้ารอบน้ำพุ
+- **การนำทาง**
+  - ลูกศรบนพื้น (chevron, instanced 1 draw call): ทางเข้า → โถงกลาง แล้วออกไปแต่ละปีกตามสีโซน; ข้อมูลอยู่ใน `config/palace-layout.js` (`FLOOR_PATHS`)
+  - ใหม่ `scene/Signpost.js`: ป้ายไม้ชี้ทางที่โถงกลาง (`SIGNPOSTS` ใน config) 4 แผ่น อ่านได้ทั้งสองด้าน — หน้าป้ายทั้งหมดรวมเป็น geometry เดียว + texture atlas เดียว; เป็นสิ่งกีดขวางใน collision
+  - ใหม่ `systems/minimap.js` (pure) + `ui/Minimap.js`: แผนที่ย่อมุมขวาบน (มือถือ: มุมขวาล่าง) แสดงโซนจาก config, เส้นพื้นที่เดินได้, จุดนิทรรศการ (สีทอง = จบแล้ว), ลูกศรผู้เล่น + เข็มทิศ N; **แตะแผนที่เพื่อเดินไป**; ลูกศรผู้เล่นอัปเดตตรงที่ DOM ทุกเฟรม (ไม่ re-render React); ซ่อนเมื่อเปิดแผงนิทรรศการ
+- **แอนิเมชัน** (ทั้งหมดปิดเมื่อ `prefers-reduced-motion`)
+  - ตัวละคร: เด้งตอนเดิน + เอนตัวไปข้างหน้าแบบนุ่ม (`rotation.order = "YXZ"`) + หันตามทิศเดิน
+  - น้ำพุ: ละอองน้ำ 28 หยด (instanced) และวงคลื่นสองวงบนอ่าง
+  - ต้นเอล์มและต้นไม้รอบสวนโยกเบาๆ ผ่าน instance matrix (ไม่เพิ่ม draw call)
+  - คริสตัลของบทเรียนที่ยัง "เรียนได้" เต้นเป็นจังหวะ
+- **มือถือ**
+  - `systems/movement.js`: `smoothDirection` (ease เข้า/ออก ไม่ขึ้นกับ frame rate), จอยสติ๊กมี dead zone + power curve, `arrivalSpeedFactor` ให้การแตะเดินชะลอก่อนถึงเป้าหมายโดยไม่เลยเป้า
+  - ปุ่ม HUD/ปิดแผงสูง 44px, จอยสติ๊ก 132px, แผนที่ย่อไม่ทับจอยสติ๊ก/prompt; ไม่มี horizontal overflow
+- แก้ไฟล์อื่น: `scene/PalaceScene.js`, `PalaceStructure.js`, `TranseptVault.js`, `AtriumLandmarks.js`, `ExhibitStand.js`, `PlayerAvatar.js`, `instancing.js` (`materialProps`), `systems/collision.js` (signpost), `app.js`, `crystal-palace.css`; bump cache `crystal-palace.html` → `?v=cp-4`
+- เทสต์ใหม่ `crystal-palace-polish.test.mjs` (8 เทสต์)
+
+### Performance (Browser pane, วัดแบบเดียวกันก่อน/หลัง: แตะพื้นให้เดิน แล้วนับ rAF 3 วินาที + นับ draw call ผ่าน WebGL2 รวม shadow pass)
+
+| ขนาด | ก่อน | หลัง |
+|---|---|---|
+| 1280×720 | 60.2 fps · ~50 draw calls/เฟรม · p95 17.6 ms | 60.1 fps · ~61 draw calls/เฟรม · p95 17.6 ms |
+| 390×844 | 40.5 fps · ~57 draw calls/เฟรม · p95 17.7 ms | 40.2 fps · ~68 draw calls/เฟรม · p95 17.6 ms |
+
+- Draw call เพิ่ม ~11 ต่อเฟรม (ลำแสง, พรม, ลูกศร, ป้ายชี้ทาง, ละอองน้ำ/วงคลื่น); frame time p95 เท่าเดิม
+- ตัวเลข fps ที่ 390×844 ต่ำกว่า 60 ทั้งก่อนและหลังเพราะ Browser pane หยุด rAF เป็นช่วงๆ เมื่อไม่มี input จริง (ไม่ใช่ค่าบนมือถือจริง)
+
+### Tests / Parity / QA
+
+- `crystal-palace-polish.test.mjs`: minimap fit/aspect/round-trip/ทิศ, shapes จาก config, transform ลูกศรผู้เล่นตาม heading, จอยสติ๊ก dead zone + curve, `smoothDirection` (ease + ไม่ขึ้นกับ fps + หยุดสนิท), แตะเดินชะลอและไม่เลยเป้า, signpost เป็นของแข็งและไม่ขวางทาง/นิทรรศการ, กฎ budget (ไม่มี transmission, ไฟเงาดวงเดียว 1024, dpr ≤ 1.5, มี reduced-motion guard)
+- เทสต์ collision เดิม (reachability ทุกนิทรรศการจาก spawn) ยังผ่านหลังเพิ่ม signpost
+- `node --test` ทั้งชุดผ่าน **449/449** (441 เดิม + 8 ใหม่)
+- `dist/` mirror **17 ไฟล์ที่เปลี่ยน/ใหม่** SHA-256 ตรงกัน และทั้ง tree `crystal-palace/` + `crystal-palace.html` ตรงกับ dist ทุกไฟล์
+- Browser pane (static 4174 ของ session หลัก, ล็อกอินแล้ว): 1280×720, 1024×768, 390×844 — ป้าย/ลูกศร/พรม/วงแหวน/ละอองน้ำ/ลำแสง/แผนที่ย่อแสดงผล, แตะแผนที่ย่อแล้วเดินไปได้, จอยสติ๊กทำงาน, แผนที่ย่อซ่อนตอนเปิดแผง, ไม่มี console error, ไม่มี horizontal overflow
+
+### ข้อจำกัด
+
+- ยังไม่ได้ทดสอบ reduced motion ในเบราว์เซอร์ (pane จำลองไม่ได้) — โค้ดมี guard ทุกจุดและมีเทสต์ static
+- แตะพื้น/แตะแผนที่ย่อยังเดินเส้นตรง (ไม่มี pathfinding) จะหยุดที่น้ำพุ/แท่น
+- ตัวเลข fps เป็นของ Browser pane เท่านั้น; ยังไม่ได้วัดบน Safari/มือถือจริง/GPU รุ่นต่ำ
+- ไม่ได้ start/stop server ในรอบนี้ (ใช้ static 4174 และ room 4180 ที่ session หลักเปิดไว้)
+
+### STOP
+
+- ไม่ Deploy, ไม่แก้ SQL, ไม่แตะ Gameplay, ไม่ commit/push
+
+## PREVIOUS DEMO — Crystal Palace Phase 3: Connected Demo (16 ตุลาคม 2026)
 
 ### สถานะ: **READY WITH LIMITATIONS** — หยุดหลัง Phase 3 ตามแผน
 

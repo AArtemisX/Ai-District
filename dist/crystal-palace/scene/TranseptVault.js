@@ -33,7 +33,7 @@ export function TranseptVault() {
   return html`<group>
     <mesh position=${[0, Y, cz]} rotation-x=${-Math.PI / 2} raycast=${() => null}>
       <cylinderGeometry args=${[R, R, length, 28, 1, true, -Math.PI / 2, Math.PI]} />
-      <meshStandardMaterial color=${PALACE_COLORS.glass} transparent opacity=${.2} depthWrite=${false} side=${DoubleSide} roughness=${.1} clippingPlanes=${CUTAWAY} />
+      <meshStandardMaterial color=${PALACE_COLORS.glass} transparent opacity=${.2} depthWrite=${false} side=${DoubleSide} roughness=${.05} metalness=${.3} clippingPlanes=${CUTAWAY} />
     </mesh>
     ${[zMin, zMax].map((z) => html`<mesh key=${z} position=${[0, Y, z]} raycast=${() => null}>
       <circleGeometry args=${[R, 28, 0, Math.PI]} />

@@ -1,5 +1,6 @@
-import { CylinderGeometry, IcosahedronGeometry } from "three";
-import { useMemo } from "react";
+import { CylinderGeometry, IcosahedronGeometry, Object3D, SphereGeometry } from "three";
+import { useFrame } from "@react-three/fiber";
+import { useMemo, useRef } from "react";
 import { html } from "../../map-3d/runtime.js";
 import { Instances } from "./instancing.js";
 import { CUTAWAY } from "./PalaceStructure.js";
@@ -7,8 +8,31 @@ import { ELMS, FOUNTAIN } from "../config/palace-layout.js";
 
 const LEAF = ["#4fae4f", "#5dbb55", "#3f9a47", "#6cc35e"];
 
+// Gentle canopy sway: rewrites the instance matrices of one InstancedMesh (no extra draw calls).
+// Each item sways around its base pose; higher items move a little more.
+function useSway(meshRef, items, { amplitude = .1, speed = .7, reducedMotion }) {
+  const dummy = useMemo(() => new Object3D(), []);
+  useFrame(({ clock }) => {
+    const mesh = meshRef.current;
+    if (!mesh || reducedMotion) return;
+    const t = clock.elapsedTime * speed;
+    items.forEach((item, i) => {
+      const lift = Math.min(1.6, item.p[1] / 6);
+      const phase = item.p[0] * .37 + item.p[2] * .23;
+      dummy.position.set(item.p[0] + Math.sin(t + phase) * amplitude * lift, item.p[1], item.p[2] + Math.cos(t * .8 + phase) * amplitude * .6 * lift);
+      dummy.rotation.set(...(item.r || [0, 0, 0]));
+      dummy.rotation.z += Math.sin(t + phase) * .04;
+      dummy.scale.set(...item.s);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+  });
+}
+
 // The full-grown elms Paxton enclosed under the transept vault, as chunky low-poly canopies.
-function Elms() {
+function Elms({ reducedMotion }) {
+  const canopy = useRef();
   const geo = useMemo(() => ({ trunk: new CylinderGeometry(.32, .55, 1, 7).translate(0, .5, 0), blob: new IcosahedronGeometry(1, 0) }), []);
   const data = useMemo(() => {
     const trunks = ELMS.map((e) => ({ p: [e.x, 0, e.z], s: [1, e.height * .55, 1] }));
@@ -20,14 +44,58 @@ function Elms() {
     });
     return { trunks, blobs };
   }, []);
+  useSway(canopy, data.blobs, { amplitude: .12, speed: .6, reducedMotion });
   return html`<group>
     <${Instances} geometry=${geo.trunk} items=${data.trunks} clip=${CUTAWAY} color="#8a6a48" castShadow roughness=${.9} />
-    <${Instances} geometry=${geo.blob} items=${data.blobs} clip=${CUTAWAY} castShadow roughness=${.85} />
+    <${Instances} meshRef=${canopy} geometry=${geo.blob} items=${data.blobs} clip=${CUTAWAY} castShadow roughness=${.85} />
   </group>`;
 }
 
 // Osler's crystal fountain (1851): a tall tiered glass fountain on an octagonal stone basin.
-function CrystalFountain() {
+// Water spray: droplets travel down from the top bowl to the basin along simple arcs (one
+// InstancedMesh), plus two ripple rings on the basin. Frozen in place under reduced motion.
+const DROPS = 28;
+function FountainWater({ radius, reducedMotion }) {
+  const spray = useRef();
+  const rings = useRef([]);
+  const geo = useMemo(() => new SphereGeometry(.07, 6, 4), []);
+  const dummy = useMemo(() => new Object3D(), []);
+  const pose = (t, i) => {
+    const angle = (i / DROPS) * Math.PI * 2;
+    const phase = (t * .55 + i * .37) % 1;
+    const r = .5 + phase * (radius - .9);
+    const y = 4.6 - phase * phase * 4.1;
+    dummy.position.set(Math.cos(angle) * r, Math.max(.55, y), Math.sin(angle) * r);
+    dummy.scale.setScalar(1 - phase * .4);
+    dummy.updateMatrix();
+    return dummy.matrix;
+  };
+  useFrame(({ clock }) => {
+    const t = reducedMotion ? 0 : clock.elapsedTime;
+    if (spray.current && (!reducedMotion || !spray.current.userData.posed)) {
+      for (let i = 0; i < DROPS; i += 1) spray.current.setMatrixAt(i, pose(t, i));
+      spray.current.instanceMatrix.needsUpdate = true;
+      spray.current.userData.posed = true;
+    }
+    rings.current.forEach((ring, i) => {
+      if (!ring) return;
+      const k = reducedMotion ? .5 : (t * .35 + i * .5) % 1;
+      ring.scale.setScalar(.6 + k * (radius - .6));
+      ring.material.opacity = .45 * (1 - k);
+    });
+  });
+  return html`<group>
+    <instancedMesh ref=${spray} args=${[geo, null, DROPS]} frustumCulled=${false} raycast=${() => null}>
+      <meshStandardMaterial color="#d8f6ff" emissive="#9fe6f5" emissiveIntensity=${.35} transparent opacity=${.8} roughness=${.1} />
+    </instancedMesh>
+    ${[0, 1].map((i) => html`<mesh key=${i} ref=${(node) => { rings.current[i] = node; }} position=${[0, .52, 0]} rotation-x=${-Math.PI / 2} raycast=${() => null}>
+      <ringGeometry args=${[.92, 1, 40]} />
+      <meshBasicMaterial color="#ffffff" transparent opacity=${.3} depthWrite=${false} />
+    </mesh>`)}
+  </group>`;
+}
+
+function CrystalFountain({ reducedMotion }) {
   const { x, z, radius } = FOUNTAIN;
   const tiers = [[1.1, 1.3, .9, 1.4], [.55, .75, .7, 2.6], [.32, .5, .6, 3.7], [.16, .3, .5, 4.6]];
   return html`<group position=${[x, 0, z]}>
@@ -53,15 +121,17 @@ function CrystalFountain() {
       <octahedronGeometry args=${[.26, 0]} />
       <meshStandardMaterial color="#ffd75e" emissive="#ffb000" emissiveIntensity=${.5} flatShading />
     </mesh>
+    <${FountainWater} radius=${radius} reducedMotion=${reducedMotion} />
   </group>`;
 }
 
-export function AtriumLandmarks() {
-  return html`<group><${Elms} /><${CrystalFountain} /></group>`;
+export function AtriumLandmarks({ reducedMotion }) {
+  return html`<group><${Elms} reducedMotion=${reducedMotion} /><${CrystalFountain} reducedMotion=${reducedMotion} /></group>`;
 }
 
 // A light ring of park trees outside so the glass reads against Hyde Park, not a void.
-export function ParkTrees() {
+export function ParkTrees({ reducedMotion }) {
+  const crownsRef = useRef();
   const geo = useMemo(() => ({ trunk: new CylinderGeometry(.2, .3, 1, 6).translate(0, .5, 0), crown: new IcosahedronGeometry(1, 0) }), []);
   const data = useMemo(() => {
     let seed = 7;
@@ -81,8 +151,9 @@ export function ParkTrees() {
     }
     return { trunks, crowns };
   }, []);
+  useSway(crownsRef, data.crowns, { amplitude: .14, speed: .5, reducedMotion });
   return html`<group>
     <${Instances} geometry=${geo.trunk} items=${data.trunks} color="#8a6a48" roughness=${.9} />
-    <${Instances} geometry=${geo.crown} items=${data.crowns} roughness=${.85} />
+    <${Instances} meshRef=${crownsRef} geometry=${geo.crown} items=${data.crowns} roughness=${.85} />
   </group>`;
 }

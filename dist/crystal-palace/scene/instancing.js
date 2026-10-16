@@ -4,7 +4,7 @@ import { html } from "../../map-3d/runtime.js";
 
 // One InstancedMesh per repeated part keeps the whole iron-and-glass frame to a handful of draw calls.
 // items: [{ p: [x, y, z], s: [sx, sy, sz], r?: [rx, ry, rz], color? }]
-export function Instances({ geometry, items, color = "#ffffff", material = "standard", opacity = 1, castShadow = false, receiveShadow = false, roughness = .7, metalness = 0, flatShading = true, side, onClick, meshRef, clip }) {
+export function Instances({ geometry, items, color = "#ffffff", material = "standard", opacity = 1, castShadow = false, receiveShadow = false, roughness = .7, metalness = 0, flatShading = true, side, onClick, meshRef, clip, materialProps }) {
   const local = useRef();
   const ref = meshRef || local;
   useLayoutEffect(() => {
@@ -30,7 +30,7 @@ export function Instances({ geometry, items, color = "#ffffff", material = "stan
   const props = { color: tinted ? "#ffffff" : color, transparent, opacity, depthWrite: !transparent, ...(side === undefined ? {} : { side }), ...(clip ? { clippingPlanes: clip } : {}) };
   return html`<instancedMesh ref=${ref} args=${[geometry, null, items.length]} castShadow=${castShadow} receiveShadow=${receiveShadow} frustumCulled=${false} ...${events}>
     ${material === "basic"
-      ? html`<meshBasicMaterial ...${props} />`
-      : html`<meshStandardMaterial ...${props} roughness=${roughness} metalness=${metalness} flatShading=${flatShading} />`}
+      ? html`<meshBasicMaterial ...${props} ...${materialProps || {}} />`
+      : html`<meshStandardMaterial ...${props} roughness=${roughness} metalness=${metalness} flatShading=${flatShading} ...${materialProps || {}} />`}
   </instancedMesh>`;
 }
