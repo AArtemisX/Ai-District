@@ -34,6 +34,20 @@ test('serves the site pages and assets but not dotfiles or unlisted types',async
  for(const path of ['/.openai/hosting.json','/README.md','/supabase/'])assert.equal((await actualFetch(base+path)).status,404,path);
 });
 
+test('Vercel rewrite: proxied request from the page host is accepted via X-Forwarded-Host only',async()=>{
+ const viaVercel={origin:'https://ai-district.vercel.app',headers:{'X-Forwarded-Host':'ai-district.vercel.app','X-Forwarded-For':'192.0.2.44'}};
+ const ok=await post('create',setup,viaVercel);assert.equal(ok.status,200);
+ const spoofed=await post('create',setup,{origin:'https://evil.example',headers:{'X-Forwarded-Host':'ai-district.vercel.app'}});assert.equal(spoofed.status,403);
+});
+
+test('vercel.json forwards /api/* to the room server and is shipped in dist',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const [root,dist]=await Promise.all([readFile(new URL('./vercel.json',import.meta.url),'utf8'),readFile(new URL('./dist/vercel.json',import.meta.url),'utf8').catch(()=>null)]);
+ const rewrite=JSON.parse(root).rewrites.find(r=>r.source==='/api/:path*');
+ assert.match(rewrite.destination,/^https:\/\/[^/]+\/api\/:path\*$/);
+ if(dist!==null)assert.equal(dist,root);
+});
+
 test('behind a proxy the rate limit is per forwarded client, not shared',async()=>{
  for(let i=0;i<301;i++)await post('rooms',{},{headers:{'X-Forwarded-For':'203.0.113.7'}}).then(r=>r.arrayBuffer());
  const limited=await post('rooms',{},{headers:{'X-Forwarded-For':'203.0.113.7'}});assert.equal(limited.status,429);

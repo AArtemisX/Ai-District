@@ -1,9 +1,25 @@
 # AI District 2.0 — Project Handoff README
 
 > เอกสารนี้จัดทำเพื่อส่งต่อโปรเจกต์ไปพัฒนาบนเครื่องอื่น หรือให้ AI/Coding Agent ตัวใหม่อ่านก่อนเริ่มแก้โค้ด  
-> อัปเดตล่าสุด: 16 ตุลาคม 2026 (Asia/Bangkok) — Deploy บน Render: Node server ตัวเดียวเสิร์ฟหน้าเว็บ + ห้องออนไลน์ (ดู `DEPLOY_RENDER.md`) / ต่อจาก Board Rules v2
+> อัปเดตล่าสุด: 16 ตุลาคม 2026 (Asia/Bangkok) — Deploy: หน้าเว็บบน Vercel + ห้องออนไลน์บน Render ผ่าน rewrite `/api` (ดู `DEPLOY_VERCEL_RENDER.md`) / ต่อจาก Board Rules v2
 
 > กติกาการทำงานถาวร: ทุกครั้งที่มีการแก้หรือเพิ่มระบบ ต้องอัปเดตไฟล์ `README.md` นี้ในรอบเดียวกัน โดยระบุสถานะล่าสุด ไฟล์ที่แก้ ผลทดสอบ ข้อจำกัด และงานถัดไปตามจริง
+
+## CURRENT DEMO — Deploy: Vercel (หน้าเว็บ) + Render (ห้องออนไลน์) (16 ตุลาคม 2026)
+
+### สถานะ: **READY TO DEPLOY** — เจ้าของจะ Deploy เองตาม `DEPLOY_VERCEL_RENDER.md` (ใช้แทน `DEPLOY_RENDER.md` ที่ลบไปแล้ว)
+
+- **ที่มา:** เจ้าของใช้ Vercel เป็นที่ Deploy หลัง Deploy ครั้งล่าสุด การสร้างห้องขึ้น `The string did not match the expected pattern` เพราะ Vercel ไม่มี `/api` จึงส่งหน้า 404 (HTML) กลับมา และ Vercel แบบ serverless รัน room server ที่เก็บห้องในหน่วยความจำและเดิน Bot ไม่ได้
+- **แก้แล้ว:**
+  - ใหม่ `vercel.json` (ที่รากของ repo และ `dist/` เนื้อหาเหมือนกัน): rewrite `/api/:path*` ไปที่ `https://ai-district.onrender.com/api/:path*` **ต้องเปลี่ยนเป็นโดเมน Render จริงหลังสร้าง service**
+  - `scenario-online-server.mjs`: เมื่ออยู่หลัง proxy ที่เชื่อถือได้ จะยอมรับคำขอที่ `Origin` ตรงกับ `X-Forwarded-Host` (คำขอจากโดเมนแปลกหน้ายัง 403)
+  - `online-client.js`: ถ้าได้คำตอบที่ไม่ใช่ JSON จะขึ้น `ROOM_SERVER_UNAVAILABLE` พร้อมข้อความไทยที่อ่านเข้าใจ แทนข้อความ error ของ Safari
+- **ทดสอบ:**
+  - `node --test` ผ่าน **495/495**
+  - `scenario-online-deploy.test.mjs` เพิ่มอีก 2 เทสต์ ได้แก่ คำขอผ่าน Vercel rewrite และรูปแบบของ `vercel.json`
+  - Browser pane: จำลอง Vercel ในเครื่อง (proxy ที่ 4175 เสิร์ฟ `dist/` และส่งต่อ `/api` ไป server แบบ Render ที่ 4183 โดยเปลี่ยน Host เหมือน external rewrite) สร้างห้องคน + Bot แล้วเล่นจบ **ถึงหน้าผลลัพธ์ 12/12 ไม่มี error** และเมื่อปิด server ข้อความ error เป็นภาษาไทยตามที่ตั้งไว้
+- **ยังไม่ได้ทดสอบ:** บน Vercel และ Render จริง (ต้อง push และ Deploy ก่อน)
+- **ข้อจำกัด:** Render Free หลับเมื่อว่างประมาณ 15 นาที (คำขอแรกช้า 30–60 วินาที), ห้องหายเมื่อ redeploy/รีสตาร์ท/หลับ, ต้องมี instance เดียว และต้อง Deploy Render ทุกครั้งที่ไฟล์เกมฝั่ง server เปลี่ยน
 
 ## CURRENT DEMO — Deploy บน Render: หน้าเว็บ + ห้องออนไลน์ใน server เดียว (16 ตุลาคม 2026)
 
@@ -17,7 +33,7 @@
     - รับคำขอจากหน้าเว็บ origin เดียวกันเสมอ (ส่วน origin แปลกหน้ายัง 403)
     - จำกัดคำขอตาม `X-Forwarded-For` เมื่ออยู่หลัง proxy (`AI_DISTRICT_TRUST_PROXY=1` หรือบน Render)
     - รูปภาพใช้ cache 1 วัน ส่วน html/js/css ยังเป็น `no-store`
-  - ใหม่ `package.json` (`"type": "module"`, `npm start`), `render.yaml` (Blueprint, rootDir `dist`, health `/api/health`) และคู่มือ `DEPLOY_RENDER.md`
+  - ใหม่ `package.json` (`"type": "module"`, `npm start`), `render.yaml` (Blueprint, rootDir `dist`, health `/api/health`) และคู่มือ `DEPLOY_RENDER.md` (ภายหลังแทนด้วย `DEPLOY_VERCEL_RENDER.md`)
 - **ทดสอบ:**
   - `node --test` ผ่าน **491/491**
   - ใหม่ `scenario-online-deploy.test.mjs` (5 เทสต์): URL แบบ same-origin, health, สร้างห้องจาก origin เดียวกันได้และ origin แปลกหน้าถูกปฏิเสธ, เสิร์ฟหน้าเว็บแต่ไม่เสิร์ฟ dotfile/README, rate limit แยกต่อผู้เล่นหลัง proxy
