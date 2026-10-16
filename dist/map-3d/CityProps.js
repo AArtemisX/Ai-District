@@ -1,11 +1,11 @@
 import { html } from "./runtime.js";
 
 export function LowPolyTree({ position = [0, 0, 0], scale = 1, blossom = false }) {
-  const crown = blossom ? "#f4a5c3" : "#91ddb8";
+  const crown = blossom ? "#f4a5c3" : "#5cb847";
   return html`<group position=${position} scale=${[scale, scale, scale]}>
     <mesh position=${[0,.34,0]} castShadow><cylinderGeometry args=${[.09,.13,.68,6]} /><meshStandardMaterial color="#a88769" roughness=${.9} /></mesh>
     <mesh position=${[0,.88,0]} castShadow><dodecahedronGeometry args=${[.42,0]} /><meshStandardMaterial color=${crown} roughness=${.82} /></mesh>
-    <mesh position=${[.18,1.03,.06]} castShadow><dodecahedronGeometry args=${[.27,0]} /><meshStandardMaterial color=${blossom ? "#ffd5e5" : "#b9edcf"} roughness=${.82} /></mesh>
+    <mesh position=${[.18,1.03,.06]} castShadow><dodecahedronGeometry args=${[.27,0]} /><meshStandardMaterial color=${blossom ? "#ffd5e5" : "#86d064"} roughness=${.82} /></mesh>
   </group>`;
 }
 

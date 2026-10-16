@@ -1,0 +1,93 @@
+/* Card album (action-card-preview.html) — cozy valley palette, collectible-card shelf and a two-page book view. */
+:root{--al-cream:#fffaf0;--al-paper:#fffdf6;--al-wood:#d9c49a;--al-wood-dark:#b98b5e;--al-ink:#24412c;--al-muted:#5f7458;--al-leaf:#3fae5a;--al-leaf-dark:#2b7f40;--al-gold:#ffc93c;--al-gold-dark:#d99a1e;--al-teal:#2aa9b8}
+*{box-sizing:border-box}
+html{background:#a7d98a}
+body{margin:0;min-height:100dvh;font-family:Kanit,sans-serif;color:var(--al-ink);background:linear-gradient(180deg,#8fd6f2 0%,#bfe9f7 36%,#d9f1cf 70%,#a7d98a 100%) fixed}
+.album-page-shell{width:min(1200px,calc(100% - 32px));margin:0 auto;padding:18px 0 40px;display:grid;gap:18px}
+
+/* Header */
+.album-header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;padding:16px 22px;border-radius:26px;background:var(--al-cream);border:3px solid #fff;border-top:7px solid var(--al-wood-dark);box-shadow:0 5px 0 var(--al-wood),0 12px 26px #2e5a2a22}
+.album-back,.album-link{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:16px;text-decoration:none;font-weight:700;color:var(--al-ink);background:#fff;box-shadow:0 4px 0 var(--al-wood);transition:transform .15s}
+.album-link{background:var(--al-teal);color:#fff;box-shadow:0 4px 0 #1d7a86}
+.album-back:hover,.album-link:hover{transform:translateY(-2px)}
+.album-title small{display:block;font:700 12px/1.4 Kanit,sans-serif;letter-spacing:1.2px;color:var(--al-leaf-dark)}
+.album-title h1{margin:2px 0;font:800 clamp(30px,4.4vw,50px)/1.1 Kanit,sans-serif;color:#fff;paint-order:stroke fill;-webkit-text-stroke:7px #2b6a3a;text-shadow:0 5px 0 #1f4f2b,0 10px 20px #1f4f2b44}
+.album-title p{margin:4px 0 0;color:var(--al-muted);font-size:14px}
+.album-sandbox{margin:0;padding:8px 16px;border-radius:999px;justify-self:start;background:#fff0c7;color:#7a5513;font-size:13px;box-shadow:0 3px 0 #ead29a}
+
+/* Type tabs */
+.album-tabs{display:flex;flex-wrap:wrap;gap:10px}
+.album-tabs button{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border:3px solid #fff;border-radius:999px;background:var(--al-cream);color:var(--al-ink);font:700 14px Kanit,sans-serif;cursor:pointer;box-shadow:0 4px 0 var(--al-wood);transition:transform .15s}
+.album-tabs button b{display:grid;place-items:center;min-width:24px;height:24px;padding:0 6px;border-radius:999px;background:#f1e6cc;font-size:12px}
+.album-tabs button:hover{transform:translateY(-2px)}
+.album-tabs button[aria-pressed=true]{background:var(--al-leaf);color:#fff;box-shadow:0 4px 0 var(--al-leaf-dark)}
+.album-tabs button[aria-pressed=true] b{background:#ffffff33}
+
+/* Shelf of collectible cards */
+.album-shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:22px;padding:26px 22px 30px;border-radius:30px;background:var(--al-cream);border:3px solid #fff;border-top:7px solid var(--al-wood-dark);box-shadow:0 5px 0 var(--al-wood),0 12px 26px #2e5a2a22}
+.album-card{--type:#2388f5;position:relative;display:flex;flex-direction:column;padding:8px;border:0;border-radius:22px;background:linear-gradient(180deg,#fff,var(--al-paper));color:var(--al-ink);font:inherit;text-align:left;cursor:pointer;box-shadow:0 0 0 3px color-mix(in srgb,var(--type) 45%,#fff),0 6px 0 var(--al-wood),0 14px 24px #2e5a2a1f;transition:transform .18s,box-shadow .18s;animation:album-in .4s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i) * 45ms)}
+.album-card:hover{transform:translateY(-8px) rotate(-1deg);box-shadow:0 0 0 3px color-mix(in srgb,var(--type) 70%,#fff),0 10px 0 var(--al-wood),0 22px 32px #2e5a2a2e}
+.album-card:focus-visible{outline:4px solid var(--al-gold);outline-offset:4px}
+.type-defense{--type:#2388f5}.type-attack{--type:#f0525f}.type-support{--type:#2fa65a}.type-strategy{--type:#925de5}.type-special{--type:#f5a623}
+.rarity-epic{background:linear-gradient(180deg,#fff,#fff6dc)}
+.rarity-epic::after{content:"";position:absolute;inset:0;border-radius:22px;pointer-events:none;background:linear-gradient(115deg,transparent 35%,#ffffff99 50%,transparent 65%) -200% 0/250% 100% no-repeat;animation:album-shine 3.2s ease-in-out infinite}
+.album-card-art{position:relative;display:block;aspect-ratio:4/5;overflow:hidden;border-radius:16px;background:linear-gradient(160deg,color-mix(in srgb,var(--type) 30%,#fff),#fff)}
+.album-card-art img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .3s}
+.album-card:hover .album-card-art img{transform:scale(1.06)}
+.album-type-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;background:var(--type);color:#fff;font:700 12px/1.5 Kanit,sans-serif;box-shadow:0 2px 0 #0000002a}
+.album-card-art .album-type-chip{position:absolute;left:8px;top:8px}
+.album-card-body{display:grid;gap:2px;padding:10px 6px 4px}
+.album-card-body b{font-size:17px;line-height:1.2}
+.album-stars{color:var(--al-gold);font-size:15px;letter-spacing:1px;text-shadow:0 1px 0 var(--al-gold-dark)}
+.album-stars i{font-style:normal;color:#e6dcc4;text-shadow:none}
+.album-art-fallback{display:grid;place-items:center;width:100%;height:100%;background:linear-gradient(160deg,color-mix(in srgb,var(--type) 35%,#fff),color-mix(in srgb,var(--type) 10%,#fff))}
+.album-art-fallback i{font-style:normal;font-size:56px}
+.album-footer{text-align:center;color:var(--al-muted);font-size:13px}
+
+/* Book dialog: two pages with a spine */
+.album-book{width:min(980px,calc(100% - 24px));max-height:92dvh;padding:0;border:0;background:transparent;overflow:visible}
+.album-book::backdrop{background:#1d3d1f88;backdrop-filter:blur(4px)}
+.album-spread{position:relative;display:grid;grid-template-columns:1fr 1fr;border-radius:26px;background:var(--al-wood-dark);padding:12px;box-shadow:0 10px 0 #8a5a3b,0 30px 70px #0f2a1266;animation:album-flip .35s cubic-bezier(.2,.8,.2,1)}
+.album-spread::before{content:"";position:absolute;top:12px;bottom:12px;left:50%;width:18px;transform:translateX(-50%);background:linear-gradient(90deg,#00000026,#ffffff55 45%,#00000026);z-index:2;pointer-events:none}
+.album-page{position:relative;min-height:0;background:var(--al-paper)}
+.album-page-art{display:grid;place-items:center;padding:22px;border-radius:18px 4px 4px 18px;background:linear-gradient(160deg,color-mix(in srgb,var(--type) 22%,#fffdf6),#fffdf6)}
+.album-page-art img,.album-page-art .album-art-fallback{width:100%;max-height:74dvh;aspect-ratio:4/5;object-fit:cover;border-radius:16px;border:6px solid #fff;box-shadow:0 0 0 3px color-mix(in srgb,var(--type) 45%,#fff),0 10px 22px #2e5a2a33;transform:rotate(-1.5deg)}
+.album-page-number{position:absolute;bottom:10px;left:22px;font-size:12px;color:var(--al-muted)}
+.album-page-info{display:flex;flex-direction:column;gap:10px;padding:30px 30px 22px;border-radius:4px 18px 18px 4px;max-height:calc(92dvh - 24px);overflow:auto;background:repeating-linear-gradient(180deg,var(--al-paper) 0 31px,#efe6cf 31px 32px)}
+.album-page-info .album-type-chip{align-self:flex-start}
+.album-page-info h2{margin:0;font:800 32px/1.15 Kanit,sans-serif;color:var(--al-ink)}
+.album-page-info .album-stars{font-size:20px}
+.album-description{margin:0;font-size:16px;line-height:1.6;color:#3d5a3f}
+.album-page-info dl{display:grid;gap:8px;margin:4px 0 0}
+.album-page-info dl div{padding:8px 12px;border-radius:14px;background:#fff;box-shadow:0 2px 0 #ead9b0}
+.album-page-info dt{font-size:12px;font-weight:700;color:var(--type)}
+.album-page-info dd{margin:2px 0 0;font-size:14px}
+.album-note{margin:0;padding:8px 12px;border-radius:12px;background:#fff0c7;color:#7a5513;font-size:13px}
+.album-close{position:absolute;top:12px;right:12px;width:40px;height:40px;border:0;border-radius:50%;background:#f1e6cc;color:#6b5a3b;font-size:24px;line-height:1;cursor:pointer;box-shadow:0 3px 0 var(--al-wood)}
+.album-flip{display:flex;justify-content:space-between;gap:10px;margin-top:auto;padding-top:8px}
+.album-flip button{flex:1;padding:10px 14px;border:0;border-radius:14px;background:var(--al-leaf);color:#fff;font:700 15px Kanit,sans-serif;cursor:pointer;box-shadow:0 4px 0 var(--al-leaf-dark);transition:transform .12s}
+.album-flip button:first-child{background:#fff;color:var(--al-ink);box-shadow:0 4px 0 var(--al-wood)}
+.album-flip button:active,.album-close:active{transform:translateY(3px)}
+.album-book :is(button,a):focus-visible{outline:4px solid var(--al-gold);outline-offset:3px}
+
+@keyframes album-in{from{opacity:0;transform:translateY(18px)}}
+@keyframes album-shine{0%,60%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes album-flip{from{opacity:0;transform:perspective(1200px) rotateY(-8deg) scale(.97)}}
+
+@media(max-width:760px){
+  .album-page-shell{width:calc(100% - 20px);gap:14px}
+  .album-header{grid-template-columns:1fr auto;padding:12px 14px}
+  .album-title{grid-column:1/-1;grid-row:2}
+  .album-title h1{-webkit-text-stroke:5px #2b6a3a}
+  .album-tabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px}
+  .album-tabs button{flex:none;padding:6px 12px;font-size:13px}
+  .album-shelf{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:16px 12px 20px}
+  .album-card-body b{font-size:14px}
+  .album-spread{grid-template-columns:1fr;max-height:92dvh;overflow:auto}
+  .album-spread::before{display:none}
+  .album-page-art{border-radius:18px 18px 4px 4px;padding:14px}
+  .album-page-art img,.album-page-art .album-art-fallback{max-height:44dvh;transform:none}
+  .album-page-info{border-radius:4px 4px 18px 18px;padding:18px;max-height:none}
+  .album-page-info h2{font-size:24px}
+}
+@media(prefers-reduced-motion:reduce){.album-card,.album-spread,.rarity-epic::after{animation:none}.album-card,.album-card-art img,.album-tabs button,.album-back,.album-link{transition:none}}

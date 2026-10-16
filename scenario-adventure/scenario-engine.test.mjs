@@ -17,9 +17,9 @@ test("Scenario Adventure mode แยกจาก District, IP, City และ It
 });
 
 test("Local mock seed มี schema ที่พร้อมเปลี่ยน Repository ภายหลัง", () => {
-  assert.equal(SCENARIO_ADVENTURE_SEED.length, 8);
+  assert.equal(SCENARIO_ADVENTURE_SEED.length, 24);
   assert.ok(SCENARIO_ADVENTURE_SEED.every(validateAdventureScenario));
-  assert.ok(SCENARIO_ADVENTURE_SEED.every((scenario) => scenario.status === "MOCK"));
+  assert.ok(SCENARIO_ADVENTURE_SEED.every((scenario) => ["MOCK","DEMO_DRAFT"].includes(scenario.status)));
 });
 
 test("เลือก Scenario ตามธีมและหมวดของช่อง", async () => {
@@ -57,27 +57,13 @@ test("กลับช่องเดิมจะเลือก Scenario ให�
   assert.equal(first.category, getScenarioCategoryForTile(tileIndex));
 });
 
-test("เมื่อหมวดของช่องหมดจะใช้ Fallback หมวดเดิม ไม่ดึง Scenario ผิดหมวด", async () => {
-  const repository = createScenarioRepository();
-  const privacy = SCENARIO_ADVENTURE_SEED.find((scenario) => scenario.category === SCENARIO_CATEGORIES.PRIVACY);
-  const history = recordScenarioUse([], { scenario: privacy, actorId: "player", tileIndex: 2, turnNumber: 1 });
-  const next = await selectAdventureScenario({ repository, category: SCENARIO_CATEGORIES.PRIVACY, history, random: () => 0 });
-  assert.equal(next.isFallback, true);
-  assert.equal(next.category, SCENARIO_CATEGORIES.PRIVACY);
-});
-
-test("เมื่อ Scenario หมด ระบบใช้ Fallback ID ใหม่และไม่วนรายการเดิม", async () => {
-  const repository = createScenarioRepository();
-  let history = [];
-  for (const scenario of SCENARIO_ADVENTURE_SEED) {
-    history = recordScenarioUse(history, { scenario, actorId: "player", tileIndex: 0, turnNumber: history.length + 1 });
-  }
-  const fallbackOne = await selectAdventureScenario({ repository, category: SCENARIO_CATEGORIES.SAFETY, history, random: () => 0 });
-  history = recordScenarioUse(history, { scenario: fallbackOne, actorId: "bot", tileIndex: 0, turnNumber: history.length + 1 });
-  const fallbackTwo = await selectAdventureScenario({ repository, category: SCENARIO_CATEGORIES.SAFETY, history, random: () => 0 });
-  assert.equal(fallbackOne.isFallback, true);
-  assert.equal(fallbackTwo.isFallback, true);
-  assert.notEqual(fallbackOne.scenarioId, fallbackTwo.scenarioId);
+test("หมดหมวดเลือกหมวดอื่นในธีมเดียวกัน และหมดคลังไม่สร้าง Fallback", async () => {
+ const repository=createScenarioRepository();let history=[];
+ for(const scenario of SCENARIO_ADVENTURE_SEED.filter(s=>s.category===SCENARIO_CATEGORIES.PRIVACY)) history=recordScenarioUse(history,{scenario,actorId:"player"});
+ const next=await selectAdventureScenario({repository,category:SCENARIO_CATEGORIES.PRIVACY,history});
+ assert.notEqual(next.category,SCENARIO_CATEGORIES.PRIVACY);assert.equal(next.themeId,DEFAULT_THEME_ID);assert.equal(next.categoryChanged,true);
+ history=[];for(const scenario of SCENARIO_ADVENTURE_SEED) history=recordScenarioUse(history,{scenario,actorId:"player"});
+ await assert.rejects(selectAdventureScenario({repository,history}),{code:"SCENARIO_POOL_EXHAUSTED"});
 });
 
 test("recordScenarioUse ป้องกัน Scenario ID ซ้ำโดยตรง", () => {

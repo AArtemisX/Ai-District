@@ -17,14 +17,22 @@ export function parseCharacterSelection(value) {
   }
 }
 
-export function readScenarioCharacterSelection(storage = window.sessionStorage) {
-  return parseCharacterSelection(storage.getItem(SCENARIO_CHARACTER_SESSION_KEY));
+export function readScenarioCharacterSelection(storage) {
+  try {
+    return parseCharacterSelection((storage ?? window.sessionStorage).getItem(SCENARIO_CHARACTER_SESSION_KEY));
+  } catch {
+    return null;
+  }
 }
 
-export function writeScenarioCharacterSelection(characterId, storage = window.sessionStorage) {
+export function writeScenarioCharacterSelection(characterId, storage) {
   const selection = createCharacterSelection(characterId);
   if (!selection) return false;
-  storage.setItem(SCENARIO_CHARACTER_SESSION_KEY, JSON.stringify(selection));
-  return true;
+  try {
+    (storage ?? window.sessionStorage).setItem(SCENARIO_CHARACTER_SESSION_KEY, JSON.stringify(selection));
+    return true;
+  } catch {
+    return false;
+  }
 }
 

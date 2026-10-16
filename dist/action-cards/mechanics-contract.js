@@ -1,3 +1,5 @@
+// Friday Demo runtime rules are exported as DEMO_MATCH_CONFIG in scenario-adventure/response-engine.js.
+// The design-only contract below remains a historical foundation contract; it does not disable that runtime.
 import { SCENARIO_HAND_LIMIT } from "../scenario-adventure/deck-engine.js";
 import { SCENARIO_LOADOUT_SIZE } from "../scenario-adventure/loadout-engine.js";
 

@@ -1,4 +1,5 @@
 import { supabase, requirePlayer, toast } from "./flow-common.js";
+import { carryPalaceReturn, exitDestination } from "./crystal-palace/return-param.js?v=cp-3";
 import { buildMissionDemo } from "./mission-demo-data.js?v=20261012-stage2b";
 import { buildM6Mission } from "./mission-m6-data.js?v=20261014-mission-story-01";
 import { buildMissionStory02Draft, MISSION_STORY_02_DRAFT_KEY } from "./mission-story-02-data.js?v=20261014-phase5b";
@@ -6,6 +7,10 @@ import { readMissionPreviewProgress, writeMissionPreviewProgress } from "./missi
 import { createMissionRuntime, evaluateDecision, evaluateKnowledgeCheck, evaluateSimulation, resolveMissionSceneIndex, sceneRequirement } from "./mission-player-engine.mjs?v=20261014-mission-story-01";
 import { CharacterDialogue, ClassificationPanel, DecisionPanel, EvidenceViewer, KnowledgeCard, MissionProgress, MissionSummary, ReflectionPanel, SceneExplanation, SceneVisual, SimulationPanel } from "./lesson-components.js?v=20261014-mission-story-01";
 
+if(new URLSearchParams(location.search).get('chapter')==='ai-district-ch01'){
+ const {startChapter01}=await import('./chapter01-player.js?v=ch01-r1');
+ await startChapter01();
+}else{
 const $ = (selector) => document.querySelector(selector);
 const lessonCode = new URLSearchParams(location.search).get("lesson");
 const previewKey = new URLSearchParams(location.search).get("preview");
@@ -169,7 +174,7 @@ async function moveScene(direction) {
   if (next >= state.mission.scenes.length) {
     if (state.previewMode) state.previewCompleted = true;
     await requestSave();
-    location.assign("learning.html");
+    location.assign(exitDestination(location.search));
     return;
   }
   state.sceneIndex = Math.max(0, next);
@@ -180,7 +185,7 @@ async function moveScene(direction) {
 
 async function exitLesson() {
   try { await requestSave(); } catch (error) { toast(error.message, "error"); return; }
-  location.assign("learning.html");
+  location.assign(exitDestination(location.search));
 }
 
 async function startQuiz() {
@@ -188,7 +193,7 @@ async function startQuiz() {
   await requestSave();
   const { error } = await supabase.from("player_learning_progress").update({ mission_completed_at: new Date().toISOString() }).eq("user_id", state.user.id).eq("lesson_id", state.lessonRow.id);
   if (error) throw error;
-  location.assign(`quiz.html?lesson=${encodeURIComponent(state.lessonRow.code)}`);
+  location.assign(carryPalaceReturn(`quiz.html?lesson=${encodeURIComponent(state.lessonRow.code)}`, location.search));
 }
 
 function updateDialogue(direction) {
@@ -369,4 +374,6 @@ try {
   }
 } catch (error) {
   if (!error.message.endsWith("REQUIRED")) { toast(error.message, "error"); $("#mission-title").textContent = "ไม่สามารถเปิดภารกิจได้"; }
+}
+
 }

@@ -1,3 +1,5 @@
+> Current flow: Character → Deck → practice-room.html → named local room with 1 player + 1 Bot. No online room RPC, no Legacy game, no new 3D tokens. Root README is authoritative.
+
 # Scenario Card Adventure — ROUND 1–2
 
 This directory contains the isolated foundation for the new `SCENARIO_ADVENTURE` game mode.
@@ -10,7 +12,7 @@ This directory contains the isolated foundation for the new `SCENARIO_ADVENTURE`
 
 ## Isolated legacy systems
 
-The new mode capability config disables District construction, ownership, Influence Points, city actions and item actions. The original source remains available under the legacy `district-battle` mode and is not deleted.
+The new mode capability config disables District construction, ownership, Influence Points, city actions and item actions. Legacy Battle runtime was removed by owner instruction on 14 October 2026. All map URLs now resolve to Scenario Adventure.
 
 ## Repository boundary
 

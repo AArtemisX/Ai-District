@@ -1,0 +1,41 @@
+.chapter01-page .lesson-player-shell{height:auto;min-height:100vh;overflow:visible}.chapter01-page .mission-stage,.chapter01-page .scene-content{height:auto;max-height:none;overflow:visible}.chapter01-page .mission-scene-grid{align-items:start}.chapter01-page .chapter-save-status{padding:10px 16px;background:#eef8ff;color:#386782;border-radius:12px;margin:10px 0;font-size:13px}.chapter01-page .chapter-save-status button{margin-left:12px}.chapter01-page .chapter-evidence-buttons,.chapter01-page .chapter-choices{display:grid;gap:10px}.chapter01-page .chapter-evidence-buttons{margin-top:12px}.chapter01-page button{font-family:inherit;min-height:44px;cursor:pointer}.chapter01-page .chapter-evidence-buttons button,.chapter01-page .chapter-choices button,.chapter01-page .chapter-save-status button{padding:12px 16px;border:1px solid #bedfec;border-radius:12px;background:#f0faff;color:#2b5b78;text-align:left}.chapter01-page button:focus-visible{outline:3px solid #219dc9;outline-offset:3px}.chapter01-page .chapter-choices button[aria-pressed=true]{border-color:#249fc9;background:#dff5ff}.chapter01-page .chapter-evidence{padding:16px;background:#f2f9ff;border-radius:14px;margin:16px 0}.chapter01-page .chapter-objectives{font-size:13px;color:#58849d}.chapter01-page .mission-controls{position:static;margin-top:20px}.chapter01-page .evidence-scene{min-height:320px}.chapter01-page .scene-visual-wrap>p{font-size:12px;color:#6a879e}.chapter01-page .chapter-choices{margin-top:16px}.chapter01-page button:disabled{cursor:not-allowed;opacity:.5}@media(max-width:800px){.chapter01-page .mission-scene-grid{grid-template-columns:1fr}.chapter01-page .mission-topbar{flex-wrap:wrap}.chapter01-page .mission-controls{gap:10px;flex-wrap:wrap}.chapter01-page .evidence-scene{min-height:240px}}@media(prefers-reduced-motion:reduce){.chapter01-page *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+/* One viewport with separate reading, evidence and decision panels. */
+.chapter01-page{height:100dvh;overflow:hidden}
+.chapter01-page .lesson-player-shell{height:100dvh;min-height:0;max-width:1480px;margin:auto;padding:10px 16px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.chapter01-page .mission-topbar{flex-shrink:0;min-height:0;padding:10px 16px;margin:0}
+.chapter01-page .mission-title h1{font-size:clamp(16px,1.8vw,25px);margin:0}
+.chapter01-page .mission-title>p,.chapter01-page .mission-title>span{display:none}
+.chapter01-page .mission-demo-banner{width:100%;margin:0;padding:6px 12px;flex-shrink:0;font-size:11px}
+.chapter01-page .chapter-save-status{padding:5px 12px;margin:0;font-size:11px;flex-shrink:0}
+.chapter01-page .mission-stage{flex:1;min-height:0;display:flex;flex-direction:column;margin:0;padding:0;overflow:hidden}
+.chapter01-page .mission-scene-meta{flex-shrink:0;padding:4px 0;margin:0;font-size:11px}
+.chapter01-page .mission-scene-grid{flex:1;min-height:0;height:auto;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:stretch;overflow:hidden}
+.chapter01-page .scene-visual-wrap{min-height:0;padding:16px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.chapter01-page .evidence-scene{flex:1;min-height:0;height:auto;width:100%;margin:0;background-size:cover}
+.chapter01-page .scene-visual-wrap>p{font-size:10px;margin:0}
+.chapter01-page .chapter-evidence-buttons{margin:0;gap:6px;flex-shrink:0}
+.chapter01-page .chapter-evidence-buttons button{padding:8px 12px}
+.chapter01-page .scene-content{min-height:0;max-height:none;padding:16px;overflow:auto}
+.chapter01-page .chapter-view-tabs{display:flex;gap:6px;margin-bottom:14px}
+.chapter01-page .chapter-view-tabs button{flex:1;min-height:40px;padding:6px;border:1px solid #d9e9f2;border-radius:10px;background:#f4f9fd;color:#4a7993;font:inherit;font-size:12px}
+.chapter01-page .chapter-view-tabs button[aria-pressed=true]{background:#def4ff;border-color:#3fb7dd;color:#197f9f}
+.chapter01-page .scene-content[data-view=read]>.chapter-evidence,.chapter01-page .scene-content[data-view=read]>.chapter-choices,.chapter01-page .scene-content[data-view=inspect]>.story-dialogue,.chapter01-page .scene-content[data-view=inspect]>.chapter-choices,.chapter01-page .scene-content[data-view=choice]>.story-dialogue,.chapter01-page .scene-content[data-view=choice]>.chapter-evidence{display:none}
+.chapter01-page .story-dialogue-rich{display:block;padding:0;margin:0}
+.chapter01-page .story-dialogue-rich h2{font-size:clamp(18px,2vw,26px);margin:0 0 12px}
+.chapter01-page .story-dialogue-rich>div>small{display:none}
+.chapter01-page .mission-dialogue-block{padding:12px;gap:8px}
+.chapter01-page .story-dialogue-cast{padding:0;gap:8px}
+.chapter01-page .story-character-portrait__frame{width:44px;height:52px}
+.chapter01-page .story-character-portrait figcaption{display:none}
+.chapter01-page .mission-dialogue-copy .dialogue-text{min-height:60px!important;margin:6px 0!important;font-size:14px!important}
+.chapter01-page .dialogue-navigation{margin-top:8px;padding-top:8px}
+.chapter01-page .chapter-objectives{margin:10px 0;font-size:11px}
+.chapter01-page .chapter-choices{margin:0;gap:8px}
+.chapter01-page .chapter-choices h3{font-size:16px;margin:0 0 4px}
+.chapter01-page .chapter-choices button{padding:9px 12px;line-height:1.45;font-size:13px}
+.chapter01-page .chapter-choices p{font-size:13px;margin:6px 0;line-height:1.5}
+.chapter01-page .chapter-evidence{margin:8px 0;padding:14px;font-size:14px}
+.chapter01-page .mission-controls{flex-shrink:0;margin:0;padding:8px 12px;min-height:0}
+.chapter01-page .mission-control-tools,.chapter01-page .keyboard-hint{display:none}
+@media(max-width:700px){.chapter01-page .lesson-player-shell{padding:8px;gap:5px}.chapter01-page .mission-topbar{padding:8px;gap:8px}.chapter01-page .mission-progress-wrap{font-size:10px}.chapter01-page .mission-scene-grid{grid-template-columns:1fr;grid-template-rows:minmax(110px,26%) minmax(0,1fr)}.chapter01-page .scene-visual-wrap{padding:8px;gap:4px;position:relative}.chapter01-page .scene-visual-wrap>p{display:none}.chapter01-page .chapter-evidence-buttons{position:absolute;bottom:12px;left:12px;right:12px;display:flex;gap:6px}.chapter01-page .chapter-evidence-buttons button{min-height:36px;font-size:10px;padding:6px;background:#fffffff2}.chapter01-page .scene-content{padding:10px}.chapter01-page .chapter-view-tabs{margin-bottom:8px}.chapter01-page .mission-demo-banner{font-size:9px;padding:4px}.chapter01-page .mission-scene-meta small{display:none}.chapter01-page .chapter-save-status{font-size:10px}.chapter01-page .mission-dialogue-copy .dialogue-text{min-height:44px!important}.chapter01-page .story-dialogue-rich h2{font-size:18px;margin-bottom:8px}}
+@media(max-width:700px){.chapter01-page .mission-scene-grid{grid-template-rows:minmax(90px,20%) minmax(0,1fr)}.chapter01-page .chapter-choices{gap:6px}.chapter01-page .chapter-choices p{font-size:12px;line-height:1.4}.chapter01-page .chapter-objectives{margin:6px 0}}

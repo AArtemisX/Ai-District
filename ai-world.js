@@ -1,58 +1,38 @@
-import "./page-navigation.js";
-import { supabase, requirePlayer, setPlayerHeader, setupLogout, toast } from "./flow-common.js";
-
-let user;
-let profile;
-let selectedCharacter;
-const selectedItems = new Set();
-
-function renderCharacters(characters) {
-  selectedCharacter ||= profile.selected_character_code || characters[0]?.code;
-  document.querySelector("#character-grid").innerHTML = characters.map((character) => `<button class="character-card ${selectedCharacter === character.code ? "selected" : ""}" data-code="${character.code}" style="--accent:${character.accent_color}"><span class="rank">${character.rank}</span><div class="character-orb">${character.name[0]}</div><h3>${character.name}</h3><small>${character.title}</small><p>${character.ability}</p></button>`).join("");
-  document.querySelector("#selected-character-label").textContent = characters.find((item) => item.code === selectedCharacter)?.name || "ยังไม่ได้เลือก";
-  document.querySelectorAll(".character-card").forEach((button) => button.addEventListener("click", async () => {
-    selectedCharacter = button.dataset.code;
-    await supabase.from("profiles").update({ selected_character_code: selectedCharacter }).eq("id", user.id);
-    renderCharacters(characters);
-  }));
+import {roomListState} from './scenario-adventure/room-list-state.mjs';
+import {requirePlayer} from './flow-common.js';
+import {loadAdventureInventory} from './scenario-adventure/loadout-client.js';
+import {readSavedLoadouts,validateSavedLoadout} from './scenario-adventure/saved-loadouts.mjs';
+import {getTheme} from './scenario-adventure/theme-config.js';
+import {CHARACTER_BY_ID} from './characters/character-roster.js';
+import {onlineRequest,onlineError,serverUrl,setServerUrl} from './scenario-adventure/online-client.js';
+const $=selector=>document.querySelector(selector);
+let userId,inventory,presets=[],currentCode='',pending=false,listPending=false;
+const message=text=>{$('#world-message').textContent=text;};
+function selected(){const preset=presets.find(p=>p.id===$('#world-deck').value);return preset&&validateSavedLoadout(preset,inventory)?preset:null;}
+function updateSummary(){const preset=selected();$('#world-summary').textContent=preset?`${CHARACTER_BY_ID[preset.characterId].displayName} · ${preset.cardIds.length} ใบ · ใช้ชุดนี้เมื่อสร้าง/เข้าห้อง`:'ยังไม่มีชุดที่บันทึกและใช้งานได้ กรุณาจัดตัวละคร/Deck ให้ครบแล้วบันทึกก่อน';const image=$('#world-character-image');image.hidden=!preset;$('#world-character-placeholder').hidden=Boolean(preset);if(preset){image.src=CHARACTER_BY_ID[preset.characterId].artwork.src;image.alt=CHARACTER_BY_ID[preset.characterId].displayName;}$('#world-create').disabled=!preset;$('#world-join').disabled=!preset;}
+async function enter(code,password=''){
+ if(pending)return;const preset=selected();if(!preset){message('เลือกชุดที่บันทึกไว้ก่อนเข้าห้อง');return;}pending=true;$('#world-password-submit').disabled=true;
+ try{const room=await onlineRequest('join',{code,characterId:preset.characterId,cardIds:preset.cardIds,password});$('#world-join-password').value='';location.assign('online-room.html?code='+encodeURIComponent(room.code));}
+ catch(error){if(error.message==='INCORRECT_PASSWORD'){$('#world-join-error').textContent=password?'รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่':'';currentCode=code;$('#world-password-code').textContent='เลขห้อง '+code;if(!$('#world-password-dialog').open)$('#world-password-dialog').showModal();}else{message(onlineError(error));$('#world-join-error').textContent=onlineError(error);}}
+ finally{pending=false;$('#world-password-submit').disabled=false;}
 }
-
-function renderItems(items) {
-  document.querySelector("#item-grid").innerHTML = items.map((row) => `<button class="item-card ${selectedItems.has(row.item_code) ? "selected" : ""}" data-code="${row.item_code}"><span>◇</span><div><h3>${row.game_items.name}</h3><p>${row.game_items.metadata?.description || "ไอเทมสนับสนุน"}</p></div><b>×${row.quantity}</b></button>`).join("");
-  document.querySelector("#item-selected-count").textContent = selectedItems.size;
-  document.querySelectorAll(".item-card").forEach((button) => button.addEventListener("click", () => {
-    if (selectedItems.has(button.dataset.code)) selectedItems.delete(button.dataset.code);
-    else if (selectedItems.size < 3) selectedItems.add(button.dataset.code);
-    else { toast("เลือกไอเทมได้สูงสุด 3 ชิ้น", "error"); return; }
-    renderItems(items);
-  }));
+async function listRooms(){
+ if(listPending||pending||!userId)return;listPending=true;
+ try{const rooms=await onlineRequest('rooms'),container=$('#world-rooms');container.replaceChildren();$('#world-room-count').textContent=String(rooms.length);$('#world-connection-label').textContent='เชื่อมต่อแล้ว · พร้อมเล่น';$('#world-connection-dot').classList.remove('offline');if(!rooms.length){const empty=document.createElement('div');empty.className='aw-empty';const title=document.createElement('h3');title.textContent='เป็นคนแรกที่เปิดห้องได้เลย';const description=document.createElement('p');description.textContent='ยังไม่มีห้องตอนนี้ กดสร้างห้องใหม่ แล้วชวนเพื่อนมาเล่นกัน';empty.append(title,description);container.append(empty);return;}
+  for(const room of rooms){const availability=roomListState(room);const card=document.createElement('article');card.className='aw-list-card is-'+availability.state;const art=document.createElement('div');art.className='aw-list-art';const badge=document.createElement('span');badge.className='aw-room-badge';badge.textContent=availability.badge;art.append(badge);const title=document.createElement('h3');title.textContent=room.name;const code=document.createElement('p');code.className='aw-list-code';code.textContent=`เลขห้อง ${room.code}`;const count=document.createElement('p');count.textContent=`${getTheme(room.themeId).name} · ${room.memberCount}/${room.maxPlayers} ที่นั่ง · Bot ${room.botCount} · ${room.status==='WAITING'?'รอผู้เล่น':room.status==='PLAYING'?'กำลังเล่น':'จบแมตช์'}`;const join=document.createElement('button');join.className='aw-button aw-button-blue';join.textContent=availability.button;join.disabled=!selected()||!availability.canEnter;join.addEventListener('click',()=>{if(room.isMember){location.assign('online-room.html?code='+encodeURIComponent(room.code));return;}if(room.requiresPassword){currentCode=room.code;$('#world-password-code').textContent='เลขห้อง '+room.code;$('#world-join-error').textContent='';$('#world-join-password').value='';$('#world-password-dialog').showModal();}else void enter(room.code);});const content=document.createElement('div');content.className='aw-list-content';content.append(title,code,count,join);card.append(art,content);container.append(card);}
+ }catch(error){$('#world-connection-label').textContent='ยังเชื่อมต่อไม่ได้';$('#world-connection-dot').classList.add('offline');message(onlineError(error));$('#world-rooms').textContent='ยังโหลดรายชื่อห้องไม่ได้ ตรวจ Server URL แล้วลองเชื่อมต่ออีกครั้ง';}finally{listPending=false;}
 }
-
-document.querySelector("#create-room-form").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  if (!selectedCharacter) { toast("กรุณาเลือกตัวละคร", "error"); return; }
-  const button = event.currentTarget.querySelector("button"); button.disabled = true;
-  try {
-    const { data, error } = await supabase.rpc("create_ai_room", { room_name: document.querySelector("#room-name").value.trim(), selected_character: selectedCharacter, selected_item_codes: [...selectedItems], desired_players: 4 });
-    if (error) throw error;
-    window.location.assign(`room.html?code=${encodeURIComponent(data.room_code)}`);
-  } catch (error) { toast(error.message, "error"); button.disabled = false; }
+$('#world-server').value=serverUrl();
+$('#world-connect').addEventListener('click',()=>{try{setServerUrl($('#world-server').value);message('');void listRooms();}catch(error){message(error.message);}});
+$('#world-deck').addEventListener('change',()=>{updateSummary();void listRooms();});
+$('#world-refresh').addEventListener('click',()=>listRooms());
+$('#world-create').addEventListener('click',()=>{$('#world-create-error').textContent='';$('#world-create-dialog').showModal();});
+$('#world-private').addEventListener('change',()=>{const enabled=$('#world-private').checked;$('#world-password').hidden=!enabled;$('#world-password-label').hidden=!enabled;$('#world-password').required=enabled;if(!enabled)$('#world-password').value='';});
+for(const dialog of document.querySelectorAll('dialog'))dialog.addEventListener('close',()=>dialog.querySelectorAll('input[type=password]').forEach(input=>input.value=''));
+for(const button of document.querySelectorAll('[data-close]'))button.addEventListener('click',()=>{const dialog=document.getElementById(button.dataset.close);dialog.close();dialog.querySelectorAll('input[type=password]').forEach(input=>input.value='');});
+$('#world-join-form').addEventListener('submit',event=>{event.preventDefault();void enter($('#world-code').value.trim());});
+$('#world-password-form').addEventListener('submit',event=>{event.preventDefault();void enter(currentCode,$('#world-join-password').value);});
+$('#world-create-form').addEventListener('submit',async event=>{event.preventDefault();if(pending)return;const preset=selected();if(!preset)return;pending=true;$('#world-create-submit').disabled=true;
+ try{const room=await onlineRequest('create',{characterId:preset.characterId,cardIds:preset.cardIds,roomName:$('#world-room-name').value,themeId:$('#world-theme').value,maxPlayers:Number($('#world-capacity').value),botCount:0,isPrivate:$('#world-private').checked,password:$('#world-private').checked?$('#world-password').value:''});$('#world-password').value='';location.assign('online-room.html?code='+encodeURIComponent(room.code));}catch(error){$('#world-create-error').textContent=onlineError(error);}finally{pending=false;$('#world-create-submit').disabled=false;}
 });
-
-document.querySelector("#join-room-form").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const code = document.querySelector("#room-code").value.trim().toUpperCase();
-  try {
-    if (!selectedCharacter) throw new Error("กรุณาเลือกตัวละคร");
-    const { data, error } = await supabase.rpc("join_ai_room", { requested_code: code, selected_character: selectedCharacter, selected_item_codes: [...selectedItems] });
-    if (error) throw error;
-    window.location.assign(`room.html?code=${encodeURIComponent(data.room_code)}`);
-  } catch (error) { toast(error.message, "error"); }
-});
-
-try {
-  const player = await requirePlayer(); ({ user, profile } = player); setPlayerHeader(profile); setupLogout();
-  const [characters, inventory] = await Promise.all([supabase.from("characters").select("*").order("rank", { ascending: false }), supabase.from("player_inventory").select("item_code, quantity, game_items(name, metadata)").eq("user_id", user.id)]);
-  if (characters.error) throw characters.error;
-  renderCharacters(characters.data || []); renderItems(inventory.data || []);
-} catch (error) { if (!error.message.endsWith("REQUIRED")) toast(error.message, "error"); }
+try{const {user}=await requirePlayer();userId=user.id;inventory=await loadAdventureInventory(userId);const saved=readSavedLoadouts(userId);presets=saved.presets.filter(p=>validateSavedLoadout(p,inventory));$('#world-deck').replaceChildren();if(!presets.length)$('#world-deck').add(new Option('ยังไม่มีชุดที่บันทึกไว้',''));else{for(const preset of presets)$('#world-deck').add(new Option(`${preset.name} · ${CHARACTER_BY_ID[preset.characterId].displayName}`,preset.id));if(presets.some(p=>p.id===saved.activePresetId))$('#world-deck').value=saved.activePresetId;}$('#world-deck').disabled=!presets.length;updateSummary();await listRooms();const timer=setInterval(()=>void listRooms(),3000);addEventListener('pagehide',()=>clearInterval(timer),{once:true});}catch(error){if(!String(error.message).endsWith('REQUIRED'))message('ตรวจบัญชีหรือชุดการ์ดไม่สำเร็จ กรุณาลองใหม่');}

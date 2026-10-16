@@ -1,3 +1,4 @@
+import { AdditiveBlending } from "three";
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import { html } from "./runtime.js";
@@ -5,10 +6,12 @@ import { html } from "./runtime.js";
 export function AICore() {
   const rings = useRef();
   const orb = useRef();
+  const glow = useRef();
   const reducedMotion = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   useFrame((state, delta) => {
     if (rings.current && !reducedMotion) rings.current.rotation.z += delta * .26;
     if (orb.current) orb.current.position.y = 3.75 + (reducedMotion ? 0 : Math.sin(state.clock.elapsedTime * 1.35) * .12);
+    if (glow.current && !reducedMotion) glow.current.material.opacity = .5 + Math.sin(state.clock.elapsedTime * 1.35) * .14;
   });
   return html`
     <group>
@@ -20,6 +23,8 @@ export function AICore() {
         <mesh><torusGeometry args=${[1.32,.075,8,40]} /><meshStandardMaterial color="#f6d779" emissive="#eaa92f" emissiveIntensity=${.68} /></mesh>
         <mesh rotation=${[.35,.2,0]}><torusGeometry args=${[.94,.05,8,36]} /><meshStandardMaterial color="#f4a5c3" emissive="#d95b98" emissiveIntensity=${.58} /></mesh>
       </group>
+      <mesh position=${[0,.9,0]} rotation=${[-Math.PI/2,0,0]}><ringGeometry args=${[2.05,2.2,48]} /><meshBasicMaterial color="#65dff4" transparent opacity=${.85} toneMapped=${false} /></mesh>
+      <mesh ref=${glow} position=${[0,3.75,0]} raycast=${() => null}><sphereGeometry args=${[.95,16,12]} /><meshBasicMaterial color="#9ff0ff" transparent opacity=${.5} depthWrite=${false} blending=${AdditiveBlending} toneMapped=${false} /></mesh>
       <mesh ref=${orb} position=${[0,3.75,0]} castShadow><icosahedronGeometry args=${[.52,1]} /><meshStandardMaterial color="#d9faff" emissive="#65dff4" emissiveIntensity=${.9} roughness=${.28} /></mesh>
       ${[0,1,2,3].map((i)=>html`<group key=${i} position=${[Math.cos(i*Math.PI/2)*2.25,.9,Math.sin(i*Math.PI/2)*2.25]}>
         <mesh castShadow><cylinderGeometry args=${[.16,.24,.95,6]} /><meshStandardMaterial color="#f8fbff" roughness=${.55} /></mesh>

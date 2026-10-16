@@ -98,11 +98,11 @@ test("Basic Response มีบริบทเฉพาะ Scenario และไ�
   assert.equal(resolved.result.responseType, "BASIC"); assert.equal(countDeckCards(deck), 5); assert.match(selection.reason, /ตรวจ|แหล่ง|เขียน|บทบาท/);
 });
 
-test("Card Response ใช้ Metadata ชั่วคราวและไม่เรียก IP/District effect", () => {
+test("Card Response ใช้ explicit Demo context และไม่เรียก IP/District effect", () => {
   const scenario = SCENARIO_ADVENTURE_SEED.find((item) => item.category === "PRIVACY");
   const compatible = evaluateCardCompatibility(scenario, "firewall-guard");
   const incompatible = evaluateCardCompatibility(scenario, "energy-boost");
-  assert.equal(compatible.usable, true); assert.equal(incompatible.usable, false); assert.equal(compatible.metadataStatus, "TEMPORARY_ROUND_2");
+  assert.equal(compatible.usable, true); assert.equal(incompatible.usable, true); assert.equal(incompatible.compatibility, "INEFFECTIVE"); assert.equal(compatible.metadataStatus, "FRIDAY_DEMO_ROUND_1");
 });
 
 test("Response action ID ป้องกัน Resolve ซ้ำ", () => {

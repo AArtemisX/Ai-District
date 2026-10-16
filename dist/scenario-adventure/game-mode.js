@@ -1,23 +1,10 @@
 export const GAME_MODES = Object.freeze({
-  LEGACY_DISTRICT_BATTLE: "district-battle",
   SCENARIO_ADVENTURE: "scenario-adventure",
 });
 
-export const DEFAULT_GAME_MODE = GAME_MODES.LEGACY_DISTRICT_BATTLE;
+export const DEFAULT_GAME_MODE = GAME_MODES.SCENARIO_ADVENTURE;
 
 export const GAME_MODE_CONFIG = Object.freeze({
-  [GAME_MODES.LEGACY_DISTRICT_BATTLE]: Object.freeze({
-    id: GAME_MODES.LEGACY_DISTRICT_BATTLE,
-    label: "District Battle (Legacy)",
-    legacy: true,
-    capabilities: Object.freeze({
-      districtConstruction: true,
-      districtOwnership: true,
-      influencePoints: true,
-      itemActions: true,
-      scenarioAdventure: false,
-    }),
-  }),
   [GAME_MODES.SCENARIO_ADVENTURE]: Object.freeze({
     id: GAME_MODES.SCENARIO_ADVENTURE,
     label: "Scenario Card Adventure",

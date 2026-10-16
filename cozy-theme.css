@@ -1,0 +1,147 @@
+/* Cozy valley theme for Ai Word pages (room hub, waiting room, result).
+   Colour, surface and depth only — layout, ids and behaviour are untouched. */
+:is(body.ai-word-page,body.ai-word-room){
+  --cz-cream:#fffaf0;--cz-wood:#d9c49a;--cz-wood-dark:#b98b5e;--cz-ink:#24412c;--cz-muted:#5f7458;
+  --cz-leaf:#3fae5a;--cz-leaf-dark:#2b7f40;--cz-gold:#ffc93c;--cz-gold-dark:#d99a1e;--cz-teal:#2aa9b8;--cz-teal-dark:#1d7a86;
+  background:linear-gradient(180deg,#8fd6f2 0%,#bfe9f7 38%,#d9f1cf 72%,#a7d98a 100%) fixed;color:var(--cz-ink)}
+html.ai-word-document,html:has(body.ai-word-room){background:#a7d98a}
+:is(body.ai-word-page,body.ai-word-room)::before,:is(body.ai-word-page,body.ai-word-room)::after{display:none}
+:is(.ai-word-page,.ai-word-room) :is(h1,h2,h3){color:var(--cz-ink)}
+:is(.ai-word-page,.ai-word-room) .aw-eyebrow{color:var(--cz-leaf-dark);letter-spacing:1px}
+:is(.ai-word-page,.ai-word-room) :is(.aw-small,.aw-shell p){color:var(--cz-muted)}
+
+/* Top navigation as chunky pills */
+.ai-word-page .aw-topbar nav a{border-radius:999px;color:var(--cz-muted);font-weight:600}
+.ai-word-page .aw-topbar nav a:hover{background:#ffffffaa}
+.ai-word-page .aw-nav-active{background:var(--cz-cream);color:var(--cz-leaf-dark);box-shadow:0 4px 0 var(--cz-wood)}
+.ai-word-page .aw-brand img,.ai-word-room .aw-brand img{border-radius:14px;box-shadow:0 4px 0 var(--cz-wood)}
+
+/* Surfaces: cream boards with a chunky wood shadow */
+:is(.ai-word-page,.ai-word-room) :is(.aw-panel,.aw-hero,.aw-seat,.aw-room-controls,.aw-result,.aw-list-card,.aw-room-code){background:var(--cz-cream);border:3px solid #fff;box-shadow:0 5px 0 var(--cz-wood),0 12px 26px #2e5a2a22}
+.ai-word-page .aw-hero{border-radius:30px;overflow:hidden}
+.ai-word-page .aw-hero h1{color:#fff;paint-order:stroke fill;-webkit-text-stroke:6px #2b6a3a;text-shadow:0 5px 0 #1f4f2b,0 10px 18px #1f4f2b44;letter-spacing:0}
+.ai-word-page .aw-hero h1 span{color:var(--cz-ink);-webkit-text-stroke:0;text-shadow:none}
+:is(.ai-word-page,.ai-word-room) :is(.aw-hero-tags span,.aw-pill){background:#fff0c7;color:#8a5a12;font-weight:600}
+.ai-word-page .aw-panel{border-radius:26px;border-top:6px solid var(--cz-wood-dark)}
+.ai-word-page .aw-create-tile{border-top-color:var(--cz-leaf)}
+.ai-word-page .aw-join-tile{border-top-color:var(--cz-teal)}
+.ai-word-page :is(.aw-step-number,.aw-tile-icon){background:#fff0c7;color:#8a5a12;border-radius:14px;box-shadow:0 3px 0 var(--cz-wood)}
+.ai-word-page .aw-deck-avatar{background:linear-gradient(135deg,#e9f7e0,#fff3d6);border-radius:20px}
+.ai-word-page .aw-room-section{background:transparent}
+.ai-word-page .aw-list-card{border-radius:22px;transition:transform .15s}
+.ai-word-page .aw-list-card:hover{transform:translateY(-3px)}
+.ai-word-page .aw-list-card.is-playing{filter:saturate(.35);background:#f4efe3}
+.ai-word-page .aw-empty{background:#fffaf0cc;border:3px dashed var(--cz-wood);border-radius:22px;color:var(--cz-muted)}
+
+/* Buttons: chunky with bottom shadow and press-down */
+:is(.ai-word-page,.ai-word-room) .aw-button{border-radius:16px;font-weight:700;transition:transform .12s,box-shadow .12s}
+:is(.ai-word-page,.ai-word-room) .aw-button-blue{background:var(--cz-leaf);background-image:none;border-color:var(--cz-leaf);color:#fff;box-shadow:0 4px 0 var(--cz-leaf-dark)}
+:is(.ai-word-page,.ai-word-room) .aw-button-blue:hover:not(:disabled){background:#46b963}
+:is(.ai-word-page,.ai-word-room) .aw-button-gold{background:linear-gradient(180deg,#ffd75e,#ffbf2a);color:#5b3d06;border-color:#fff;box-shadow:0 4px 0 var(--cz-gold-dark)}
+:is(.ai-word-page,.ai-word-room) .aw-button-soft{background:#fff;color:var(--cz-ink);border:2px solid #efe4c9;box-shadow:0 3px 0 var(--cz-wood)}
+:is(.ai-word-page,.ai-word-room) .aw-button-danger{box-shadow:0 4px 0 #a8343f}
+:is(.ai-word-page,.ai-word-room) .aw-button:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 #00000026}
+:is(.ai-word-page,.ai-word-room) .aw-icon-button{background:#f1e6cc;color:#6b5a3b;border-radius:12px}
+:is(.ai-word-page,.ai-word-room) :is(input,select,textarea){background:#fff;border:2px solid #efe4c9;border-radius:14px;color:var(--cz-ink)}
+:is(.ai-word-page,.ai-word-room) :is(input,select,textarea):focus{outline:3px solid #ffc93c88;border-color:var(--cz-gold)}
+:is(.ai-word-page,.ai-word-room) :is(a,button,input,select):focus-visible{outline:3px solid var(--cz-gold);outline-offset:3px}
+
+/* Dialogs */
+:is(.ai-word-page,.ai-word-room) .aw-dialog{background:var(--cz-cream);border:4px solid #fff;border-radius:28px;box-shadow:0 8px 0 var(--cz-wood),0 26px 60px #1d3d1f4d;color:var(--cz-ink)}
+:is(.ai-word-page,.ai-word-room) :is(.aw-dialog-head,.aw-dialog-footer){background:var(--cz-cream);border-color:#ead9b0}
+:is(.ai-word-page,.ai-word-room) .aw-dialog::backdrop{background:#1d3d1f55;backdrop-filter:blur(3px)}
+
+/* Waiting room */
+.ai-word-room .aw-room-banner{border-radius:28px;border:3px solid #fff;box-shadow:0 5px 0 var(--cz-wood),0 12px 26px #2e5a2a22;background:linear-gradient(90deg,#1f4f2bdd 30%,#1f4f2b22),url('assets/Dreamy AI Sky City Board Game.png') center 40%/cover}
+.ai-word-room .aw-room-banner h1{color:#fff}
+.ai-word-room .aw-room-banner .aw-eyebrow{color:#ffd75e}
+.ai-word-room .aw-seat{border-radius:26px}
+.ai-word-room .aw-seat.is-me{border-color:#3fbf8f;box-shadow:0 5px 0 #2c9b72,0 12px 26px #2e5a2a22}
+.ai-word-room .aw-seat.is-ready{border-color:#8fd16a}
+.ai-word-room .aw-seat-status{background:#f1e6cc;color:#7a6a48;font-weight:600}
+.ai-word-room .aw-seat-status.ready{background:#dcf6e8;color:#1f7a55}
+.ai-word-room .aw-avatar{background:linear-gradient(135deg,#e9f7e0,#fff3d6);border-color:#fff;box-shadow:0 4px 0 var(--cz-wood)}
+.ai-word-room .aw-seat-empty{background:#fffaf0aa;border:3px dashed var(--cz-wood);box-shadow:none}
+.ai-word-room .aw-seat-closed{background:#efe8d8aa;border-color:#e0d5bb}
+.ai-word-room .aw-seat-symbol{background:#f1e6cc;color:#a08a5c}
+.ai-word-room .aw-room-controls{border-radius:24px}
+.ai-word-room .aw-member-trigger:hover{background:#fff3d6}
+.ai-word-room .aw-host-crown{color:#d99a1e}
+
+/* Match result */
+.ai-word-room .aw-result{border-radius:30px;border-top:7px solid var(--cz-gold-dark)}
+.ai-word-room .aw-result h1{color:#fff;paint-order:stroke fill;-webkit-text-stroke:7px #2b6a3a;text-shadow:0 5px 0 #1f4f2b,0 12px 22px #1f4f2b44}
+.ai-word-room .aw-result table{border-collapse:separate;border-spacing:0 8px}
+.ai-word-room .aw-result th{color:var(--cz-muted);font-weight:600;border:0}
+.ai-word-room .aw-result td{background:#fff;border:0}
+.ai-word-room .aw-result td:first-child{border-radius:14px 0 0 14px;font-weight:700}.ai-word-room .aw-result td:last-child{border-radius:0 14px 14px 0}
+
+@media(prefers-reduced-motion:reduce){:is(.ai-word-page,.ai-word-room) :is(.aw-button,.aw-list-card){transition:none}}
+
+/* Character selection (character-selection.css uses variables; re-tone them and the main surfaces). */
+body:has(.character-select-shell){--ink:#24412c;--muted:#5f7458;--blue:#2aa9b8;--gold:#ffc93c;--panel:#fffaf0;--line:#efe4c9;background:linear-gradient(180deg,#8fd6f2 0%,#bfe9f7 38%,#d9f1cf 72%,#a7d98a 100%) fixed}
+html:has(.character-select-shell){background:#a7d98a}
+.character-select-topbar,.character-select-progress,.character-gallery-section,.character-confirm-bar{background:#fffaf0;border:3px solid #fff;box-shadow:0 5px 0 #d9c49a,0 12px 26px #2e5a2a22;backdrop-filter:none}
+.character-gallery-section{border-top:7px solid #b98b5e}
+.character-select-topbar span,.character-select-hero p,.character-gallery-heading p,.character-detail-copy small{color:#2b7f40}
+.character-select-hero h1{color:#fff;paint-order:stroke fill;-webkit-text-stroke:7px #2b6a3a;text-shadow:0 5px 0 #1f4f2b,0 10px 20px #1f4f2b44}
+.roster-card{background:#fff;border:3px solid #fff;box-shadow:0 4px 0 #d9c49a}
+.roster-card:hover{transform:translateY(-4px)}
+.roster-card.is-selected{border-color:#3fbf8f;box-shadow:0 5px 0 #2c9b72,0 0 0 5px #3fbf8f40}
+.roster-art-button{background:#f1e6cc}
+.roster-card-actions span{color:#2b7f40}
+.character-confirm-bar button,.character-detail-copy button{color:#5b3d06;background:linear-gradient(180deg,#ffd75e,#ffbf2a);box-shadow:0 4px 0 #d99a1e}
+.character-confirm-bar button:active:not(:disabled),.character-detail-copy button:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 #d99a1e}
+.ownership-feedback button{background:#fff;border:2px solid #efe4c9;box-shadow:0 3px 0 #d9c49a}
+.character-detail-dialog{background:#fffaf0;border:4px solid #fff;box-shadow:0 8px 0 #d9c49a,0 26px 60px #1d3d1f4d}
+.character-detail-dialog::backdrop{background:#1d3d1f55}
+
+/* Light-touch cozy tone for style.css pages (learning, card inventory, friends, results). Surfaces only. */
+body:is(.learning-hub-page,.card-inventory-page,.friends-page),body:has(.results-grid){background:linear-gradient(180deg,#8fd6f2 0%,#bfe9f7 38%,#d9f1cf 72%,#a7d98a 100%) fixed}
+html:has(body:is(.learning-hub-page,.card-inventory-page,.friends-page)),html:has(.results-grid){background:#a7d98a}
+body:is(.learning-hub-page,.card-inventory-page,.friends-page)::before,body:is(.learning-hub-page,.card-inventory-page,.friends-page)::after,body:has(.results-grid)::before,body:has(.results-grid)::after{display:none}
+:is(.learning-hub-hero,.learning-map,.lesson-catalog,.friends-hero,.friends-panel,.card-vault-header,.card-vault-content,.results-grid>*,.learning-summary,.owned-facilities){background:#fffaf0;border:3px solid #fff;box-shadow:0 5px 0 #d9c49a,0 12px 26px #2e5a2a22}
+:is(.learning-map,.lesson-catalog,.friends-panel,.card-vault-content){border-top:6px solid #b98b5e}
+:is(.learning-hub-hero,.friends-hero,.card-vault-header) h1{color:#fff;paint-order:stroke fill;-webkit-text-stroke:6px #2b6a3a;text-shadow:0 5px 0 #1f4f2b,0 10px 18px #1f4f2b44}
+:is(.learning-hub-page,.card-inventory-page,.friends-page) .lobby-header :is(.profile-mini,.back-button,nav a){box-shadow:0 4px 0 #d9c49a}
+
+/* Deck builder (scenario-adventure LoadoutScreen on map-3d.html): cozy surfaces + card artwork. */
+.adventure-loadout{--ad-ink:#24412c;--ad-muted:#5f7458;--ad-blue:#2b7f40;background:linear-gradient(180deg,#8fd6f2 0%,#bfe9f7 38%,#d9f1cf 72%,#a7d98a 100%) fixed}
+.adventure-loadout>header,.adventure-loadout-card{background:#fffaf0;border:3px solid #fff;box-shadow:0 5px 0 #d9c49a,0 12px 26px #2e5a2a22;backdrop-filter:none}
+.adventure-loadout>header{border-radius:22px}
+.adventure-loadout>header nav a{background:#fff;color:#24412c;border-radius:14px;box-shadow:0 3px 0 #d9c49a}
+.adventure-loadout-card{border-top:7px solid #b98b5e}
+.adventure-loadout-heading h1{color:#fff;paint-order:stroke fill;-webkit-text-stroke:7px #2b6a3a;text-shadow:0 5px 0 #1f4f2b,0 10px 20px #1f4f2b44}
+.adventure-loadout-heading>b{background:#fff0c7;color:#8a5a12;box-shadow:0 5px 0 #d99a1e}
+.saved-loadout-controls{background:#fff;border:2px solid #efe4c9;border-radius:20px}
+.saved-loadout-controls :is(input,select){border:2px solid #efe4c9;border-radius:12px}
+.saved-loadout-controls button{background:#3fae5a;color:#fff;font-weight:700;border-radius:12px;box-shadow:0 3px 0 #2b7f40}
+.saved-loadout-controls button:disabled{background:#cfd8c8;box-shadow:none}
+.adventure-loadout .adventure-warning{background:#fff0c7;border:2px solid #f3d995}
+.adventure-loadout-actions .primary{background:linear-gradient(180deg,#ffd75e,#ffbf2a);color:#5b3d06;border:3px solid #fff;border-radius:18px;box-shadow:0 5px 0 #d99a1e;font-weight:800}
+
+/* Card artwork frame shared by slots and library cards. */
+.loadout-card-art{--type:#2388f5;position:relative;display:grid;place-items:center;width:100%;aspect-ratio:4/3;overflow:hidden;border-radius:12px;background:linear-gradient(160deg,color-mix(in srgb,var(--type) 35%,#fff),color-mix(in srgb,var(--type) 10%,#fff))}
+.loadout-card-art[data-type=ATTACK]{--type:#f0525f}.loadout-card-art[data-type=DEFENSE]{--type:#2388f5}.loadout-card-art[data-type=SUPPORT]{--type:#2fa65a}.loadout-card-art[data-type=STRATEGY]{--type:#925de5}.loadout-card-art[data-type=UTILITY]{--type:#f5a623}
+.loadout-card-art img{display:block;width:100%;height:100%;object-fit:cover}
+.loadout-card-art i{font-style:normal;font-size:38px;filter:drop-shadow(0 3px 0 #0000001f)}
+.loadout-card-art.is-empty{background:#f6efdd;border:2px dashed #e0d0a8}.loadout-card-art.is-empty i{color:#c8b98f;font-size:30px}
+
+.adventure-loadout-slots>*{min-height:0;align-content:start;padding:10px;border-radius:20px;background:#fffdf6;border:3px dashed #e0d0a8}
+.adventure-loadout-slots button{border:3px solid #fff;background:#fff;box-shadow:0 4px 0 #d9c49a;transition:transform .15s}
+.adventure-loadout-slots button:hover{transform:translateY(-4px)}
+.adventure-loadout-slots button small{color:#c2453f}
+.adventure-loadout-slots>*>span:first-child{position:absolute;margin:6px;z-index:1;display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#ffc93c;color:#5b3d06;box-shadow:0 2px 0 #d99a1e}
+.adventure-loadout-slots>*{position:relative}
+
+.adventure-library-card{display:flex;flex-direction:column;gap:2px;min-height:0;padding:10px 10px 12px;border:3px solid #fff;border-radius:20px;background:#fff;box-shadow:0 4px 0 #d9c49a,0 10px 18px #2e5a2a14}
+.adventure-library-card:hover:not(:disabled){border-color:#fff;transform:translateY(-4px);box-shadow:0 7px 0 #d9c49a,0 16px 24px #2e5a2a22}
+.adventure-library-card .loadout-card-art{margin-bottom:8px}
+.adventure-library-card>span:not(.loadout-card-art),.adventure-library-card>small{color:#2b7f40}
+.adventure-library-card strong{margin:2px 0 4px}
+.adventure-library-card.locked{opacity:.6}
+.adventure-library-card.prototype{border:3px dashed #c7b7ec;background:#fbf8ff}
+@media(prefers-reduced-motion:reduce){.adventure-loadout-slots button,.adventure-library-card{transition:none}}
+.loadout-card-art i{font-size:clamp(40px,5vw,64px)}
+.adventure-library-card .loadout-card-art{aspect-ratio:16/10}
+.adventure-loadout-slots .loadout-card-art i{font-size:clamp(30px,3.4vw,44px)}

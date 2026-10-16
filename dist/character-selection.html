@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/png" href="assets/ai-district-logo.png" />
-  <link rel="stylesheet" href="character-selection.css?v=character-roster-1" />
-  <script type="module" src="character-selection.js?v=phase5a-nancy-preview"></script>
+  <link rel="stylesheet" href="character-selection.css?v=phase5c-ownership-foundation" /><link rel="stylesheet" href="cozy-theme.css?v=cozy-2" />
+  <script type="module" src="character-selection.js?v=saved-loadouts-1"></script>
 </head>
 <body>
   <main class="character-select-shell">
@@ -22,11 +22,13 @@
 
     <section class="character-select-hero" aria-labelledby="character-select-title">
       <div><p>S+ ORIGINAL ROSTER</p><h1 id="character-select-title">เลือกตัวละครของคุณ</h1><span>ตัวละครนี้ใช้เป็น Identity บน UI ของ Scenario Adventure เท่านั้น และยังไม่เปลี่ยนตัวหมากบนกระดาน</span></div>
-      <div class="character-select-progress"><small>เส้นทางการเตรียมตัว</small><strong><b>1</b> ตัวละคร <i>→</i> 2 Deck 5 ใบ <i>→</i> 3 ผจญภัย</strong></div>
+      <div class="character-select-progress"><small>เส้นทางการเตรียมตัว</small><strong><b>1</b> ตัวละคร <i>→</i> 2 Deck 5 ใบ <i>→</i> 3 บันทึกชุด</strong></div>
     </section>
 
     <section class="character-gallery-section" aria-labelledby="roster-title">
       <div class="character-gallery-heading"><div><p>FULL S+ CARD ARTWORK</p><h2 id="roster-title">Character Roster</h2></div><span><b id="free-count">3</b> ตัวเริ่มต้น · <b id="locked-count">6</b> รอปลดล็อก</span></div>
+      <div class="ownership-feedback"><span id="ownership-status" role="status">กำลังตรวจสิทธิ์ตัวละคร…</span><button id="retry-ownership" type="button" hidden>ลองตรวจสิทธิ์อีกครั้ง</button></div>
+      <div class="ownership-feedback"><button id="continue-saved-loadout" type="button" hidden>ใช้ชุดที่บันทึกไว้</button><span>ชุดที่บันทึกเก็บเฉพาะบัญชีนี้บน Browser เครื่องนี้</span></div>
       <div id="character-gallery" class="character-gallery" aria-live="polite"></div>
     </section>
 

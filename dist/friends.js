@@ -140,10 +140,8 @@ function renderNotificationBadge() {
 }
 
 function renderNotifications() {
-  const copy = { friend_request: "ส่งคำขอเป็นเพื่อนถึงคุณ", friend_accepted: "ตอบรับคำขอเป็นเพื่อนแล้ว", direct_message: "ส่งข้อความใหม่ถึงคุณ", room_invite: "เชิญคุณเข้าห้องแข่งขัน" };
-  $("#notification-list").innerHTML = state.notifications.length ? state.notifications.map((item) => item.type === "room_invite" && !item.read_at
-    ? `<article class="notification-item unread room-invite-notification"><span class="avatar">${escapeHtml(avatarLetter(item.actor))}</span><span><strong>${escapeHtml(displayName(item.actor))}</strong><small>${copy[item.type]}</small><time>${new Intl.DateTimeFormat("th-TH", { dateStyle: "medium", timeStyle: "short" }).format(new Date(item.created_at))}</time><span class="notification-room-actions"><button data-room-invite-accept="${item.related_entity_id}">เข้าร่วม</button><button data-room-invite-decline="${item.related_entity_id}">ปฏิเสธ</button></span></span></article>`
-    : `<button class="notification-item ${item.read_at ? "" : "unread"}" data-notification-id="${item.id}" data-actor-id="${item.actor_id || ""}"><span class="avatar">${escapeHtml(avatarLetter(item.actor))}</span><span><strong>${escapeHtml(displayName(item.actor))}</strong><small>${copy[item.type] || "มีการอัปเดตใหม่"}</small><time>${new Intl.DateTimeFormat("th-TH", { dateStyle: "medium", timeStyle: "short" }).format(new Date(item.created_at))}</time></span></button>`).join("") : `<div class="social-empty small">ยังไม่มีการแจ้งเตือน</div>`;
+  const copy = { friend_request: "ส่งคำขอเป็นเพื่อนถึงคุณ", friend_accepted: "ตอบรับคำขอเป็นเพื่อนแล้ว", direct_message: "ส่งข้อความใหม่ถึงคุณ", room_invite: "คำเชิญห้องจากระบบเดิม (ไม่ใช้งานแล้ว)" };
+  $("#notification-list").innerHTML = state.notifications.length ? state.notifications.map((item) => `<button class="notification-item ${item.read_at ? "" : "unread"}" data-notification-id="${item.id}" data-actor-id="${item.actor_id || ""}"><span class="avatar">${escapeHtml(avatarLetter(item.actor))}</span><span><strong>${escapeHtml(displayName(item.actor))}</strong><small>${copy[item.type] || "มีการอัปเดตใหม่"}</small><time>${new Intl.DateTimeFormat("th-TH", { dateStyle: "medium", timeStyle: "short" }).format(new Date(item.created_at))}</time></span></button>`).join("") : `<div class="social-empty small">ยังไม่มีการแจ้งเตือน</div>`;
 }
 
 function openDialog(dialog) {
@@ -155,7 +153,7 @@ function openFriendProfile(friendId) {
   if (!friend) return;
   state.activeFriend = friend;
   const online = isFriendOnline(friend);
-  $("#friend-profile-content").innerHTML = `<div class="profile-modal-hero"><span class="avatar">${escapeHtml(avatarLetter(friend))}</span><i class="presence-dot ${online ? "online" : "offline"}"></i></div><p class="step">FRIEND PROFILE</p><h2>${escapeHtml(displayName(friend))}</h2><p class="profile-status">${escapeHtml(statusText(friend))}</p><div class="profile-facts"><span><b>LV. ${friend.level || 1}</b><small>ระดับผู้เล่น</small></span><span><b>${friend.interactionScore}</b><small>คะแนนปฏิสัมพันธ์ 30 วัน</small></span></div><div class="profile-primary-actions"><button data-profile-chat class="social-primary">💬 แชทส่วนตัว</button><button data-profile-room class="social-secondary">🎮 สร้างห้องและชวนเล่น</button></div><details class="profile-more"><summary>เพิ่มเติม</summary><button data-remove-friend>ลบเพื่อน</button><button data-block-friend>บล็อกผู้ใช้</button><button data-report-friend>รายงานผู้ใช้</button></details>`;
+  $("#friend-profile-content").innerHTML = `<div class="profile-modal-hero"><span class="avatar">${escapeHtml(avatarLetter(friend))}</span><i class="presence-dot ${online ? "online" : "offline"}"></i></div><p class="step">FRIEND PROFILE</p><h2>${escapeHtml(displayName(friend))}</h2><p class="profile-status">${escapeHtml(statusText(friend))}</p><div class="profile-facts"><span><b>LV. ${friend.level || 1}</b><small>ระดับผู้เล่น</small></span><span><b>${friend.interactionScore}</b><small>คะแนนปฏิสัมพันธ์ 30 วัน</small></span></div><div class="profile-primary-actions"><button data-profile-chat class="social-primary">💬 แชทส่วนตัว</button><button data-profile-room class="social-secondary">🎮 เปิด Ai Word</button></div><details class="profile-more"><summary>เพิ่มเติม</summary><button data-remove-friend>ลบเพื่อน</button><button data-block-friend>บล็อกผู้ใช้</button><button data-report-friend>รายงานผู้ใช้</button></details>`;
   openDialog($("#friend-profile-dialog"));
 }
 
@@ -257,16 +255,6 @@ document.addEventListener("click", async (event) => {
     else if (button.matches("[data-send-invite-request]")) await sendInviteRequest();
     else if (button.matches("[data-profile-chat]")) { $("#friend-profile-dialog").close(); await openChat(state.activeFriend); }
     else if (button.matches("[data-profile-room]")) window.location.assign("ai-world.html");
-    else if (button.dataset.roomInviteAccept) {
-      const { data, error } = await supabase.rpc("respond_room_invitation", { invitation_uuid: button.dataset.roomInviteAccept, accept_invitation: true });
-      if (error) throw error;
-      window.location.assign(`room.html?code=${encodeURIComponent(data.room_code)}`);
-    }
-    else if (button.dataset.roomInviteDecline) {
-      const { error } = await supabase.rpc("respond_room_invitation", { invitation_uuid: button.dataset.roomInviteDecline, accept_invitation: false });
-      if (error) throw error;
-      await loadNotifications(); renderNotifications(); renderNotificationBadge();
-    }
     else if (button.dataset.notificationId) {
       const { error } = await supabase.rpc("mark_notification_read", { notification_uuid: button.dataset.notificationId });
       if (error) throw error;

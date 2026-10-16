@@ -4,15 +4,32 @@ import { html } from "./runtime.js";
 
 const STEP_DURATION = .4;
 const STAND_HEIGHT = 1.08;
+const REDUCED_MOTION = () => Boolean(globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
 
 export function CharacterToken({ tilePositions, tileIndex, moveRequest, color = "#48bfff", offset = [0, 0, 0], onMoveComplete }) {
   const ref = useRef();
   const activeMove = useRef(null);
   const handledRequest = useRef(null);
+  const shownIndex = useRef(tileIndex);
   const start = tilePositions[tileIndex];
 
   useEffect(() => {
-    if (!ref.current || activeMove.current) return;
+    if (!ref.current || (activeMove.current && !activeMove.current.visualOnly)) return;
+    if (activeMove.current?.visualOnly && activeMove.current.path.at(-1) === tileIndex) return;
+    // A newer position cancels an unfinished glide; shownIndex only advances once a move settles.
+    activeMove.current = null;
+    const from = shownIndex.current;
+    // Visual-only glide for authoritative ±1/±2 position changes that arrive without a move request
+    // (Movement bonus). It never calls onMoveComplete, so no event, score or turn logic is triggered.
+    const count = tilePositions.length;
+    const forward = ((tileIndex - from) % count + count) % count;
+    const step = forward > 0 && forward <= 2 ? 1 : forward >= count - 2 ? -1 : 0;
+    if (step && !REDUCED_MOTION()) {
+      const path = Array.from({ length: step > 0 ? forward : count - forward }, (_, i) => ((from + step * (i + 1)) % count + count) % count);
+      activeMove.current = { path, startIndex: from, segment: 0, elapsed: 0, visualOnly: true };
+      return;
+    }
+    shownIndex.current = tileIndex;
     const position = tilePositions[tileIndex];
     ref.current.position.set(position[0] + offset[0], position[1] + STAND_HEIGHT + offset[1], position[2] + offset[2]);
   }, [tileIndex, tilePositions, offset]);
@@ -56,7 +73,8 @@ export function CharacterToken({ tilePositions, tileIndex, moveRequest, color = 
 
     const finalIndex = movement.path[movement.path.length - 1];
     activeMove.current = null;
-    onMoveComplete?.(finalIndex);
+    shownIndex.current = finalIndex;
+    if (!movement.visualOnly) onMoveComplete?.(finalIndex);
   });
   return html`
     <group ref=${ref} position=${[start[0] + offset[0], start[1] + STAND_HEIGHT + offset[1], start[2] + offset[2]]}>

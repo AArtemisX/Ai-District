@@ -3,81 +3,92 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#070b18" />
+  <meta name="theme-color" content="#8fd16a" />
   <title>Lobby — Ai District</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/png" href="assets/ai-district-logo.png" />
-  <link rel="stylesheet" href="style.css?v=action-cards-phase4a" />
+  <link rel="stylesheet" href="style.css?v=action-cards-phase4a" /><link rel="stylesheet" href="ai-world.css?v=rooms-4-final-20261015" />
+  <link rel="stylesheet" href="lobby-game.css?v=lobby-game-4" />
   <script type="module" src="lobby.js"></script>
+  <script type="module" src="lobby-deck.js?v=lobby-game-2"></script>
 </head>
-<body>
-  <div class="noise" aria-hidden="true"></div>
-  <div class="orb orb-one" aria-hidden="true"></div>
-  <div class="orb orb-two" aria-hidden="true"></div>
-  <main>
-    <section class="screen lobby-screen" aria-labelledby="lobby-title">
-      <header class="lobby-header">
-        <a class="brand compact" href="lobby.html"><img class="brand-logo" src="assets/ai-district-logo.png" alt="Ai District" /><span>Ai District</span></a>
-        <nav aria-label="เมนูหลัก"><a class="nav-active" href="lobby.html">ล็อบบี้</a><a href="learning.html">บทเรียน</a><a href="friends.html">เพื่อน</a><a href="ai-world.html">AI World</a></nav>
-        <div class="profile-mini">
-          <div class="avatar" id="avatar-letter">P</div>
-          <div><strong id="nav-player-name">PLAYER</strong><small><i></i> ออนไลน์</small></div>
-          <button id="logout-button" class="logout-button" title="ออกจากระบบ" aria-label="ออกจากระบบ">↪</button>
-        </div>
-      </header>
-      <div class="lobby-content">
-        <div class="lobby-heading">
-          <div><p class="step">COMMAND CENTER / LOBBY</p><h1 id="lobby-title">พร้อมลุยไหม, <span id="welcome-name">PLAYER</span>?</h1></div>
-          <div class="players-online"><span class="status-dot"></span><strong>1,284</strong><small>ผู้เล่นออนไลน์</small></div>
-        </div>
-        <div class="portal-grid">
-          <a class="portal-card learning-portal" href="learning.html"><span class="portal-number">01</span><div><p class="step">LEARNING PATH</p><h2>เรียนรู้โลกของ AI</h2><p>เรียนบทเรียนจริยธรรมและผลกระทบ ทำกิจกรรม แล้วปลดล็อกของรางวัล</p></div><b>เริ่มเรียน →</b></a>
-          <a class="portal-card world-portal" href="ai-world.html"><span class="portal-number">02</span><div><p class="step">MULTIPLAYER BOARD</p><h2>เข้าสู่ AI World</h2><p>เลือกตัวละครและไอเทม สร้างห้อง แล้วออกสำรวจโลก AI แบบผลัดกันเล่น</p></div><b>เตรียมทีม →</b></a>
-        </div>
-        <section class="card-hub-banner" aria-labelledby="card-hub-title">
-          <div class="card-hub-copy">
-            <p class="step">ACTION CARD HUB</p>
-            <h2 id="card-hub-title">จัดการการ์ดก่อนออกผจญภัย</h2>
-            <p>แยกคลังการ์ดถาวร ชุดทดลอง Prototype และ Deck 5 ใบสำหรับ Scenario Adventure อย่างชัดเจน</p>
-          </div>
-          <nav class="card-hub-links" aria-label="เมนู Action Card">
-            <a href="card-inventory.html"><span>คลังถาวร</span><small>ดูสิทธิ์ Locked / Unlocked และชุด Battle 3 ใบ</small></a>
-            <a href="action-card-preview.html"><span>Prototype Gallery</span><small>ทดลอง UI Artwork 10 ใบ — ไม่บันทึกเข้าบัญชี</small></a>
-            <a class="primary" href="character-selection.html"><span>เลือกตัวละครและจัด Deck</span><small>เลือก S+ Identity ก่อนเริ่ม Scenario Adventure</small></a>
-          </nav>
-        </section>
-        <div class="lobby-grid status-grid">
-          <article class="flow-card">
-            <div class="card-title"><div><p class="step">LEARNING PROGRESS</p><h2>ความก้าวหน้าของคุณ</h2></div><b id="lesson-count">0 / 11</b></div>
-            <div class="progress large"><span id="learning-progress-bar"></span></div>
-            <div class="flow-stats"><span><strong id="character-count">1</strong> ตัวละคร</span><span><strong id="item-count">0</strong> ไอเทม</span><span><strong id="player-xp">0</strong> XP</span></div>
-          </article>
-          <aside class="side-column">
-            <section class="squad-card friends-lobby-card">
-              <div class="card-title"><div><p class="step">SOCIAL HUB</p><h2>เพื่อนของคุณ</h2></div><span id="lobby-friend-count">0 คน</span></div>
-              <div id="lobby-friend-preview" class="lobby-friend-preview"><div class="social-loading">กำลังโหลดเพื่อน…</div></div>
-              <a class="invite social-lobby-link" href="friends.html">👥 เปิด Friends Hub <span>→</span></a>
-              <a class="invite social-lobby-link" href="friends.html?action=add">＋ เพิ่มเพื่อนด้วยลิงก์หรือ QR</a>
-            </section>
-            <section class="daily-card">
-              <div class="card-title"><div><p class="step">DAILY MISSION</p><h2 id="mission-title">ภารกิจวันนี้</h2></div><b id="mission-reward">+500 XP</b></div>
-              <p id="mission-description">กำลังโหลดภารกิจ…</p><div class="progress-row"><div class="progress"><span id="mission-progress-bar"></span></div><strong id="mission-progress-text">0 / 0</strong></div>
-            </section>
-          </aside>
-        </div>
-        <section class="quick-modes" aria-labelledby="quick-title" hidden>
-          <div class="section-title"><div><p class="step">QUICK PLAY</p><h2 id="quick-title">เลือกโหมดด่วน</h2></div><button>ดูทั้งหมด →</button></div>
-          <div class="mode-list">
-            <button class="mode-card"><span class="mode-icon">◈</span><span><b>DUEL ARENA</b><small>1 VS 1 · RANKED</small></span><i>→</i></button>
-            <button class="mode-card"><span class="mode-icon">⬡</span><span><b>CORE RUSH</b><small>3 VS 3 · CASUAL</small></span><i>→</i></button>
-            <button class="mode-card"><span class="mode-icon">△</span><span><b>VOID RAID</b><small>CO-OP · HARD</small></span><i>→</i></button>
-          </div>
-        </section>
+<body class="lobby-game">
+  <div class="lg-sky" aria-hidden="true"><i class="lg-cloud c1"></i><i class="lg-cloud c2"></i><i class="lg-cloud c3"></i><i class="lg-hill h1"></i><i class="lg-hill h2"></i><i class="lg-hill h3"></i></div>
+  <main class="lg-shell">
+    <header class="lg-topbar">
+      <a class="lg-logo" href="lobby.html" aria-label="Ai District ล็อบบี้"><img src="assets/ai-district-logo.png" alt="Ai District" /></a>
+      <div class="lg-player">
+        <div class="lg-avatar" id="avatar-letter">P</div>
+        <div class="lg-player-text"><strong id="nav-player-name">PLAYER</strong><small><i></i> ออนไลน์</small></div>
       </div>
-      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+      <div class="lg-resources" aria-label="ทรัพยากรของคุณ">
+        <span class="lg-pill xp" title="XP"><b aria-hidden="true">★</b><strong id="player-xp">0</strong><small>XP</small></span>
+        <span class="lg-pill items" title="ไอเทม"><b aria-hidden="true">◆</b><strong id="item-count">0</strong><small>ไอเทม</small></span>
+        <span class="lg-pill heroes" title="ตัวละคร"><b aria-hidden="true">☺</b><strong id="character-count">1</strong><small>ตัวละคร</small></span>
+        <span class="lg-pill online players-online" title="ผู้เล่นออนไลน์"><b class="status-dot" aria-hidden="true"></b><strong>1,284</strong><small>ออนไลน์</small></span>
+      </div>
+      <div class="lg-top-actions">
+        <a class="lg-round" href="friends.html" aria-label="เพื่อน" title="เพื่อน">👥</a>
+        <button id="logout-button" class="lg-round logout-button" title="ออกจากระบบ" aria-label="ออกจากระบบ">⏻</button>
+      </div>
+    </header>
+
+    <section class="lg-stage" aria-labelledby="lobby-title">
+      <div class="lg-main">
+        <div class="lg-hello">
+          <p class="lg-kicker">AI DISTRICT · ผจญภัยเรียนรู้จริยธรรม AI</p>
+          <h1 id="lobby-title" class="lg-title">พร้อมลุยไหม, <span id="welcome-name">PLAYER</span>?</h1>
+        </div>
+
+        <section id="lobby-squad" class="lg-squad" data-state="loading" aria-labelledby="squad-title">
+          <span class="lg-panel-tag gold">ทีมของฉัน</span>
+          <div class="lg-squad-hero">
+            <div class="lg-squad-portrait"><img src="assets/ai-district-logo.png" alt="" /></div>
+            <div class="lg-squad-info">
+              <h2 id="squad-title" class="lg-squad-name">กำลังโหลดชุดของคุณ…</h2>
+              <p class="lg-squad-preset">ตัวละครและการ์ด 5 ใบที่จะใช้ใน Ai Word</p>
+              <a class="lg-squad-edit portal-card world-portal" href="character-selection.html">✎ เปลี่ยนตัวละคร / จัด Deck</a>
+            </div>
+          </div>
+          <div class="lg-squad-cards" aria-label="การ์ด 5 ใบในชุด">
+            <div class="lg-card is-empty" style="--i:0"></div><div class="lg-card is-empty" style="--i:1"></div><div class="lg-card is-empty" style="--i:2"></div><div class="lg-card is-empty" style="--i:3"></div><div class="lg-card is-empty" style="--i:4"></div>
+          </div>
+        </section>
+
+        <nav class="lg-shortcuts" aria-label="เมนูทางลัด">
+          <a href="learning.html"><span class="lg-hub-icon blue" aria-hidden="true">📘</span><span><b>บทเรียน</b><small>เรียนรู้โลกของ AI</small></span></a>
+          <a href="card-inventory.html"><span class="lg-hub-icon purple" aria-hidden="true">🗃️</span><span><b>คลังการ์ด</b><small>Locked / Unlocked</small></span></a>
+          <a href="action-card-preview.html"><span class="lg-hub-icon teal" aria-hidden="true">🖼️</span><span><b>Gallery</b><small>ทดลองดูการ์ด</small></span></a>
+          <a href="friends.html"><span class="lg-hub-icon green" aria-hidden="true">👥</span><span><b>เพื่อน</b><small>Friends Hub</small></span></a>
+          <a href="crystal-palace.html"><span class="lg-hub-icon gold" aria-hidden="true">🏛️</span><span><b>Crystal Palace</b><small>เดินชมนิทรรศการ AI</small></span></a>
+        </nav>
+      </div>
+
+      <aside class="lg-side">
+        <section class="lg-panel lg-quest" aria-labelledby="mission-title">
+          <span class="lg-panel-tag">ภารกิจวันนี้</span>
+          <div class="lg-panel-head"><h2 id="mission-title">ภารกิจวันนี้</h2><b id="mission-reward">+500 XP</b></div>
+          <p id="mission-description">กำลังโหลดภารกิจ…</p>
+          <div class="lg-bar-row"><div class="lg-bar"><span id="mission-progress-bar"></span></div><strong id="mission-progress-text">0 / 0</strong></div>
+        </section>
+        <section class="lg-panel lg-progress" aria-labelledby="progress-title">
+          <span class="lg-panel-tag green">ความก้าวหน้า</span>
+          <div class="lg-panel-head"><h2 id="progress-title">บทเรียนที่ผ่าน</h2><b id="lesson-count">0 / 11</b></div>
+          <div class="lg-bar xp"><span id="learning-progress-bar"></span></div>
+        </section>
+        <section class="lg-panel lg-friends" aria-labelledby="friends-title">
+          <span class="lg-panel-tag blue">เพื่อน</span>
+          <div class="lg-panel-head"><h2 id="friends-title">เพื่อนของคุณ</h2><b id="lobby-friend-count">0 คน</b></div>
+          <div id="lobby-friend-preview" class="lobby-friend-preview"><div class="social-loading">กำลังโหลดเพื่อน…</div></div>
+          <div class="lg-friend-actions"><a href="friends.html">Friends Hub</a><a href="friends.html?action=add">＋ เพิ่มเพื่อน</a></div>
+        </section>
+      </aside>
     </section>
+
+    <a class="lg-start" href="ai-world.html"><span class="lg-start-icon" aria-hidden="true">▶</span><span><b>เริ่มเกม</b><small>เข้า Ai Word</small></span></a>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
   </main>
 </body>
 </html>

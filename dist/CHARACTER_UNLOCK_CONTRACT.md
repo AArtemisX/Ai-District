@@ -1,8 +1,20 @@
 # AI District — Character Unlock Design Contract
 
-สถานะ: **Phase 5A Design Only**  
+สถานะ: **Phase 5C Local Foundation + SQL Draft / Not Applied**  
 วันที่: 14 ตุลาคม 2026  
-ข้อจำกัด: เอกสารนี้ไม่ใช่ Migration, ไม่เปิด Character Claim และไม่เปลี่ยนตัวละคร Locked ให้เล่นได้
+ข้อจำกัด: SQL Draft อยู่ใน `supabase/character_unlock_phase5c.DRAFT.sql`; ยังไม่ Apply, ไม่เปิด Character Claim และไม่เปลี่ยนตัวละคร Locked ให้เล่นได้
+
+## Phase 5C implementation checkpoint (latest)
+
+- Migration prerequisites, schema assumptions, verification matrix และ rollback อยู่ใน `CHARACTER_UNLOCK_MIGRATION_PLAN.md`
+- เพิ่ม `characters/character-ownership.mjs` เป็น read-only repository; ตรวจ Auth ก่อน/หลัง read, row account/ID/audit shape, timeout และ fail-closed; ไม่ใช้ storage/cache เป็นสิทธิ์
+- Selection แสดง `FREE`, `LOCKED`, `UNLOCKED`, `LOADING`, `ERROR`; retry ได้และล้าง snapshot เมื่อบัญชีเปลี่ยน
+- `UNLOCKED` หมายถึง ownership row ที่อ่านจาก Server เท่านั้น ยังไม่เปิด gameplay rollout: session parser และ selection gate ยังคง Free-only เพื่อรักษาเส้นทางเกมเดิม
+- RPC Draft รับเฉพาะ lesson code และ derive account, approved mapping, active quiz policy, passed attempt และ reward ฝั่ง Server; primary key ป้องกันรับซ้ำ
+- Draft มี RLS read-own, explicit grants/revokes และ `search_path=''`; mapping เริ่มต้นว่าง ไม่มี Nancy seed
+- ไม่มี Client Claim UI/call หรือ Production Mission ID ที่สร้างเอง; Preview completion ไม่ปลดล็อก Nancy
+- ผล Mock/Static tests ไม่ใช่หลักฐานว่า PostgreSQL migration ผ่าน; ต้องตรวจ provenance ของ Quiz RPC จริงและผ่าน Staging ก่อนเปิดใช้
+- ส่วน Phase 5A ด้านล่างเป็น design history; ให้ยึด checkpoint นี้และ Migration Plan สำหรับสถานะล่าสุด
 
 ## 1. Character Ownership Data Model
 

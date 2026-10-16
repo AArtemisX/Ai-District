@@ -12,7 +12,6 @@ function BackgroundBuilding({ position, height, accent }) {
 export function SkyDecor() {
   const skyline = [
     [-14,.05,-10,2.2],[-11,.05,-13,3.1],[-6,.05,-14,2.5],[6,.05,-14,3.2],[11,.05,-13,2.4],[14,.05,-9,3],
-    [-14,.05,10,2.7],[-10,.05,13,2.2],[-5,.05,14,3.1],[6,.05,14,2.35],[11,.05,13,3],[14,.05,9,2.3],
   ];
   return html`<group>
     ${skyline.map((p,i)=>html`<${BackgroundBuilding} key=${i} position=${p.slice(0,3)} height=${p[3]} accent=${i%3===0?"#f6d779":i%3===1?"#b6a2e8":"#65dff4"} />`)}

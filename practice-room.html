@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="th">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>เลือกห้อง — AI District</title>
+<link rel="stylesheet" href="character-selection.css"><link rel="stylesheet" href="practice-room.css"><script type="module" src="practice-room.js?v=board-events-r3a-final"></script></head>
+<body><main class="practice-shell">
+<header><a href="lobby.html">← กลับ Lobby</a><a href="map-3d.html?mode=scenario-adventure">แก้ไข Deck</a></header>
+<section><p>SCENARIO ADVENTURE</p><h1>เลือกห้องเล่นของฉัน</h1><p>เลือกเล่นกับ Bot ในเครื่อง หรือสร้าง/เข้าห้องออนไลน์ 2 ผู้เล่น ใช้ตัวละครและ Deck เดิม</p>
+<div id="practice-summary" aria-live="polite">กำลังตรวจชุดตัวละครและ Deck…</div>
+<section aria-label="เล่นกับคนออนไลน์"><h2>เล่นกับคนออนไลน์ · 2 ผู้เล่น</h2><p>Server ต้องเปิดอยู่และผู้เล่นทั้งสองต้องเข้าถึง Server เดียวกัน ห้องเก็บในหน่วยความจำจน Server ปิด</p><label for="online-server">Server URL</label><input id="online-server" type="url" value="http://127.0.0.1:4180"><button id="online-create" type="button" disabled>สร้างห้องออนไลน์</button><label for="online-code">รหัสห้อง</label><input id="online-code" maxlength="8" placeholder="รหัส 8 ตัว"><button id="online-join" type="button" disabled>เข้าห้องออนไลน์</button><p id="online-message" role="status"></p></section><h2>ห้องฝึกกับ Bot</h2><form id="practice-create-form"><label for="practice-room-name">ชื่อห้อง</label><input id="practice-room-name" maxlength="60" value="ห้องของฉัน" required><button type="submit" disabled id="practice-create-button">สร้างห้องฝึก</button></form>
+<div id="practice-waiting" hidden><h2 id="practice-title"></h2><p>คุณพร้อมแล้ว · AI Bot พร้อมแล้ว</p><p>ใช้ตัวละครและการ์ดชุดเดิม ไม่มีการเลือกซ้ำ</p><button id="practice-start" type="button">เริ่มเกมกับ Bot</button></div>
+<p id="practice-message" role="status"></p><button id="practice-leave" type="button">ออกและกลับ Lobby</button>
+</section></main></body></html>
