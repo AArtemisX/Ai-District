@@ -1,11 +1,146 @@
 # AI District 2.0 — Project Handoff README
 
 > เอกสารนี้จัดทำเพื่อส่งต่อโปรเจกต์ไปพัฒนาบนเครื่องอื่น หรือให้ AI/Coding Agent ตัวใหม่อ่านก่อนเริ่มแก้โค้ด  
-> อัปเดตล่าสุด: 16 ตุลาคม 2026 (Asia/Bangkok) — Crystal Palace Phase 3 Connected Demo (crystal-palace.html) / READY WITH LIMITATIONS / ไม่มี Deploy
+> อัปเดตล่าสุด: 16 ตุลาคม 2026 (Asia/Bangkok) — Board Rules v2 "ช่องโบนัส" (เปลี่ยนกติกาตามที่เจ้าของอนุมัติ) / ต่อจาก Round 5H โต๊ะไพ่กลางจอ / ไม่มี SQL, Supabase หรือ Deploy
 
 > กติกาการทำงานถาวร: ทุกครั้งที่มีการแก้หรือเพิ่มระบบ ต้องอัปเดตไฟล์ `README.md` นี้ในรอบเดียวกัน โดยระบุสถานะล่าสุด ไฟล์ที่แก้ ผลทดสอบ ข้อจำกัด และงานถัดไปตามจริง
 
-## CURRENT DEMO — Crystal Palace Phase 3: Connected Demo (16 ตุลาคม 2026)
+## CURRENT DEMO — Board Rules v2: ช่องโบนัส (16 ตุลาคม 2026)
+
+### สถานะ: **READY WITH LIMITATIONS** — รอเจ้าของเซ็นรับ Gameplay v2
+
+สัญญากติกาใหม่อยู่ที่ **`GAMEPLAY_FREEZE_HANDOFF_v2.md`** (v1 เก็บไว้เป็นประวัติ) ซึ่งเปลี่ยน v1 เฉพาะเรื่องต่อไปนี้:
+
+- **ช่อง 8 จาก 32 ช่องเป็นช่องโบนัสทันที** (ไม่มีป๊อปอัพให้เลือก) มี 4 แบบ แบบละ 2 ช่อง: ⏩ เดินหน้า 2 ช่อง (ช่อง 3, 19) · ★ RP +1 (ช่อง 7, 23) · ♥ Stability +1 สูงสุด 10 (ช่อง 11, 27) · ☕ พักเติมพลัง ไม่มีผล (ช่อง 15, 31) — เลขช่องนับแบบที่เห็นบนกระดาน (index + 1)
+- ช่อง MOVEMENT แบบเลือก (เดินหน้า 2 / ถอย 2 +1 RP) ถูกยุบรวมเป็นช่องโบนัส สัดส่วนใหม่คือ **ACTION 12 / BONUS 8 / SUPPORT 4 / RISK 4 / DECISION 4**
+- **Rule A':** เดินหน้า 2 แล้วถ้าช่องปลายทางเป็นช่องสถานการณ์ จะเปิดเหตุการณ์นั้น 1 ครั้งในเทิร์นเดียวกัน (และนับเป็นเหตุการณ์ของเทิร์นนั้น) ถ้าปลายทางเป็นช่องโบนัสอีกช่อง จะไม่ต่อโบนัส ผ่าน START ไม่ได้อะไรเพิ่ม
+- ช่องโบนัสนับเป็นเทิร์นของผู้เล่น ยังเล่นคนละ 6 เทิร์นเหมือนเดิม
+
+### สิ่งที่เปลี่ยน
+
+- `scenario-adventure/board-events.js`: mapping v2 (`TILE_EVENT_TYPES`, `TILE_BONUS_KINDS`, `BONUS_CONFIG`) และ `landOnTile()` ฟังก์ชันเดียวที่ใช้ทั้ง Online และ Local ส่วน `chooseEventIntent()` คืนค่า `null` สำหรับ BONUS
+- `scenario-adventure/online-rooms.mjs`: `roll` ทำ ทอย → เดิน → โบนัส/เหตุการณ์ปลายทาง ใน commit และ revision เดียว เพิ่ม `room.bonus` และ `movement.bonusPath` ส่วน guard เดิมทุกตัวยังอยู่
+- `scenario-adventure/app.js` (Local Practice): ใช้ `landOnTile` ช่องโบนัสไปที่ผลลัพธ์ทันที
+- ภาพ: `event-visuals.js` (BONUS + สัญลักษณ์ ⏩ ★ ♥ ☕), `ScenarioAdventureScene.js`, `map-3d/BoardTile.js` (วาดสัญลักษณ์จาก visual อย่างเดียว), `BoardEventPanel.js`
+- Online UI `online-app.js`: แสดง toast "ช่องโบนัส: เดินหน้า 2 ช่อง" ฯลฯ หลังเดินจบ (ถ้าเป็นเทิร์นคนอื่นจะมีชื่อนำหน้า) การ +2 ใช้ glide ของ `CharacterToken.js` เดิม แล้วค่อยเปิด popup หรือโต๊ะไพ่ของเหตุการณ์ปลายทาง CSS อยู่ใน `scenario-adventure.css` และ `online-room.html` เปลี่ยนเลข cache เป็น `?v=board-v2`
+- เทสต์: ใหม่ `board-rules-v2.test.mjs` (15 เทสต์) และอัปเดตเทสต์ที่ยืนยัน mapping v1 ให้เป็น v2 โดยตั้งใจ ได้แก่ `board-events.test.mjs`, `neo-district-visual.test.mjs`, `bot-decision-policy.test.mjs`, `scenario-online-http.test.mjs`
+
+### ผลทดสอบ
+
+- `node --test` ทั้งโปรเจกต์: **457/457 ผ่าน**
+- ชุด dist (`board-events`, `bot-decision-policy`, `neo-district-visual`, `scenario-online-http`, `board-rules-v2`, `scenario-online`, `turn-popup`): **52/52 ผ่าน**
+- dist mirror: 18 ไฟล์ที่เปลี่ยน SHA-256 ตรงกันทั้งหมด (รวม `CardTable.js`/`ai-world.css`/`online-app.js` ของ Round 5H ที่อยู่ในไฟล์เดียวกัน)
+- **Browser QA** (Browser pane, static worktree ที่ `127.0.0.1:4175` + room server ที่ `4181` เพราะ 4174/4180 ถูก session อื่นใช้อยู่): ห้อง "Board v2 QA 20261016" มี 2 ที่นั่ง คือคน + Bot เล่นจบ **3 แมตช์ติดกันจนถึงหน้าผลลัพธ์** (เล่นอีกครั้ง 2 ครั้ง) 12/12 events ทุกแมตช์ ไม่มี turn ค้าง และ room server ไม่มี error
+  - เห็นจริง: Bot ได้ ★ RP +1 (+1 RP), ผู้เล่นได้ ☕ พัก (ไม่มีผล นับเทิร์น), ★ RP +1 และ ♥ Stability +1; Bot ได้ ⏩ จากช่อง 19 ไปช่อง 21 แล้วเปิด DECISION 1 ครั้ง (`viaBonus: FORWARD_2`) พร้อม toast "เปิดเหตุการณ์ช่อง 21"
+  - Replay reset: ตำแหน่ง 0, 0 RP / 10 Stability, 0/6 เทิร์น, history/actionIds ว่าง, `bonus: null`
+
+### ข้อจำกัด / งานถัดไป
+
+- ในเลย์เอาต์จริง ⏩ จะไม่มีวันไปตกช่องโบนัสอีกช่อง กรณีไม่ต่อโบนัสจึงทดสอบด้วยเทสต์อัตโนมัติเท่านั้น
+- ถ้าเทิร์นสุดท้ายตกช่องโบนัส แมตช์จะจบทันทีตอนทอย และไม่เห็น toast สุดท้าย
+- ข้อความแถบเทิร์นของคนอื่นยังใช้คำว่า "เลือก:" กับผลโบนัส (เช่น "เลือก: RP +1")
+- `gameplay-balance-sim.mjs` ยังเป็นสคริปต์ของ v1 (ยังมี MOVEMENT) ยังไม่ได้อัปเดต
+- ยังไม่ commit งานรอบนี้ และไม่มี SQL, Supabase หรือ Deploy
+
+## CURRENT DEMO — Round 5H: โต๊ะไพ่กลางจอสำหรับเทิร์น ACTION (16 ตุลาคม 2026)
+
+### สถานะ: **READY WITH LIMITATIONS**
+
+- เจ้าของขอให้การ์ด Action แสดงกลางจอเหมือนเกมไพ่ ซึ่งเป็น presentation เท่านั้น: เลือกการ์ดด้วย `setSelected` เดิม และยืนยันด้วย `action('respond', …)` เดิม payload เหมือนเดิมทุกตัว (resolver, คะแนน, deck/hand, server ไม่เปลี่ยน)
+- เจ้าของขอเปลี่ยนกติกาให้มีช่องโบนัสด้วย แต่เลือกให้ทำ **หลังเดโม่** เพราะกระทบ Gameplay Freeze v1 กติกาที่เลือกไว้:
+  - ช่องโบนัสผสม 4 แบบ: เดินหน้า 2 / RP +1 / Stability +1 / ช่องพัก
+  - ใช้ 8 ช่องจาก 32 ช่อง
+  - เดินโบนัสแล้วให้เปิดสถานการณ์ปลายทางได้ 1 ครั้ง โดยไม่ต่อโบนัสซ้ำ (เปลี่ยน Rule A)
+  - รอบนี้ **ยังไม่ได้แตะ** `board-events.js` หรือกติกาใดๆ
+
+### สิ่งที่เปลี่ยน
+
+- **ใหม่ `scenario-adventure/CardTable.js`:** overlay เต็มจอตอนเทิร์นเราใน ACTION (`RESPONSE_SELECTION` + `room.scenario` + ยังไม่มี `room.result`)
+  - ด้านบนเป็นการ์ดสถานการณ์ (หมวด, ชื่อ, เนื้อเรื่อง)
+  - ตรงกลางเป็นไพ่ในมือกางเป็นพัด และไพ่ใบสุดท้ายคือ "ตอบแบบพื้นฐาน"
+  - ด้านล่างมีคำใบ้ความเข้ากัน (ข้อความเดิมจาก `evaluateCardCompatibility`), จำนวน มือ/จั่ว/ทิ้ง และปุ่มยืนยัน
+  - หน้าไพ่ใช้ artwork ถ้ามีการ map กับ Prototype (ตอนนี้มี Firewall Guard) ใบอื่นเป็นภาพประกอบตามประเภท (⚡ ATTACK / 🛡️ DEFENSE / 🧭 CONTROL / ✚ SUPPORT) และมีเหรียญ EN มุมซ้ายบน
+  - ปุ่ม "ดูกระดาน ▾" ซ่อนโต๊ะไพ่ และกด "เปิดหน้าต่างเทิร์นของฉัน" เพื่อกลับมา
+- **`scenario-adventure/online-app.js`** (markup และเงื่อนไขแสดงผลเท่านั้น): เพิ่ม `cardTurn` ซึ่ง `GamePopup` จะไม่เปิดระหว่าง `cardTurn` และ render `CardTable` แทน ส่วนเทิร์นของผู้เล่นอื่น, Event ชนิดอื่น และผลลัพธ์ยังใช้ popup เดิม
+- **`ai-world.css`:**
+  - ไพ่กางเป็นพัดด้วย `rotate`/`translate` แยก property; ไพ่ที่เลือกยกขึ้น ตั้งตรง ขยาย 1.08 และมีขอบทอง
+  - แจกไพ่ทีละใบตอนเปิด
+  - ขนาดไพ่คำนวณตามความกว้างจอและจำนวนไพ่ (เผื่อระยะการหมุน) และบนมือถือซ้อนแน่นขึ้น ไพ่ใหญ่ขึ้น อยู่กลางจอ
+  - รองรับ reduced motion
+- `online-room.html`: cache `?v=card-table-1`
+
+### Tests / Parity / QA
+
+- `node --test` ทั้งชุดผ่าน **449/449**
+- `dist/` ที่ HEAD ตรงกับ source ก่อนแก้ และหลัง mirror ตรงกัน **4/4 ไฟล์**
+- Browser pane (หน้าทดสอบแยกที่ใช้ `CardTable.js` + `ai-world.css` ตัวจริงกับข้อมูลสมมติ):
+  - 602px: ไพ่ 4 ใบอยู่ในจอทั้งหมด, เลือก Firewall Guard แล้วไพ่ยกขึ้นและปุ่มยืนยันเปิดใช้
+  - 390×844: ไพ่กว้างประมาณ 115px อยู่กลางจอ และไม่มี scroll แนวนอน
+- **ยังไม่ได้ตรวจ:** เทิร์น ACTION จริงในห้อง Online (ทอย → เดิน → โต๊ะไพ่ → ยืนยัน → ผลลัพธ์) และ Safari
+
+### STOP
+
+- ไม่ Deploy, ไม่แก้ SQL และไม่แตะ Gameplay ส่วนกติกาช่องโบนัส v2 รออนุมัติให้เริ่มหลังเดโม่
+
+## CURRENT DEMO — Crystal Palace Phase 4: Polish (16 ตุลาคม 2026)
+
+### สถานะ: **READY WITH LIMITATIONS** — หยุดหลัง Phase 4 ตามแผน
+
+- งานภาพ/UX เท่านั้น: **ไม่แตะข้อมูล, SQL, Gameplay, rooms, Auth**; ไม่ Deploy, ไม่ commit (git ให้ session หลักจัดการ)
+- ยังคงอัตลักษณ์ Crystal Palace ไฮด์ปาร์ก 1851: หลังคาโค้งกลางหลังเดียว, หลังคาลดหลั่น, ridge-and-furrow
+
+### สิ่งที่เปลี่ยน
+
+- **แสงและวัสดุ**
+  - ใหม่ `crystal-palace/scene/Atmosphere.js`: `SoftEnvironment` สร้าง environment map แบบ procedural ครั้งเดียว (โดมท้องฟ้าอุ่น + พื้นหญ้า + จุดแดด ผ่าน `PMREMGenerator` ไม่โหลด HDR) ให้กระจก/เหล็กมีเงาสะท้อนนุ่มๆ **โดยไม่ใช้ transmission**; `LightShafts` ลำแสงอุ่นใต้หลังคาโค้ง (instanced 1 draw call, additive, หายใจช้าๆ)
+  - แสงอุ่นขึ้น (hemisphere/ambient/sun สีครีมทอง, เงานุ่มขึ้น `shadow-radius`) ยังเป็นไฟเงาดวงเดียว 1024
+  - กระจกผนัง/สันหลังคา/หลังคาโค้ง: roughness ต่ำ + metalness เล็กน้อยเพื่อ sheen; เสาเหล็กมีเงาวาวเล็กน้อย
+  - พื้นไม้ปาร์เก้จาก canvas pattern เดียว (ใช้ซ้ำทุกแผ่นพื้น), พรมแยกสีตามโซน (instanced 1 draw call), วงแหวนสีฟ้ารอบน้ำพุ
+- **การนำทาง**
+  - ลูกศรบนพื้น (chevron, instanced 1 draw call): ทางเข้า → โถงกลาง แล้วออกไปแต่ละปีกตามสีโซน; ข้อมูลอยู่ใน `config/palace-layout.js` (`FLOOR_PATHS`)
+  - ใหม่ `scene/Signpost.js`: ป้ายไม้ชี้ทางที่โถงกลาง (`SIGNPOSTS` ใน config) 4 แผ่น อ่านได้ทั้งสองด้าน — หน้าป้ายทั้งหมดรวมเป็น geometry เดียว + texture atlas เดียว; เป็นสิ่งกีดขวางใน collision
+  - ใหม่ `systems/minimap.js` (pure) + `ui/Minimap.js`: แผนที่ย่อมุมขวาบน (มือถือ: มุมขวาล่าง) แสดงโซนจาก config, เส้นพื้นที่เดินได้, จุดนิทรรศการ (สีทอง = จบแล้ว), ลูกศรผู้เล่น + เข็มทิศ N; **แตะแผนที่เพื่อเดินไป**; ลูกศรผู้เล่นอัปเดตตรงที่ DOM ทุกเฟรม (ไม่ re-render React); ซ่อนเมื่อเปิดแผงนิทรรศการ
+- **แอนิเมชัน** (ทั้งหมดปิดเมื่อ `prefers-reduced-motion`)
+  - ตัวละคร: เด้งตอนเดิน + เอนตัวไปข้างหน้าแบบนุ่ม (`rotation.order = "YXZ"`) + หันตามทิศเดิน
+  - น้ำพุ: ละอองน้ำ 28 หยด (instanced) และวงคลื่นสองวงบนอ่าง
+  - ต้นเอล์มและต้นไม้รอบสวนโยกเบาๆ ผ่าน instance matrix (ไม่เพิ่ม draw call)
+  - คริสตัลของบทเรียนที่ยัง "เรียนได้" เต้นเป็นจังหวะ
+- **มือถือ**
+  - `systems/movement.js`: `smoothDirection` (ease เข้า/ออก ไม่ขึ้นกับ frame rate), จอยสติ๊กมี dead zone + power curve, `arrivalSpeedFactor` ให้การแตะเดินชะลอก่อนถึงเป้าหมายโดยไม่เลยเป้า
+  - ปุ่ม HUD/ปิดแผงสูง 44px, จอยสติ๊ก 132px, แผนที่ย่อไม่ทับจอยสติ๊ก/prompt; ไม่มี horizontal overflow
+- แก้ไฟล์อื่น: `scene/PalaceScene.js`, `PalaceStructure.js`, `TranseptVault.js`, `AtriumLandmarks.js`, `ExhibitStand.js`, `PlayerAvatar.js`, `instancing.js` (`materialProps`), `systems/collision.js` (signpost), `app.js`, `crystal-palace.css`; bump cache `crystal-palace.html` → `?v=cp-4`
+- เทสต์ใหม่ `crystal-palace-polish.test.mjs` (8 เทสต์)
+
+### Performance (Browser pane, วัดแบบเดียวกันก่อน/หลัง: แตะพื้นให้เดิน แล้วนับ rAF 3 วินาที + นับ draw call ผ่าน WebGL2 รวม shadow pass)
+
+| ขนาด | ก่อน | หลัง |
+|---|---|---|
+| 1280×720 | 60.2 fps · ~50 draw calls/เฟรม · p95 17.6 ms | 60.1 fps · ~61 draw calls/เฟรม · p95 17.6 ms |
+| 390×844 | 40.5 fps · ~57 draw calls/เฟรม · p95 17.7 ms | 40.2 fps · ~68 draw calls/เฟรม · p95 17.6 ms |
+
+- Draw call เพิ่ม ~11 ต่อเฟรม (ลำแสง, พรม, ลูกศร, ป้ายชี้ทาง, ละอองน้ำ/วงคลื่น); frame time p95 เท่าเดิม
+- ตัวเลข fps ที่ 390×844 ต่ำกว่า 60 ทั้งก่อนและหลังเพราะ Browser pane หยุด rAF เป็นช่วงๆ เมื่อไม่มี input จริง (ไม่ใช่ค่าบนมือถือจริง)
+
+### Tests / Parity / QA
+
+- `crystal-palace-polish.test.mjs`: minimap fit/aspect/round-trip/ทิศ, shapes จาก config, transform ลูกศรผู้เล่นตาม heading, จอยสติ๊ก dead zone + curve, `smoothDirection` (ease + ไม่ขึ้นกับ fps + หยุดสนิท), แตะเดินชะลอและไม่เลยเป้า, signpost เป็นของแข็งและไม่ขวางทาง/นิทรรศการ, กฎ budget (ไม่มี transmission, ไฟเงาดวงเดียว 1024, dpr ≤ 1.5, มี reduced-motion guard)
+- เทสต์ collision เดิม (reachability ทุกนิทรรศการจาก spawn) ยังผ่านหลังเพิ่ม signpost
+- `node --test` ทั้งชุดผ่าน **449/449** (441 เดิม + 8 ใหม่)
+- `dist/` mirror **17 ไฟล์ที่เปลี่ยน/ใหม่** SHA-256 ตรงกัน และทั้ง tree `crystal-palace/` + `crystal-palace.html` ตรงกับ dist ทุกไฟล์
+- Browser pane (static 4174 ของ session หลัก, ล็อกอินแล้ว): 1280×720, 1024×768, 390×844 — ป้าย/ลูกศร/พรม/วงแหวน/ละอองน้ำ/ลำแสง/แผนที่ย่อแสดงผล, แตะแผนที่ย่อแล้วเดินไปได้, จอยสติ๊กทำงาน, แผนที่ย่อซ่อนตอนเปิดแผง, ไม่มี console error, ไม่มี horizontal overflow
+
+### ข้อจำกัด
+
+- ยังไม่ได้ทดสอบ reduced motion ในเบราว์เซอร์ (pane จำลองไม่ได้) — โค้ดมี guard ทุกจุดและมีเทสต์ static
+- แตะพื้น/แตะแผนที่ย่อยังเดินเส้นตรง (ไม่มี pathfinding) จะหยุดที่น้ำพุ/แท่น
+- ตัวเลข fps เป็นของ Browser pane เท่านั้น; ยังไม่ได้วัดบน Safari/มือถือจริง/GPU รุ่นต่ำ
+- ไม่ได้ start/stop server ในรอบนี้ (ใช้ static 4174 และ room 4180 ที่ session หลักเปิดไว้)
+
+### STOP
+
+- ไม่ Deploy, ไม่แก้ SQL, ไม่แตะ Gameplay, ไม่ commit/push
+
+## PREVIOUS DEMO — Crystal Palace Phase 3: Connected Demo (16 ตุลาคม 2026)
 
 ### สถานะ: **READY WITH LIMITATIONS** — หยุดหลัง Phase 3 ตามแผน
 

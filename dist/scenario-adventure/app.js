@@ -1,5 +1,5 @@
 import {BoardEventPanel} from './BoardEventPanel.js';
-import {openBoardEvent,resolveBoardEvent,chooseEventIntent,eventSummary} from './board-events.js';
+import {landOnTile,resolveBoardEvent,chooseEventIntent,eventSummary} from './board-events.js';
 import { createRoot } from "react-dom/client";
 import { requirePlayer } from "../flow-common.js";
 import { readScenarioCharacterSelection, writeScenarioCharacterSelection } from "../characters/character-session.js";
@@ -126,7 +126,7 @@ function ScenarioPanel({ event,onEventResolve,scenario, actor, deck, inventory, 
   const isBot = actor === "bot";
   const eventVisual = eventVisualForType(event?.type || "ACTION");
   return html`<aside className="adventure-response-panel" aria-live="polite">
-    <div className="scenario-meta"><small className="event-type-badge" style=${{'--event-color':eventVisual.color,'--event-dark':eventVisual.dark}}>${eventVisual.shortLabel} · ${eventVisual.label}</small><span>${scenario.category}${scenario.categoryChanged ? " · หมวดเดิมหมด เลือกเรื่องใหม่ในธีมเดียวกัน" : ""}</span><span>${scenario.difficulty}</span></div>${scenario.status==="DEMO_DRAFT" ? html`<small>DEMO_DRAFT · รอตรวจทานเนื้อหา</small>` : null}<h2>${scenario.title}</h2><p className="scenario-description">${scenario.description}</p>
+    <div className="scenario-meta"><small className="event-type-badge" style=${{'--event-color':eventVisual.color,'--event-dark':eventVisual.dark}}>${eventVisual.shortLabel} · ${eventVisual.label}</small><span>${scenario.category}${scenario.categoryChanged ? " · หมวดเดิมหมด เลือกเรื่องใหม่ในธีมเดียวกัน" : ""}</span><span>${scenario.difficulty}</span></div>${scenario.status==="DEMO_DRAFT" ? html`<small>DEMO_DRAFT · รอตรวจทานเนื้อหา</small>` : null}${event?.viaBonus ? html`<p className="bonus-via-note">⏩ ${event.viaBonus.title} → เปิดเหตุการณ์ช่องปลายทาง</p>` : null}<h2>${scenario.title}</h2><p className="scenario-description">${scenario.description}</p>
     <section className="response-options"><h3>${isBot ? "บอทกำลังเลือกการตอบสนอง" : "เลือกการ์ดในมือได้ 1 ใบ"}</h3>
       <div className="response-hand">${deck.hand.map((instance) => { const card = cardData(instance.cardId, inventory); const active = selection?.instanceId === instance.instanceId; return html`<button type="button" disabled=${isBot || phase !== PHASES.RESPONSE_SELECTION} className=${active ? "selected" : ""} onClick=${() => onSelectCard(instance)}><small>${card.card_type}</small><strong>${card.name}</strong><span>${card.description}</span></button>`; })}</div>
       <button type="button" className=${`basic-response ${selection?.type === RESPONSE_TYPES.BASIC ? "selected" : ""}`} disabled=${isBot || phase !== PHASES.RESPONSE_SELECTION} onClick=${onSelectBasic}><small>BASIC RESPONSE · ไม่ใช้การ์ด</small><strong>${scenario.basicResponse.label}</strong><span>${scenario.basicResponse.description}</span></button>
@@ -160,10 +160,12 @@ function Game({ inventory, loadout, roomName, onReplay }) {
   const openScenario=async (movedActor,finalIndex)=>{
     if(openingScenario.current)return;openingScenario.current=true;setScenarioError("");changePhase(PHASES.SCENARIO);
     try {
-      const opened=await openBoardEvent({match:matchRef.current,actorId:movedActor,tileIndex:finalIndex});
+      // Rule A' (v2): a BONUS tile resolves on landing; FORWARD_2 may open one destination event instead.
+      const opened=await landOnTile({match:matchRef.current,actorId:movedActor,tileIndex:finalIndex});
       if(matchRef.current.status!=="PLAYING")return;
+      if(opened.position!==finalIndex){const nextPositions={...positionsRef.current,[movedActor]:opened.position};positionsRef.current=nextPositions;setPositions(nextPositions);}
       matchRef.current=opened.match;setMatch(opened.match);setEvent(opened.event);
-      setScenario(opened.scenario);setSelection(null);setResult(null);changePhase(PHASES.RESPONSE_SELECTION);
+      setScenario(opened.scenario);setSelection(null);setResult(opened.result);changePhase(opened.result?PHASES.RESOLVED:PHASES.RESPONSE_SELECTION);
     }catch(error){setScenarioError(error.code==="SCENARIO_POOL_EXHAUSTED"?"ไม่มีสถานการณ์ใหม่ในธีมนี้แล้ว กลับห้องฝึกเพื่อเริ่มแมตช์ใหม่ได้ โดยไม่เสียเทิร์น":"เปิดสถานการณ์ไม่สำเร็จ กดลองใหม่ได้โดยไม่เสียเทิร์น");}finally{openingScenario.current=false;}
   };
   const onMoveComplete=(movedActor,finalIndex)=>{

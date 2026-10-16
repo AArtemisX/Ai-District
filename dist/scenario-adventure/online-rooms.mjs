@@ -1,4 +1,4 @@
-import {openBoardEvent,resolveBoardEvent,chooseEventIntent,eventTypeForTile} from './board-events.js';
+import {landOnTile,resolveBoardEvent,chooseEventIntent,eventTypeForTile,bonusKindForTile} from './board-events.js';
 import {randomInt,randomUUID,randomBytes,scryptSync,timingSafeEqual} from 'node:crypto';
 import {isSelectableCharacter} from '../characters/character-roster.js';
 import {validateAdventureLoadout} from './loadout-engine.js';
@@ -12,7 +12,7 @@ export const ONLINE_ROLES=['player','bot','player3','player4'];
 function capacity(value=2){const count=Number(value);if(!Number.isInteger(count)||count<2||count>4)throw Error('INVALID_CAPACITY');return count;}
 function passwordHash(password,salt){return scryptSync(password,salt,32);}
 export class OnlineRooms {
- constructor({random=()=>randomInt(0,1000000)/1000000,now=Date.now,eventType=eventTypeForTile}={}){this.eventType=eventType;this.rooms=new Map();this.queues=new Map();this.random=random;this.now=now;}
+ constructor({random=()=>randomInt(0,1000000)/1000000,now=Date.now,eventType=eventTypeForTile,bonusKind=bonusKindForTile}={}){this.eventType=eventType;this.bonusKind=bonusKind;this.rooms=new Map();this.queues=new Map();this.random=random;this.now=now;}
  validateSetup(setup,inventory){if(!isSelectableCharacter(setup?.characterId)||!Array.isArray(setup.cardIds)||!validateAdventureLoadout(setup.cardIds,inventory.allowedIds,{policy:inventory.loadoutPolicy}).valid)throw Error('SETUP_NOT_ELIGIBLE');}
  member(user,setup,inventory,role){this.validateSetup(setup,inventory);return {userId:user.id,role,characterId:setup.characterId,cardIds:[...setup.cardIds],allowedIds:[...inventory.allowedIds],ready:false,isBot:false};}
  addBot(room){if(room.members.length>=room.maxPlayers)throw Error('ROOM_FULL_OR_STARTED');const owner=room.members.find(m=>m.userId===room.ownerId),role=ONLINE_ROLES.find(id=>!room.members.some(m=>m.role===id));room.members.push({...owner,userId:'AI-BOT-'+randomUUID(),role,cardIds:[...owner.cardIds],allowedIds:[...owner.allowedIds],isBot:true,ready:true});}
@@ -42,7 +42,7 @@ export class OnlineRooms {
   room.members.forEach((member,index)=>{member.role=ONLINE_ROLES[index];});
   const actorOrder=room.members.map(m=>m.role);room.match=createScenarioAdventureMatch({themeId:room.themeId,actorOrder});
   room.decks=Object.fromEntries(room.members.map(m=>[m.role,createDeckState(m.cardIds,{actorId:m.role,matchId:randomUUID(),random:this.random})]));
-  room.positions=Object.fromEntries(actorOrder.map(id=>[id,0]));room.phase='WAITING';room.event=null;room.scenario=null;room.result=null;room.lastRoll=null;room.movement=null;room.error=null;room.status='PLAYING';this.unreadyHumans(room);
+  room.positions=Object.fromEntries(actorOrder.map(id=>[id,0]));room.phase='WAITING';room.event=null;room.scenario=null;room.result=null;room.bonus=null;room.lastRoll=null;room.movement=null;room.error=null;room.status='PLAYING';this.unreadyHumans(room);
  }
  async act(user,code,command){return this.enqueue(code,()=>this.apply(user,code,command));}
  async enqueue(code,work){const key=String(code).toUpperCase(),prior=this.queues.get(key)||Promise.resolve();const next=prior.catch(()=>{}).then(work);this.queues.set(key,next);try{return await next;}finally{if(this.queues.get(key)===next)this.queues.delete(key);}}
@@ -77,17 +77,18 @@ export class OnlineRooms {
   if(command.type==='roll'){
    if(room.phase!=='WAITING')throw Error('INVALID_PHASE');
    const value=1+Math.floor(this.random()*6),from=room.positions[role],path=buildTilePath(from,value),to=path.at(-1);
-   const opened=await openBoardEvent({match:room.match,actorId:role,tileIndex:to,random:this.random,type:this.eventType(to)});
-   room.match=opened.match;room.event=opened.event;room.scenario=opened.scenario;room.lastRoll=value;room.positions={...room.positions,[role]:to};room.movement={id:randomUUID(),actor:role,from,path};room.phase='RESPONSE_SELECTION';room.result=null;room.botActionAfter=this.now()+1150+value*400+700;
+   // Rule A' (v2): roll → land → BONUS applies instantly (or FORWARD_2 opens one destination event), committed together.
+   const landed=await landOnTile({match:room.match,actorId:role,tileIndex:to,random:this.random,eventType:this.eventType,bonusKind:this.bonusKind});
+   room.match=landed.match;room.event=landed.event;room.scenario=landed.scenario;room.bonus=landed.bonus;room.lastRoll=value;room.positions={...room.positions,[role]:landed.position};room.movement={id:randomUUID(),actor:role,from,path,bonusPath:landed.bonusPath};
+   room.result=landed.result;room.phase=landed.result?'RESOLVED':'RESPONSE_SELECTION';room.botActionAfter=this.now()+1150+value*400+700+landed.bonusPath.length*400+(landed.result?1600:0);if(room.match.status==='FINISHED')room.status='FINISHED';
   }else if(command.type==='respond'){
    if(room.phase!=='RESPONSE_SELECTION')throw Error('INVALID_PHASE');
    const resolved=resolveBoardEvent({match:room.match,event:room.event,scenario:room.scenario,actorId:role,deck:room.decks[role],allowedIds:member.allowedIds,intent:command,position:room.positions[role]});
    if(resolved.duplicate)throw Error('EVENT_ALREADY_RESOLVED');
    room.positions={...room.positions,[role]:resolved.position};
-   // Rule A: sync bonus position without firing landing callbacks or a second event.
 room.match=resolved.match;room.decks[role]=resolved.deck;room.result=resolved.result;room.phase='RESOLVED';room.botActionAfter=this.now()+1600;if(room.match.status==='FINISHED')room.status='FINISHED';
   }else if(command.type==='continue'){
-   if(room.phase!=='RESOLVED')throw Error('INVALID_PHASE');const order=room.match.actorOrder,next=order[(order.indexOf(role)+1)%order.length];room.match={...room.match,currentTurn:next};room.decks[next]=prepareDeckForTurn(room.decks[next],this.random);room.phase='WAITING';room.event=null;room.scenario=null;room.result=null;room.movement=null;room.botActionAfter=0;
+   if(room.phase!=='RESOLVED')throw Error('INVALID_PHASE');const order=room.match.actorOrder,next=order[(order.indexOf(role)+1)%order.length];room.match={...room.match,currentTurn:next};room.decks[next]=prepareDeckForTurn(room.decks[next],this.random);room.phase='WAITING';room.event=null;room.scenario=null;room.result=null;room.bonus=null;room.movement=null;room.botActionAfter=0;
   }else throw Error('INVALID_COMMAND');room.error=null;
  }
  async tickBots(){
@@ -101,6 +102,6 @@ room.match=resolved.match;room.decks[role]=resolved.deck;room.result=resolved.re
    }));
   }await Promise.allSettled(jobs);
  }
- view(room,userId){const role=room.members.find(m=>!m.isBot&&m.userId===userId)?.role;return structuredClone({code:room.code,name:room.name,themeId:room.themeId,maxPlayers:room.maxPlayers,requiresPassword:Boolean(room.passwordHash),status:room.status,revision:room.revision,isOwner:room.ownerId===userId,role,members:room.members.map(m=>({role:m.role,characterId:m.characterId,ready:m.ready,isBot:m.isBot,isOwner:!m.isBot&&m.userId===room.ownerId})),match:room.match,positions:room.positions,phase:room.phase,event:room.event,scenario:room.scenario,result:room.result,lastRoll:room.lastRoll,movement:room.movement,error:room.error,deck:room.decks?.[role]});}
+ view(room,userId){const role=room.members.find(m=>!m.isBot&&m.userId===userId)?.role;return structuredClone({code:room.code,name:room.name,themeId:room.themeId,maxPlayers:room.maxPlayers,requiresPassword:Boolean(room.passwordHash),status:room.status,revision:room.revision,isOwner:room.ownerId===userId,role,members:room.members.map(m=>({role:m.role,characterId:m.characterId,ready:m.ready,isBot:m.isBot,isOwner:!m.isBot&&m.userId===room.ownerId})),match:room.match,positions:room.positions,phase:room.phase,event:room.event,scenario:room.scenario,result:room.result,bonus:room.bonus,lastRoll:room.lastRoll,movement:room.movement,error:room.error,deck:room.decks?.[role]});}
  cleanup(){for(const [code,room] of this.rooms)if(this.now()-room.updatedAt>24*60*60*1000)this.rooms.delete(code);}
 }

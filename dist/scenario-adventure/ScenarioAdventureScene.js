@@ -13,8 +13,8 @@ import { SkyDecor } from "../map-3d/SkyDecor.js";
 import { TransitDecor } from "../map-3d/TransitDecor.js";
 import { NeoDistrict } from "../map-3d/NeoDistrict.js";
 import { NatureDecor } from "../map-3d/NatureDecor.js";
-import { eventTypeForTile } from "./board-events.js";
-import { eventVisualForType } from "./event-visuals.js";
+import { bonusKindForTile, eventTypeForTile } from "./board-events.js";
+import { tileVisualFor } from "./event-visuals.js";
 
 function Scene({ selectedTile, onSelectTile, playerPosition, botPosition, movement, onMoveComplete, rollRequest, onRollComplete, extraActors = [] }) {
   return html`<${React.Fragment}>
@@ -31,7 +31,7 @@ function Scene({ selectedTile, onSelectTile, playerPosition, botPosition, moveme
       <${NatureDecor} />
       ${BOARD_TILES.map((tile) => {
         const eventType = eventTypeForTile(tile.index);
-        return html`<${BoardTile} key=${tile.id} tile=${tile} eventType=${eventType} visual=${eventVisualForType(eventType)} selected=${selectedTile === tile.index} onSelect=${onSelectTile} />`;
+        return html`<${BoardTile} key=${tile.id} tile=${tile} eventType=${eventType} visual=${tileVisualFor(eventType, bonusKindForTile(tile.index))} selected=${selectedTile === tile.index} onSelect=${onSelectTile} />`;
       })}
       <${AICore} />
       <${Dice3D} rollRequest=${rollRequest} onRollComplete=${onRollComplete} />

@@ -2,22 +2,34 @@ import {TILE_POSITIONS,normalizeTileIndex} from '../map-3d/board-data.js';
 import {selectAdventureScenario,recordScenarioUse} from './scenario-engine.js';
 import {createScenarioRepository} from './scenario-repository.js';
 import {createResponseSelection,resolveMatchResponse,commitMatchResult,evaluateCardCompatibility,DEMO_MATCH_CONFIG,RESPONSE_TYPES} from './response-engine.js';
-export const EVENT_TYPES=['ACTION','MOVEMENT','SUPPORT','RISK','DECISION'];
-// 32 actual path tiles: 12 ACTION, 6 MOVEMENT, 5 SUPPORT, 5 RISK, 4 DECISION.
-export const TILE_EVENT_TYPES=Object.freeze(['ACTION','MOVEMENT','SUPPORT','ACTION','RISK','DECISION','ACTION','MOVEMENT','SUPPORT','ACTION','RISK','MOVEMENT','ACTION','DECISION','SUPPORT','ACTION','RISK','MOVEMENT','ACTION','SUPPORT','DECISION','ACTION','RISK','MOVEMENT','ACTION','SUPPORT','ACTION','DECISION','ACTION','MOVEMENT','ACTION','RISK']);
+export const EVENT_TYPES=['ACTION','BONUS','SUPPORT','RISK','DECISION'];
+// Board rules v2 (owner-approved 16 Oct 2026): 32 path tiles = 12 ACTION, 8 BONUS, 4 SUPPORT, 4 RISK, 4 DECISION.
+// BONUS tiles resolve instantly with no choice; the kind of each BONUS tile is in TILE_BONUS_KINDS.
+export const TILE_EVENT_TYPES=Object.freeze(['ACTION','ACTION','BONUS','ACTION','RISK','DECISION','BONUS','ACTION','SUPPORT','ACTION','BONUS','SUPPORT','ACTION','DECISION','BONUS','ACTION','RISK','ACTION','BONUS','SUPPORT','DECISION','ACTION','BONUS','RISK','ACTION','SUPPORT','BONUS','DECISION','ACTION','ACTION','BONUS','RISK']);
 if(TILE_EVENT_TYPES.length!==TILE_POSITIONS.length)throw Error('EVENT_MAPPING_MISMATCH');
-export const EVENT_CONFIG=Object.freeze({movement:2,supportRP:1,supportStability:1,riskRP:1,riskStability:-1,decisionFastRP:2,decisionFastStability:-1,decisionReviewRP:1});
+export const BONUS_KINDS=Object.freeze(['FORWARD_2','RP_PLUS_1','STABILITY_PLUS_1','REST']);
+// One BONUS tile every 4 tiles; FORWARD_2 tiles are 16 apart and always land on a scenario tile.
+export const TILE_BONUS_KINDS=Object.freeze({2:'FORWARD_2',6:'RP_PLUS_1',10:'STABILITY_PLUS_1',14:'REST',18:'FORWARD_2',22:'RP_PLUS_1',26:'STABILITY_PLUS_1',30:'REST'});
+if(Object.keys(TILE_BONUS_KINDS).some(i=>TILE_EVENT_TYPES[i]!=='BONUS')||TILE_EVENT_TYPES.filter(t=>t==='BONUS').length!==Object.keys(TILE_BONUS_KINDS).length)throw Error('BONUS_MAPPING_MISMATCH');
+export const EVENT_CONFIG=Object.freeze({bonusMove:2,bonusRP:1,bonusStability:1,supportRP:1,supportStability:1,riskRP:1,riskStability:-1,decisionFastRP:2,decisionFastStability:-1,decisionReviewRP:1});
+export const BONUS_CONFIG=Object.freeze({
+ FORWARD_2:Object.freeze({kind:'FORWARD_2',steps:EVENT_CONFIG.bonusMove,rp:0,stability:0,label:'เดินหน้า 2 ช่อง',title:'ช่องโบนัส: เดินหน้า 2 ช่อง',explanation:'ทางลัดที่ตรวจสอบแล้ว พาคุณเดินหน้าอีก 2 ช่อง'}),
+ RP_PLUS_1:Object.freeze({kind:'RP_PLUS_1',steps:0,rp:EVENT_CONFIG.bonusRP,stability:0,label:'RP +1',title:'ช่องโบนัส: RP +1',explanation:'แบ่งปันความรู้ AI ให้ทีม ได้รับ RP +1'}),
+ STABILITY_PLUS_1:Object.freeze({kind:'STABILITY_PLUS_1',steps:0,rp:0,stability:EVENT_CONFIG.bonusStability,label:'Stability +1',title:'ช่องโบนัส: Stability +1',explanation:'ทีมได้พักและทบทวนระบบ Stability +1 (สูงสุด 10)'}),
+ REST:Object.freeze({kind:'REST',steps:0,rp:0,stability:0,label:'พักเติมพลัง',title:'ช่องโบนัส: พักเติมพลัง',explanation:'จุดพักผ่อน ไม่มีอะไรเกิดขึ้นในเทิร์นนี้'}),
+});
 const choice=(id,label,rp,stability,explanation,steps=0)=>({id,label,rp,stability,explanation,steps});
 export const EVENT_CATALOG={
- MOVEMENT:[{id:'route-audit',title:'ตรวจสอบเส้นทางข้อมูล',description:'พบทางลัดที่ยังไม่มีบันทึกการตรวจสอบ คุณจะเลือกทางใด?'},{id:'model-checkpoint',title:'จุดทบทวนโมเดล',description:'มีจุดตรวจความถูกต้องด้านหลัง ก่อนนำโมเดลไปพื้นที่ถัดไป'}].map(e=>({...e,choices:[choice('forward','เดินหน้า 2 ช่อง · RP +0',0,0,'เดินหน้าต่อ แต่ยังไม่มีหลักฐานใหม่ยืนยันทางลัด',EVENT_CONFIG.movement),choice('review','ถอย 2 ช่องเพื่อตรวจเส้นทาง · RP +1',1,0,'ยอมย้อนตรวจหลักฐานเพื่อให้เส้นทางตรวจสอบได้',-EVENT_CONFIG.movement)]})),
  SUPPORT:[{id:'citizen-help',title:'ทีมสนับสนุนประชาชน',description:'ทีมงานมีทรัพยากรช่วยคุณได้หนึ่งด้าน'},{id:'audit-resources',title:'ทรัพยากรการตรวจสอบ',description:'ได้รับเวลาสำหรับเสริมความพร้อมหรือทำรายงาน'}].map(e=>({...e,choices:[choice('report','ทำรายงาน · RP +1',EVENT_CONFIG.supportRP,0,'สื่อสารข้อมูลให้ผู้เกี่ยวข้องตรวจสอบ'),choice('restore','ทบทวนความพร้อม · Stability +1',0,EVENT_CONFIG.supportStability,'เพิ่มความพร้อมของกระบวนการ สูงสุด 10')] })),
  RISK:[{id:'unverified-source',title:'แหล่งข้อมูลยังไม่ยืนยัน',description:'ข้อมูลถูกส่งต่อก่อนตรวจสอบแหล่งที่มา',cardTags:['VERIFY','AUDIT'],compatibilityRules:{effective:['data-strike'],partial:['secure-backup','lag-pulse'],reason:'ต้องตรวจแหล่งที่มาและหลักฐานก่อนใช้ข้อมูล'}},{id:'sensitive-export',title:'ข้อมูลอ่อนไหวกำลังถูกส่งออก',description:'พบคำขอส่งข้อมูลที่ยังไม่ได้จำกัดสิทธิ์เข้าถึง',cardTags:['PRIVACY','SAFETY'],compatibilityRules:{effective:['firewall-guard','access-denied'],partial:['secure-backup'],reason:'ต้องจำกัดการเข้าถึงและทบทวนสิทธิ์ก่อนส่งข้อมูล'}}].map(e=>({...e,choices:[choice('accept','ทำงานต่อพร้อมรับความเสี่ยง · RP +1 / Stability -1',EVENT_CONFIG.riskRP,EVENT_CONFIG.riskStability,'ยังทำงานต่อได้ แต่ความเสี่ยงที่ไม่แก้ไขลดความมั่นคงของกระบวนการ')]})),
  DECISION:[{id:'pilot-oversight',title:'ขยายระบบหรือทบทวนก่อน',description:'โครงการพร้อมขยาย แต่ยังมีข้อจำกัดด้านการกำกับดูแล'},{id:'public-explanation',title:'รายงานผลให้สาธารณะ',description:'ต้องตัดสินใจระหว่างรายงานเร็วกับใช้เวลาทบทวนคำอธิบาย'}].map(e=>({...e,choices:[choice('pilot','เดินหน้าทดลองพร้อมรับภาระตรวจภายหลัง · RP +2 / Stability -1',EVENT_CONFIG.decisionFastRP,EVENT_CONFIG.decisionFastStability,'การทดลองมีประโยชน์ แต่ต้องติดตามผลและรับผิดชอบความเสี่ยง'),choice('review','ทบทวนก่อน · RP +1 / Stability ไม่ลด',EVENT_CONFIG.decisionReviewRP,0,'ใช้เวลาตรวจความเป็นธรรมและคำอธิบายเพื่อรักษาความพร้อม')]}))
 };
 export const eventTypeForTile=index=>TILE_EVENT_TYPES[normalizeTileIndex(index)];
+export const bonusKindForTile=index=>TILE_BONUS_KINDS[normalizeTileIndex(index)]||null;
 export function bonusPath(from,steps){if(!Number.isInteger(steps)||Math.abs(steps)>2)throw Error('INVALID_BONUS_MOVEMENT');return Array.from({length:Math.abs(steps)},(_,i)=>normalizeTileIndex(from+Math.sign(steps)*(i+1)));}
 export async function openBoardEvent({match,actorId,tileIndex,random=Math.random,type=eventTypeForTile(tileIndex)}){
  if(match.status!=='PLAYING'||match.currentTurn!==actorId)throw Error('INVALID_TURN');
+ if(type==='BONUS')throw Error('BONUS_TILE_HAS_NO_EVENT');
  const turn=match.turns[actorId]+1,id=`${actorId}:${turn}:${tileIndex}`;
  if((match.eventHistory||[]).some(e=>e.actorId===actorId&&e.turn===turn))throw Error('EVENT_ALREADY_OPENED');
  let scenario=null,content;
@@ -27,13 +39,38 @@ export async function openBoardEvent({match,actorId,tileIndex,random=Math.random
  const next={...match,eventHistory:[...(match.eventHistory||[]),{...event,resolved:false}],scenarioHistory:type==='ACTION'?recordScenarioUse(match.scenarioHistory,{scenario,actorId,tileIndex,turnNumber:turn}):match.scenarioHistory};
  return {match:next,event,scenario};
 }
+// Rule A' (v2): one landing per turn. Scenario tiles open their event; BONUS tiles apply instantly.
+// FORWARD_2 moves +2 along the real path; a scenario destination opens once and becomes this turn's event,
+// another BONUS destination does not chain. Passing START grants nothing. The bonus counts as the actor's turn.
+export async function landOnTile({match,actorId,tileIndex,random=Math.random,eventType=eventTypeForTile,bonusKind=bonusKindForTile}){
+ if(match.status!=='PLAYING'||match.currentTurn!==actorId||match.turns[actorId]>=match.maxTurnsPerActor)throw Error('INVALID_TURN');
+ const type=eventType(tileIndex);
+ if(type!=='BONUS'){const opened=await openBoardEvent({match,actorId,tileIndex,random,type});return {...opened,bonus:null,bonusPath:[],position:tileIndex,result:null};}
+ const config=BONUS_CONFIG[bonusKind(tileIndex)];if(!config)throw Error('INVALID_BONUS_TILE');
+ const turn=match.turns[actorId]+1,id=`${actorId}:${turn}:${tileIndex}`;
+ if((match.eventHistory||[]).some(e=>e.actorId===actorId&&e.turn===turn))throw Error('EVENT_ALREADY_OPENED');
+ const path=config.steps?bonusPath(tileIndex,config.steps):[],position=path.at(-1)??tileIndex;
+ const destinationType=path.length?eventType(position):null;
+ const bonus={kind:config.kind,tileIndex,label:config.label,title:config.title,explanation:config.explanation,destination:path.length?position:null,chainStopped:destinationType==='BONUS'};
+ if(destinationType&&destinationType!=='BONUS'){
+  const opened=await openBoardEvent({match,actorId,tileIndex:position,random,type:destinationType});
+  const event={...opened.event,viaBonus:bonus};
+  return {match:{...opened.match,eventHistory:opened.match.eventHistory.map(e=>e.id===event.id?{...e,viaBonus:bonus}:e)},event,scenario:opened.scenario,bonus,bonusPath:path,position,result:null};
+ }
+ const explanation=bonus.chainStopped?`${config.explanation} · ถึงช่องโบนัสอีกช่อง จึงไม่เปิดโบนัสต่อ`:config.explanation;
+ const event={status:'FINAL',id,actorId,turn,tileIndex,type:'BONUS',contentId:config.kind,bonusKind:config.kind,title:config.title,description:explanation,choices:[]};
+ const committed=commitMatchResult({match,actorId,deck:null,actionId:'bonus:'+id,result:{actorId,status:'RESOLVED',responseType:'BONUS',compatibility:'BONUS',bonusKind:config.kind,rpDelta:config.rp,stabilityDelta:config.stability,explanation,impact:config.label,eventId:id,eventType:'BONUS'}});
+ if(committed.duplicate)throw Error('EVENT_ALREADY_OPENED');
+ return {match:{...committed.match,eventHistory:[...(committed.match.eventHistory||[]),{...event,resolved:true}]},event,scenario:null,bonus,bonusPath:path,position,result:committed.result};
+}
 export function resolveBoardEvent({match,event,scenario,actorId,deck,allowedIds,intent,position}){
  if(['rp','rpDelta','stability','stabilityDelta','position','positions','tileIndex','event','score','scores'].some(key=>Object.hasOwn(intent,key)))throw Error('INVALID_EVENT_INTENT');
  const record=(match.eventHistory||[]).find(e=>e.id===event?.id);
  if(!record||record.actorId!==actorId||event.actorId!==actorId)throw Error('INVALID_EVENT');
  if(record.resolved)return {duplicate:true,match,deck,result:null,position};
+ if(event.type==='BONUS')throw Error('BONUS_TILE_HAS_NO_EVENT');
  if(match.currentTurn!==actorId||match.turns[actorId]+1!==event.turn)throw Error('INVALID_TURN');
- let resolved,path=[];
+ let resolved;
  if(event.type==='ACTION'||(event.type==='RISK'&&intent.responseType==='CARD')){
   if(event.type==='ACTION'&&!['BASIC','CARD'].includes(intent.responseType))throw Error('INVALID_RESPONSE_TYPE');
   const selection=createResponseSelection({type:intent.responseType,scenario,deck,instanceId:intent.instanceId});
@@ -41,12 +78,11 @@ export function resolveBoardEvent({match,event,scenario,actorId,deck,allowedIds,
  }else{
   if(intent.responseType||intent.instanceId)throw Error('EVENT_CHOICE_REQUIRED');
   const definition=EVENT_CATALOG[event.type]?.find(e=>e.id===event.contentId),selected=definition?.choices.find(c=>c.id===intent.choiceId);if(!selected)throw Error('INVALID_EVENT_CHOICE');
-  if(selected.steps)path=bonusPath(position,selected.steps);
   resolved=commitMatchResult({match,actorId,deck,actionId:'event:'+event.id,result:{actorId,status:'RESOLVED',responseType:'EVENT',compatibility:event.type,rpDelta:selected.rp,stabilityDelta:selected.stability,explanation:selected.explanation,impact:selected.label,choiceId:selected.id}});
  }
  const result={...resolved.result,eventId:event.id,eventType:event.type};
  const next={...resolved.match,eventHistory:resolved.match.eventHistory.map(e=>e.id===event.id?{...e,resolved:true,choiceId:intent.choiceId||null}:e),responseHistory:[...resolved.match.responseHistory.slice(0,-1),result]};
- return {...resolved,match:next,result,path,position:path.at(-1)??position};
+ return {...resolved,match:next,result,path:[],position};
 }
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 const BOT_CARD_OPPORTUNITY_COST=25;
@@ -81,6 +117,8 @@ function cardCandidates({scenario,deck,allowedIds,context}){
 }
 
 export function chooseEventIntent({event,scenario,deck,allowedIds=[],match=null,actorId=event?.actorId}){
+ // BONUS tiles resolve on landing, so there is nothing to choose; a FORWARD_2 destination event arrives as its own type.
+ if(event?.type==='BONUS')return null;
  const context=botDecisionContext({match,actorId});
  if(event.type==='ACTION'||event.type==='RISK'){
   const riskDefinition=event.type==='RISK'?EVENT_CATALOG.RISK.find(item=>item.id===event.contentId):null;
