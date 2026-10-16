@@ -1,9 +1,29 @@
 # AI District 2.0 — Project Handoff README
 
 > เอกสารนี้จัดทำเพื่อส่งต่อโปรเจกต์ไปพัฒนาบนเครื่องอื่น หรือให้ AI/Coding Agent ตัวใหม่อ่านก่อนเริ่มแก้โค้ด  
-> อัปเดตล่าสุด: 16 ตุลาคม 2026 (Asia/Bangkok) — Board Rules v2 "ช่องโบนัส" (เปลี่ยนกติกาตามที่เจ้าของอนุมัติ) / ต่อจาก Round 5H โต๊ะไพ่กลางจอ / ไม่มี SQL, Supabase หรือ Deploy
+> อัปเดตล่าสุด: 16 ตุลาคม 2026 (Asia/Bangkok) — Deploy บน Render: Node server ตัวเดียวเสิร์ฟหน้าเว็บ + ห้องออนไลน์ (ดู `DEPLOY_RENDER.md`) / ต่อจาก Board Rules v2
 
 > กติกาการทำงานถาวร: ทุกครั้งที่มีการแก้หรือเพิ่มระบบ ต้องอัปเดตไฟล์ `README.md` นี้ในรอบเดียวกัน โดยระบุสถานะล่าสุด ไฟล์ที่แก้ ผลทดสอบ ข้อจำกัด และงานถัดไปตามจริง
+
+## CURRENT DEMO — Deploy บน Render: หน้าเว็บ + ห้องออนไลน์ใน server เดียว (16 ตุลาคม 2026)
+
+### สถานะ: **READY TO DEPLOY** — เจ้าของจะ Deploy เองตาม `DEPLOY_RENDER.md`
+
+- **ปัญหา:** เมื่อ Deploy แบบ static (`dist/` ผ่าน `.openai/hosting.json`) การสร้างห้องขึ้น `เชื่อมต่อไม่สำเร็จ: Load failed` เพราะหน้าเว็บยิงไปที่ `http://127.0.0.1:4180` และบน hosting ไม่มี room server
+- **แก้แล้ว:**
+  - ใหม่ `scenario-adventure/online-server-url.js`: ถ้าเปิดจาก localhost ที่ไม่ใช่พอร์ต 4180 จะเรียก `:4180` แบบเดิม นอกนั้นเรียก origin เดียวกับหน้าเว็บ (`online-client.js` ใช้ตัวนี้ และยังตั้งที่อยู่ server เองผ่าน sessionStorage ได้เหมือนเดิม)
+  - `scenario-online-server.mjs`:
+    - ใช้ `PORT` ของ hosting และเปิดฟังที่ `0.0.0.0`
+    - รับคำขอจากหน้าเว็บ origin เดียวกันเสมอ (ส่วน origin แปลกหน้ายัง 403)
+    - จำกัดคำขอตาม `X-Forwarded-For` เมื่ออยู่หลัง proxy (`AI_DISTRICT_TRUST_PROXY=1` หรือบน Render)
+    - รูปภาพใช้ cache 1 วัน ส่วน html/js/css ยังเป็น `no-store`
+  - ใหม่ `package.json` (`"type": "module"`, `npm start`), `render.yaml` (Blueprint, rootDir `dist`, health `/api/health`) และคู่มือ `DEPLOY_RENDER.md`
+- **ทดสอบ:**
+  - `node --test` ผ่าน **491/491**
+  - ใหม่ `scenario-online-deploy.test.mjs` (5 เทสต์): URL แบบ same-origin, health, สร้างห้องจาก origin เดียวกันได้และ origin แปลกหน้าถูกปฏิเสธ, เสิร์ฟหน้าเว็บแต่ไม่เสิร์ฟ dotfile/README, rate limit แยกต่อผู้เล่นหลัง proxy
+  - smoke ที่ `dist/` ด้วย `PORT=4183 RENDER=true`: หน้าเว็บหลักและ `/api/health` ได้ 200
+- **ยังไม่ได้ทดสอบ:** การเล่นในเบราว์เซอร์บนโดเมน Render จริง (ต้อง push และ Deploy ก่อน) ดูรายการตรวจหลัง Deploy ใน `DEPLOY_RENDER.md`
+- **ข้อจำกัด:** ห้องอยู่ในหน่วยความจำ จึงหายเมื่อ redeploy, รีสตาร์ท หรือ Free plan หลับ และต้องมี instance เดียว ลิงก์ในอีเมลของ Supabase ต้องเพิ่ม URL ของ Render ใน Auth → URL Configuration
 
 ## CURRENT DEMO — Board Rules v2: ช่องโบนัส (16 ตุลาคม 2026)
 

@@ -1,0 +1,17 @@
+# Render Blueprint: one web service runs scenario-online-server.mjs, which serves the site pages and /api/* together.
+# The shipped copy in dist/ is what gets deployed (same folder the static hosting used).
+services:
+  - type: web
+    name: ai-district
+    runtime: node
+    plan: free
+    rootDir: dist
+    buildCommand: echo "No build step — static ES modules"
+    startCommand: node scenario-online-server.mjs
+    healthCheckPath: /api/health
+    autoDeploy: false
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: AI_DISTRICT_TRUST_PROXY
+        value: "1"

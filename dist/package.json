@@ -1,0 +1,13 @@
+{
+  "name": "ai-district",
+  "private": true,
+  "description": "AI District 2.0 — one Node server serves the pages and the online room API (scenario-online-server.mjs).",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node scenario-online-server.mjs",
+    "test": "node --test"
+  }
+}
